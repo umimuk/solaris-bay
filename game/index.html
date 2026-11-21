@@ -1,19 +1,167 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Block Dodger</title>
-<style>
-  html, body { margin: 0; height: 100%; overflow: hidden; background: #11141b; }
-  #game { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
-  /* Read aloud, never shown: the status line screen readers announce. */
-  #status { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="theme-color" content="#0a1118">
+  <title>SOLARIS BAY — A city with no quiet exits</title>
+  <style>
+    @font-face { font-family: Faster; src: url('./vendor/fonts/FasterOne-Regular.woff2') format('woff2'); }
+    @font-face { font-family: Chakra; src: url('./vendor/fonts/ChakraPetch-SemiBold.woff2') format('woff2'); font-weight: 600; }
+    @font-face { font-family: Chakra; src: url('./vendor/fonts/ChakraPetch-BoldItalic.woff2') format('woff2'); font-weight: 700; font-style: italic; }
+
+    :root {
+      --ink: #08121c;
+      --glass: rgba(5, 13, 22, .78);
+      --line: rgba(185, 224, 238, .36);
+      --gold: #f8b45e;
+      --cyan: #63e0e8;
+      --red: #ff4961;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #111820; color: #eff4f3; font-family: Chakra, Arial, sans-serif; }
+    #view { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+    #hud { position: fixed; z-index: 1; inset: 0; pointer-events: none; text-transform: uppercase; letter-spacing: .1em; text-shadow: 0 2px 9px #000; }
+    #shot-sun { position: fixed; z-index: 0; top: 76px; right: 440px; width: 64px; height: 64px; border-radius: 50%; pointer-events: none; background: radial-gradient(circle, #fff5cf 0 18%, #ffd582 33%, #ff994d 53%, rgba(255,127,70,.24) 70%, transparent 75%); filter: drop-shadow(0 0 22px #ff963f); }
+    #panel-layer { z-index: 3; }
+    #weapon-wheel { z-index: 4; }
+    .hidden { display: none !important; }
+    .hud-top { position: absolute; top: 20px; left: 26px; right: 26px; display: flex; justify-content: space-between; align-items: flex-start; }
+    .brand { font: 30px Faster; letter-spacing: .02em; color: #f4eee0; }
+    .brand i { color: var(--gold); font-style: normal; }
+    .district { margin-top: 4px; color: #b6d5dd; font-size: 11px; letter-spacing: .25em; }
+    .economy { min-width: 150px; padding: 10px 15px; border: 1px solid var(--line); background: var(--glass); backdrop-filter: blur(8px); text-align: right; }
+    .economy strong { display: block; color: #f7c06d; font: italic 700 22px Chakra, sans-serif; }
+    .economy span { color: #91b6c0; font-size: 10px; }
+    .objective { position: absolute; top: 91px; left: 26px; width: min(365px, 42vw); padding: 12px 15px; border-left: 2px solid var(--gold); background: linear-gradient(90deg, var(--glass), transparent); }
+    .eyebrow { color: var(--gold); font-size: 10px; letter-spacing: .2em; }
+    .objective b { display: block; margin: 5px 0 2px; color: #f2f5ef; font-size: 15px; }
+    .objective p { margin: 0; color: #c6d1d0; font-size: 12px; line-height: 1.35; }
+    .wanted { position: absolute; top: 27px; right: 225px; text-align: right; }
+    .wanted span { display: block; color: #f2b859; font-size: 13px; }
+    .wanted strong { color: #ff5268; font-size: 22px; letter-spacing: .14em; }
+
+    /* The map/vitals occupy their own row above the controls at every viewport size. */
+    .bottom-left { position: absolute; left: 26px; bottom: 70px; display: flex; align-items: flex-end; gap: 13px; }
+    .radar-frame { width: 138px; height: 138px; padding: 6px; border: 1px solid var(--line); background: var(--glass); clip-path: polygon(0 0, 100% 0, 100% 86%, 86% 100%, 0 100%); }
+    #radar { width: 100%; height: 100%; opacity: .95; }
+    .vitals { width: 150px; padding: 8px 10px; border: 1px solid var(--line); background: var(--glass); backdrop-filter: blur(8px); }
+    .vitals small { color: #b7c9ca; font-size: 9px; }
+    .bar { height: 4px; margin: 3px 0 8px; background: #27343e; }
+    .bar i { display: block; height: 100%; background: #61e6bb; }
+    .bar.armor i { background: #59bdf1; }
+    .car-hud { position: absolute; right: 31px; bottom: 24px; width: 220px; text-align: right; }
+    .speedline { display: flex; justify-content: flex-end; align-items: baseline; gap: 8px; }
+    .speed { color: #eef5ef; font: italic 700 62px Chakra, sans-serif; line-height: 1; }
+    .unit { color: #a7bbc2; font-size: 12px; }
+    .gear { color: var(--gold); font-size: 16px; }
+    .drift { height: 35px; color: #ffb457; font: italic 700 24px Chakra, sans-serif; text-shadow: 0 0 13px #ff7934; transition: opacity .15s; }
+    .weapon-line { color: #d9e7e4; font: italic 700 12px Chakra,sans-serif; }
+    .weapon-line span { margin-left: 8px; color: #8ea9af; }
+    .radio { position: absolute; right: 30px; bottom: 145px; color: #c6d0cd; font-size: 10px; letter-spacing: .16em; }
+    .controls { position: absolute; left: 26px; bottom: 25px; max-width: calc(100vw - 300px); color: #94a9ab; font-size: 9px; letter-spacing: .12em; }
+    .controls b { margin: 0 4px; color: #e9e8d9; }
+
+    .title-panel, .modal, .map-panel { position: relative; border: 1px solid rgba(214, 228, 221, .35); background: linear-gradient(112deg, rgba(6, 13, 20, .93), rgba(13, 24, 33, .78)); box-shadow: 0 25px 90px #02070bb5; backdrop-filter: blur(12px); clip-path: polygon(0 0, 98% 0, 100% 10%, 100% 100%, 2% 100%, 0 91%); }
+    #panel-layer { position: fixed; inset: 0; display: grid; place-items: center; background: linear-gradient(90deg, rgba(5, 10, 16, .48), rgba(5, 10, 16, .12) 65%, rgba(5, 10, 16, .35)); }
+    .title-panel { width: min(700px, 76vw); padding: 24px 38px 22px; }
+    .title-panel h1 { margin: 8px 0; color: #f8f2e4; font: clamp(57px, 8vw, 104px)/.95 Faster; letter-spacing: .02em; text-shadow: 0 5px 0 #5a453d; }
+    .title-panel h1 i { color: var(--gold); font-style: normal; }
+    .title-panel p { margin: 13px 0 23px; color: #b8c4c2; font-size: 14px; letter-spacing: .26em; }
+    .title-rule { width: 86%; height: 1px; background: linear-gradient(90deg, var(--gold), transparent); }
+    button { padding: 12px 20px; border: 1px solid #dfad72; background: rgba(201, 132, 69, .18); color: #f5eee0; font: 600 13px Chakra; letter-spacing: .12em; cursor: pointer; }
+    button:hover { background: rgba(239, 161, 81, .36); }
+    button b { margin-left: 35px; color: var(--gold); }
+    .title-foot { margin-top: 24px; color: #82989b; font-size: 9px; letter-spacing: .12em; }
+    .title-foot span { margin-left: 17px; }
+    .modal { width: min(560px, 84vw); padding: 28px 34px; }
+    .modal h2, .map-panel h2 { margin: 10px 0 17px; font: 42px Faster; }
+    .modal p { color: #b6c6c7; }
+    .modal button { margin: 9px 8px 0 0; }
+    .map-panel { width: min(1050px, 95vw); padding: 22px 28px; }
+    .map-panel h2 { font-size: 34px; }
+    .map-layout { display: grid; grid-template-columns: 1.2fr .8fr; gap: 20px; }
+    .city-map { position: relative; height: 265px; overflow: hidden; border: 1px solid var(--line); background: linear-gradient(135deg, #164459, #1e5b67 48%, #405663); }
+    .map-water { position: absolute; inset: 68% 0 0; background: linear-gradient(0deg, #184b65, #236075); }
+    .map-road { position: absolute; top: 49%; left: 0; width: 100%; height: 24px; background: #353c41; transform: rotate(-9deg); }
+    .map-label { position: absolute; color: #f0d6a6; font: 18px Faster; text-shadow: 0 1px 7px #000; }
+    .coast { top: 28%; left: 5%; } .downtown { top: 15%; right: 4%; } .docks { bottom: 8%; left: 8%; } .island { right: 7%; bottom: 14%; }
+    .map-pin { position: absolute; top: 45%; left: 49%; color: #7cf0ed; font-size: 9px; }
+    .map-list { height: 265px; overflow: auto; }
+    .mission-row { display: grid; grid-template-columns: 1fr auto; gap: 3px; padding: 7px 9px; border-bottom: 1px solid #ffffff20; color: #91a4a8; }
+    .mission-row small { grid-column: 1 / -1; color: #94afb3; font-size: 9px; }
+    .mission-row b { font-size: 13px; } .mission-row span { align-self: center; font-size: 8px; }
+    .mission-row.active { border-left: 2px solid var(--gold); background: #cf945522; color: #fff; }
+    .map-panel > button { margin-top: 12px; }
+    .garage-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+    .garage-modal p { margin: 16px 0; color: var(--gold); }
+    .result h2 { color: #e9b366; }
+    .wheel-core { position: absolute; top: 50%; left: 50%; display: grid; width: 155px; height: 155px; transform: translate(-50%, -50%); place-content: center; border: 1px solid var(--gold); border-radius: 50%; background: #08121ddd; color: #9eafb2; font-size: 9px; text-align: center; }
+    .wheel-core b { color: #f9cf87; font-size: 13px; }
+    .weapon-option { position: absolute; top: 50%; left: 50%; padding: 12px 17px; transform: translate(-50%, -50%); border: 1px solid var(--line); background: var(--glass); font-size: 11px; white-space: nowrap; }
+    .weapon-option.selected { border-color: var(--gold); color: var(--gold); box-shadow: 0 0 22px #f2a85750; }
+    .weapon-option span { margin-right: 8px; color: #8aa8ac; }
+    #weapon-wheel { position: fixed; inset: 0; pointer-events: none; background: #03080a55; }
+    .shot-hint { position: absolute; top: 120px; right: 30px; color: #aec2c5; font-size: 9px; letter-spacing: .12em; }
+
+    /* Garage keeps 58% of the frame as a live car portrait, with tools on the right. */
+    body.garage-shot #panel-layer { display: block; background: transparent; pointer-events: none; }
+    .garage-screen { position: absolute; inset: 0 0 0 auto; width: 44%; height: 100%; padding: 18px 22px; overflow: auto; pointer-events: auto; clip-path: none; background: linear-gradient(135deg, rgba(5,13,22,.94), rgba(8,22,31,.86)); }
+    .garage-screen h2 { margin: 5px 0 8px; font-size: 27px; }
+    .garage-screen .map-layout { display: block; }
+    .garage-screen .city-map { display: block; width: 100%; height: 166px; border-radius: 2px; }
+    .garage-screen .map-list { display: none; }
+    .garage-tools { padding-top: 12px; }
+    .garage-tools > p { color: var(--gold); font-size: 12px; }
+    .garage-tools button { margin: 3px 3px 3px 0; padding: 7px 9px; font-size: 9px; }
+    .garage-grid button { min-width: 31%; border-color: #ffffff35; }
+    .garage-tools > p { margin: 5px 0; font: italic 700 12px Chakra, sans-serif; }
+    #shot-reticle { position: fixed; left: 50%; top: 50%; transform: translate(-50%,-50%); z-index: 5; color: #e7f4ea; font: 30px Chakra,sans-serif; text-shadow: 0 0 6px #14242a; pointer-events: none; }
+    .combat-shot #weapon-wheel { inset: auto 14px 74px auto; width: 250px; height: 98px; background: transparent; }
+    .combat-weapon-panel { display: grid; gap: 5px; padding: 11px 13px; border: 1px solid #e5bd79a6; background: rgba(5,13,22,.82); box-shadow: 0 0 18px #e29d3b30; color: #d9e7e4; text-align: right; }
+    .combat-weapon-panel span { color: #f5b95c; font-size: 9px; letter-spacing: .18em; }
+    .combat-weapon-panel b { font: italic 700 16px Chakra,sans-serif; color: #fff0cf; }
+    .combat-weapon-panel small { font-size: 8px; color: #a9bec2; letter-spacing: .04em; }
+    body.garage-shot #hud .hud-top, body.garage-shot #hud .objective,
+    body.garage-shot #hud .bottom-left, body.garage-shot #hud .controls,
+    body.garage-shot #hud .radio { display: none; }
+    body.garage-shot #hud .car-hud { display: none; }
+    body.combat-shot #hud .car-hud { display: block; right: 24px; bottom: 22px; width: 250px; }
+    body.combat-shot #hud .car-hud .drift, body.combat-shot #hud .car-hud .speedline { display: none; }
+
+    @media (max-width: 700px) {
+      .wanted { top: 90px; right: 23px; } .economy { min-width: 110px; }
+      .bottom-left { bottom: 52px; left: 10px; gap: 7px; }
+      .radar-frame { width: 100px; height: 100px; } .vitals { width: 104px; }
+      .car-hud { right: 12px; bottom: 12px; width: 150px; } .speed { font-size: 48px; }
+      .controls { right: 10px; bottom: 10px; left: 10px; max-width: none; font-size: 8px; }
+      .objective { top: 85px; left: 12px; } .map-layout { grid-template-columns: 1fr; }
+      .map-list { display: none; }
+      .garage-screen { width: 55%; padding: 16px; }
+      .garage-screen .city-map, .garage-screen .mission-row { display: none; }
+      body.garage-shot #hud .car-hud { right: 57%; }
+    }
+  </style>
 </head>
 <body>
-<canvas id="game" aria-label="Block Dodger: move the paddle left and right to dodge falling blocks and catch coins"></canvas>
-<p id="status" role="status" aria-live="polite"></p>
-<script type="module" src="./src/main.js"></script>
+  <canvas id="view" aria-label="SOLARIS BAY 3D open world crime and street drift game"></canvas>
+  <div id="hud" class="hidden">
+    <div class="hud-top">
+      <div><div class="brand">SOLARIS <i>BAY</i></div><div id="district" class="district">SUNSET COAST</div></div>
+      <div class="wanted"><span>SBPD • WANTED</span><strong id="stars">☆☆☆☆☆</strong></div>
+      <div class="economy"><strong id="cash">$2,500</strong><span id="respect">REP 000</span></div>
+    </div>
+    <div class="objective"><div id="mission-id" class="eyebrow">MISSION 01</div><b>ACTIVE CONTRACT</b><p id="objective"></p></div>
+    <div class="bottom-left">
+      <div class="radar-frame"><canvas id="radar" width="126" height="126"></canvas></div>
+      <div class="vitals"><small>VITALITY</small><div class="bar"><i id="health-fill" style="width:100%"></i></div><small>ARMOR</small><div class="bar armor"><i id="armor-fill" style="width:65%"></i></div></div>
+    </div>
+    <div class="controls"><b>WASD</b> DRIVE <b>SPACE</b> DRIFT <b>E</b> EXIT / INTERACT <b>F</b> CARJACK <b>M</b> CITY MAP <b>R</b> WEATHER <b>N</b> RADIO</div>
+    <div class="radio" id="radio">FM 93.7 • SUNSET SYNTH</div>
+    <div class="car-hud"><div id="drift" class="drift"></div><div class="speedline"><span id="gear" class="gear">1</span><strong id="speed" class="speed">000</strong><span class="unit">KM/H</span></div><div class="weapon-line" id="weapon">9MM PISTOL <span id="ammo">126 / ∞</span></div></div>
+  </div>
+  <div id="panel-layer"></div>
+  <div id="weapon-wheel" class="hidden"></div>
+  <script type="module" src="./src/main.js"></script>
 </body>
 </html>

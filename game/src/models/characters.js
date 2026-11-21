@@ -1,0 +1,38 @@
+import * as THREE from '../../vendor/three.module.min.js';
+
+const fabric = (color, roughness = 0.8) => new THREE.MeshStandardMaterial({ color, roughness });
+function capsule(group, material, position, radius, length) { const mesh = new THREE.Mesh(new THREE.CapsuleGeometry(radius, length, 5, 9), material); mesh.position.set(...position); group.add(mesh); return mesh; }
+
+/** Articulated low-poly street characters and tactical rifle silhouettes. */
+export function createCharacter(role = 'protagonist', seed = 1) {
+  const palette = role === 'officer' ? 0x344b60 : role === 'syndicate' ? 0x242932 : role === 'pedestrian' ? 0x6a5048 : 0x294c50;
+  const skin = fabric(0xb77f62); const jacket = fabric(palette); const pants = fabric(role === 'syndicate' ? 0x14191f : 0x202a34); const boot = fabric(0x101316);
+  const group = new THREE.Group(); group.userData = { role, phase: seed * 0.6, limbs: [] };
+  capsule(group, pants, [0, 0.5, 0], 0.2, 0.4); capsule(group, jacket, [0, 1.16, 0], 0.34, 0.38);
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.22, 14, 11), skin); head.position.set(0.06, 1.72, 0); group.add(head);
+  const hair = new THREE.Mesh(new THREE.SphereGeometry(0.235, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.55), fabric(role === 'officer' ? 0x19222b : 0x17191e)); hair.position.set(0.05, 1.8, 0); group.add(hair);
+  if (role === 'officer') { const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.12, 12), fabric(0x152130)); cap.position.y = 1.96; group.add(cap); }
+  if (role === 'syndicate' || role === 'officer') { const vest = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.55, 0.38), fabric(role === 'officer' ? 0x283f51 : 0x171c22)); vest.position.set(0, 1.18, 0); group.add(vest); }
+  const belt = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.12, 0.38), fabric(0x121619)); belt.position.y = 0.91; group.add(belt);
+  for (const x of [-0.14, 0.14]) { capsule(group, pants, [x, 0.26, 0], 0.11, 0.34); const foot = new THREE.Mesh(new THREE.BoxGeometry(0.19, 0.12, 0.32), boot); foot.position.set(x, 0.055, 0.08); group.add(foot); }
+  const glasses = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.07, 0.09), fabric(0x101519)); glasses.position.set(0.17, 1.74, 0); group.add(glasses);
+  for (const x of [-0.38, 0.38]) {
+    const arm = capsule(group, jacket, [x, 1.17, -0.04], 0.12, 0.42); arm.rotation.z = x > 0 ? -0.36 : 0.36; group.userData.limbs.push(arm);
+  }
+  if (role === 'protagonist' || role === 'syndicate') {
+    // Rifle has stock, receiver, barrel, foregrip and optic; hands sit on the weapon.
+    const rifle = new THREE.Group(); const dark = fabric(0x252b2e, 0.35); const metal = fabric(0x657076, 0.32);
+    const receiver = new THREE.Mesh(new THREE.BoxGeometry(0.72, 0.13, 0.15), dark); rifle.add(receiver);
+    const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.035, 0.65, 8), metal); barrel.rotation.z = Math.PI / 2; barrel.position.x = 0.58; rifle.add(barrel);
+    const stock = new THREE.Mesh(new THREE.BoxGeometry(0.27, 0.11, 0.12), dark); stock.position.x = -0.44; rifle.add(stock);
+    const grip = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.25, 0.12), dark); grip.position.set(-0.1, -0.16, 0); grip.rotation.z = -0.18; rifle.add(grip);
+    const optic = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.12, 0.11), metal); optic.position.set(0.03, 0.12, 0); rifle.add(optic);
+    rifle.position.set(0.34, 1.04, 0.04); group.add(rifle); group.userData.weapon = rifle;
+    for (const x of [0.18, 0.62]) { const glove = new THREE.Mesh(new THREE.SphereGeometry(0.105, 8, 7), fabric(0x27282a)); glove.position.set(x, 0.99, 0.05); group.add(glove); }
+  }
+  return group;
+}
+
+export function animateCharacter(character, time, moving = true) {
+  for (let i = 0; i < character.userData.limbs.length; i++) character.userData.limbs[i].rotation.x = moving ? Math.sin(time * 8 + i * Math.PI) * 0.42 : 0;
+}

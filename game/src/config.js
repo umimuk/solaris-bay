@@ -1,61 +1,13 @@
-// Every tuning number and colour in one place. The playfield is a fixed 1280x720 logical area;
-// the renderer scales it to the window, so no rule below depends on the screen size.
-
-export const FIELD = { width: 1280, height: 720, groundY: 664 };
-
-/** The simulation's fixed step, in seconds: 60 updates a second whatever the display's rate. */
-export const STEP = 1 / 60;
-
-export const PLAYER = {
-  width: 72,
-  height: 24,
-  speed: 560,
-  invulnerable: 1.5,
-};
-
-export const LIVES = 3;
-
-export const BLOCK = {
-  minWidth: 40,
-  maxWidth: 110,
-  height: 36,
-  speed: 240,
-  speedPerLevel: 30,
-  speedJitter: 90,
-  interval: 0.55,
-  intervalScale: 0.88,
-  minInterval: 0.14,
-  dodgePoints: 1,
-};
-
-export const COIN = {
-  size: 24,
-  speed: 190,
-  speedPerLevel: 14,
-  interval: 1.4,
-  intervalJitter: 0.8,
-  points: 10,
-};
-
-/** Seconds of play per level, and the last level: speeds and spawn rates stop growing there. */
-export const LEVEL = { seconds: 12, max: 12 };
-
-/** How many falling things can exist at once; the pool is allocated once, at boot. */
-export const POOL_SIZE = 64;
-
-export const PALETTE = {
-  backdrop: '#11141b',
-  sky: '#1b1f2a',
-  ground: '#2a3040',
-  player: '#4fc3f7',
-  block: '#e5534b',
-  coin: '#f2c94c',
-  panel: '#252b38',
-  text: '#eef1f5',
-  muted: '#8b93a3',
-};
-
-export const FONT = 'system-ui, -apple-system, "Segoe UI", sans-serif';
-
-/** Where the best score is kept between visits (this browser only). */
-export const BEST_KEY = 'block-dodger.best';
+export const CITY = { name: 'Solaris Bay', width: 900, length: 900, districts: ['SUNSET COAST', 'NEON DOWNTOWN', 'HARBOR DOCKS', 'CORAL ISLAND'] };
+export const PHYSICS = { acceleration: 25, maxSpeed: 74, reverse: 20, grip: 2.8, driftGrip: 0.68, turn: 1.55 };
+export const PALETTE = { ink: '#08121c', glass: 'rgba(5,13,22,.78)', line: 'rgba(185,224,238,.35)', gold: '#f8b45e', cyan: '#63e0e8', red: '#ff4961', blue: '#4e9dff' };
+export const MISSIONS = [
+  ['01', 'LAST LIGHT', 'Recover Niko Vale’s getaway coupe on Sunset Coast.', 'SUNSET COAST'],
+  ['02', 'APEX HOUR', 'Hold the line through the hotel hairpin. Drift score 1,200.', 'SUNSET COAST'],
+  ['03', 'LOW TIDE', 'Break the syndicate lock at Pier 9.', 'HARBOR DOCKS'],
+  ['04', 'GHOST FREIGHT', 'Intercept the armored convoy before the bridge.', 'NEON DOWNTOWN'],
+  ['05', 'CAUSEWAY', 'Push through the SBPD roadblock to Coral Island.', 'NEON DOWNTOWN'],
+  ['06', 'BLUE ROOM', 'Escort Mara Sol to the island safehouse.', 'CORAL ISLAND'],
+  ['07', 'DEEP CURRENT', 'Clear the warehouse and find the ledger.', 'HARBOR DOCKS'],
+  ['08', 'SOLAR FLARE', 'Escape the vault as the whole bay closes in.', 'CORAL ISLAND']
+];
