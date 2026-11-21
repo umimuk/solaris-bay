@@ -21,7 +21,7 @@ function stageDrift(game) {
   car.userData.steer = -0.75;
   for (const wheel of car.userData.wheels) if (wheel.front) wheel.pivot.rotation.y = -0.62;
   world.district = 'SUNSET COAST';
-  for (const [index, t] of [0.61, 0.68].entries()) {
+  for (const [index, t] of [0.555, 0.59].entries()) {
     const civilian = city.traffic[index]; const p = city.coastCurve.getPoint(t); const direction = city.coastCurve.getTangent(t);
     civilian.position.set(p.x, 0.12, p.z); civilian.rotation.y = Math.atan2(-direction.z, direction.x); civilian.visible = true;
   }
@@ -34,17 +34,38 @@ function stageDrift(game) {
     mark.rotation.set(-Math.PI / 2, 0, -state.yaw); mark.position.copy(rear).addScaledVector(forward, -t * 0.95).addScaledVector(side, wheelSide * 0.72 + Math.sin(t * 8) * 0.26); mark.position.y = 0.06; game.scene.add(mark);
   }
   // Each burst originates at a rear contact patch and fans backward/outward in car space.
+  // Real drift loads the outside rear tire much harder. Bias the spray toward
+  // the outside of the curve and keep a smaller ember scatter on the inside.
+  const outsideSide = state.yaw > roadYaw ? 1 : -1;
   for (const wheelSide of [-1, 1]) {
     const origin = rear.clone().addScaledVector(side, wheelSide * 0.82).add(new THREE.Vector3(0, 0.2, 0));
-    drive.burst(origin, 'sparks', 62);
-    for (let i = 0; i < 9; i++) drive.burst(origin.clone().add(new THREE.Vector3(0, 0.1 * i, 0)), 'smoke', 1);
-    for (let i = 0; i < 56; i++) {
-      const fan = Math.sin(i * 12.9898) * 0.5 + 0.5;
-      const direction = forward.clone().multiplyScalar(-0.62).addScaledVector(side, wheelSide * (0.35 + fan * 0.7)).add(new THREE.Vector3(0, 0.2 + fan * 0.6, 0)).normalize();
-      const length = 1.2 + fan * 1.6;
-      const streak = new THREE.Mesh(new THREE.CylinderGeometry(0.025 + fan * 0.015, 0.04 + fan * 0.02, length, 5), new THREE.MeshBasicMaterial({ color: i % 5 === 0 ? 0xfff9dc : i % 2 ? 0xff9d1c : 0xff5a14, transparent: true, opacity: 0.98, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
-      streak.position.copy(origin).addScaledVector(direction, length * 0.52); streak.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), direction); game.scene.add(streak);
+    const outside = wheelSide === outsideSide;
+    for (let i = 0; i < (outside ? 86 : 14); i++) {
+      const seed = (i + 1) * (outside ? 19.731 : 37.117) + (outside ? 3 : 11);
+      const rand = (n) => { const v = Math.sin(seed + n * 78.233) * 43758.5453; return v - Math.floor(v); };
+      const fan = rand(1);
+      const direction = forward.clone().multiplyScalar(-0.9 - rand(2) * 0.5)
+        .addScaledVector(side, outsideSide * (0.48 + fan * (outside ? 1.2 : 0.45)))
+        .add(new THREE.Vector3(0, 0.08 + rand(3) * 0.76, 0)).normalize();
+      const length = 0.4 + rand(4) * 2.2;
+      const start = origin.clone().addScaledVector(direction, rand(5) * 0.5);
+      const streak = new THREE.Mesh(new THREE.CylinderGeometry(0.012 + rand(6) * 0.018, 0.025 + rand(7) * 0.035, length, 5), new THREE.MeshBasicMaterial({ color: i % 5 === 0 ? 0xfff7d8 : i % 2 ? 0xffa12b : 0xff5b19, transparent: true, opacity: 0.96, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
+      streak.position.copy(start).addScaledVector(direction, length * 0.5); streak.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), direction); game.scene.add(streak);
+      if (i % 4 === 0) {
+        const core = new THREE.Mesh(new THREE.SphereGeometry(0.045 + rand(8) * 0.035, 7, 6), new THREE.MeshBasicMaterial({ color: 0xfff3cf, blending: THREE.AdditiveBlending, toneMapped: false }));
+        core.position.copy(start).addScaledVector(direction, length); game.scene.add(core);
+      }
     }
+    // Soft, layered tire smoke trails follow the same asymmetric drift arc.
+    for (let i = 0; i < (outside ? 12 : 7); i++) {
+      const puffPosition = origin.clone().addScaledVector(forward, -i * 0.62).addScaledVector(side, outsideSide * i * 0.2);
+      puffPosition.y += 0.22 + i * 0.09;
+      const puff = new THREE.Mesh(new THREE.SphereGeometry(0.34 + i * 0.045, 12, 9), new THREE.MeshBasicMaterial({ color: 0x9c7768, transparent: true, opacity: 0.16 - i * 0.004, depthWrite: false, toneMapped: false }));
+      puff.position.copy(puffPosition); puff.scale.set(1.25, 0.8 + i * 0.025, 1.15); game.scene.add(puff);
+    }
+  }
+  for (const [index, civilian] of [city.traffic[0], city.traffic[1]].entries()) {
+    civilian.userData.paintMaterial?.color.setHex(index ? 0xb89a65 : 0xd9e2e5);
   }
   // Freeze particles at capture time so the dense fan survives the screenshot pass.
   for (const pedestrian of pedestrians.list) {
@@ -52,7 +73,7 @@ function stageDrift(game) {
   }
   world.shotMissionId = 'MISSION 01 / LAST LIGHT'; world.shotObjective = 'DRIFT THE COAST BEFORE THE SUN GOES DOWN.';
   for (const marker of game.missionMarkers) marker.visible = false;
-  setCamera(game, [car.position.x - Math.cos(state.yaw) * 10.5 - Math.sin(state.yaw) * 3.0, 5.2, car.position.z + Math.sin(state.yaw) * 10.5 - Math.cos(state.yaw) * 3.0], [car.position.x + forward.x * 1.0, 0.9, car.position.z + forward.z * 1.0], 62);
+  setCamera(game, [car.position.x - Math.cos(state.yaw) * 7.0 - Math.sin(state.yaw) * 2.2, 3.45, car.position.z + Math.sin(state.yaw) * 7.0 - Math.cos(state.yaw) * 2.2], [car.position.x + forward.x * 3.6, 0.9, car.position.z + forward.z * 3.6], 62);
   const look = game.shotCamera.target.clone().sub(game.shotCamera.position).normalize();
   game.sky.dome.material.uniforms.sunDirection.value.set(-look.z, 0.16, look.x).normalize();
   const right = new THREE.Vector3(-look.z, 0, look.x).normalize();
@@ -78,16 +99,20 @@ function stageChase(game) {
   city.swat.visible = true; city.swat.position.set(277, 0.12, 159);
   for (let i = 0; i < city.police.length; i++) {
     const patrol = city.police[i]; patrol.visible = true;
-    patrol.position.set([229, 240, 264, 275][i], 0.12, [141, 171, 139, 173][i]); patrol.rotation.y = i % 2 ? -0.12 : 0.18;
+    patrol.position.set([242, 258, 271, 276][i], 0.12, [145, 164, 143, 167][i]); patrol.rotation.y = i % 2 ? -0.12 : 0.18;
   }
-  city.helicopter.visible = true; city.helicopter.position.set(237, 12, 124); city.helicopter.rotation.y = Math.PI * 0.5;
+  city.helicopter.visible = true; city.helicopter.position.set(270, 22, 157); city.helicopter.rotation.y = 3.04;
+  city.helicopter.userData.stagedShot = true;
+  city.helicopter.userData.callsign.visible = true;
   city.helicopter.userData.mainRotor.rotation.y = 0.7; city.helicopter.userData.tailRotor.rotation.x = 0.9;
-  city.helicopter.userData.cone.position.set(0.7, -6, 0); city.helicopter.userData.cone.scale.setScalar(0.55);
-  city.helicopter.userData.groundPool.position.set(0.7, -11.8, 0);
-  city.helicopter.userData.target.position.set(0.7, -11.5, 0);
+  city.helicopter.userData.cone.position.set(0.7, -13, 0); city.helicopter.userData.cone.scale.set(1.15, 1.3, 1.15); city.helicopter.userData.cone.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0.65, -0.76, 0).normalize());
+  city.helicopter.userData.groundPool.position.set(20, -21, 0);
+  city.helicopter.userData.target.position.set(20, -21, 0);
+  city.helicopter.userData.search.position.set(0.6, -0.5, 0);
+  city.helicopter.userData.whiteStrobe.intensity = 18;
   for (const marker of game.missionMarkers) marker.visible = false;
   game.missions.cash = 14800; game.missions.respect = 420;
-  setCamera(game, [239, 5.8, 164], [256, 3.0, 155], 55);
+  setCamera(game, [236, 6.4, 166], [258, 9, 153], 58);
 }
 
 function stageCombat(game) {

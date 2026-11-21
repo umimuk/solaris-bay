@@ -68,6 +68,7 @@ export function createHud() {
       const reserve = combat.reserve?.[combat.weapon - 1] ?? '∞';
       setText('ammo', `${combat.ammo} / ${reserve}`);
       setText('radio', `FM 93.7 • ${window.solRadio || 'SUNSET SYNTH'}`);
+      if (elements.radio) elements.radio.style.display = combat.wheel || !drive.state.active ? 'none' : '';
       if (radarContext) {
         drawMap(radarContext, drive.state.car.position, drive.state.yaw, city, police, missions.index, mode);
       }

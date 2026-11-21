@@ -105,6 +105,21 @@ export function createCity(scene, seed = 1) {
     addBuilding(root, x, z, w, h, d, buildingMats[Math.floor(random() * buildingMats.length)], neon[i % neon.length], i % 9 === 0 ? ['SOLARA','APEX CLUB','BAY MARINA','PALM HOTEL','SUNSET LOUNGE'][Math.floor(i / 9)] : '');
   }
 
+  // Dense neon frontage flanks the pursuit boulevard on both sidewalks.
+  const neonNames = ['NOVA', '24HR', 'LUX', 'BAY', 'VOLT', 'MIRAGE'];
+  for (let i = 0; i < 11; i++) {
+    const x = 188 + i * 19;
+    for (const [side, z] of [[-1, 132], [1, 179]]) {
+      const h = 28 + ((i * 17 + (side > 0 ? 9 : 0)) % 38);
+      const accent = neon[(i + (side > 0 ? 1 : 0)) % neon.length];
+      addBuilding(root, x + (side > 0 ? 5 : 0), z, 15 + (i % 3) * 2, h, 17, buildingMats[(i + (side > 0 ? 2 : 0)) % buildingMats.length], accent, neonNames[i % neonNames.length]);
+      const sign = createSign(neonNames[(i + 2) % neonNames.length], [0x35eaff, 0xff3eb5, 0xffb552][i % 3]);
+      sign.position.set(x + (side > 0 ? 5 : 0), 9 + (i % 3) * 3, z + (side > 0 ? -9 : 9));
+      sign.rotation.y = side > 0 ? Math.PI : 0;
+      root.add(sign);
+    }
+  }
+
   // Sunset hotel row, softly lit gardens, palms, and beach promenade visitors.
   for (let i = 0; i < 5; i++) {
     const x = -414 + i * 55; const h = 26 + (i % 2) * 11;

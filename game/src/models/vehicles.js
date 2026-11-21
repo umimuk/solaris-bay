@@ -105,8 +105,9 @@ export function createVehicle(type = 0, paint = null) {
     for (const side of [-1, 1]) {
       const z = side * (width * 0.53);
       const arch = new THREE.Mesh(new THREE.TorusGeometry(0.47, 0.09, 8, 24, Math.PI), body);
-      arch.rotation.set(Math.PI / 2, 0, Math.PI);
-      arch.position.set(x, 0.45, z);
+      // TorusGeometry is already in the wheel's vertical XY plane (the axle is Z).
+      // Rotating it around X laid the arch flat like a hoop on top of the tire.
+      arch.position.set(x, 0.62, z * 0.94);
       root.add(arch);
       root.userData.wheels.push(makeWheel(root, x, z, materials, x > 0));
     }
@@ -160,7 +161,7 @@ export function updateVehicle(vehicle, dt, speed, steer, braking) {
 /** Tactical helicopter with rotors, nav lamps, volumetric search beam and ground pool. */
 export function createHelicopter() {
   const group = new THREE.Group();
-  const fuselage = standard(0x17232c, { metalness: 0.55, roughness: 0.36 });
+  const fuselage = standard(0x344854, { metalness: 0.55, roughness: 0.36 });
   const metal = standard(0x9ba8a7, { metalness: 0.78 });
   box(group, fuselage, [0, 0, 0], [3.6, 1.18, 1.42]);
   const nose = new THREE.Mesh(new THREE.SphereGeometry(0.78, 18, 12), standard(0x183f52, { metalness: 0.5, roughness: 0.12 }));
@@ -175,12 +176,23 @@ export function createHelicopter() {
   tailRotor.position.set(-4.22, 0.38, 0.28); group.add(tailRotor);
   const beacon = new THREE.PointLight(0xff273b, 9, 18); beacon.position.set(-0.7, 0.8, 0); group.add(beacon);
   const green = new THREE.PointLight(0x35ff8a, 8, 15); green.position.set(0.2, 0.2, 0.8); group.add(green);
+  const whiteStrobe = new THREE.PointLight(0xf2f8ff, 0, 22); whiteStrobe.position.set(1.15, 0.9, 0); group.add(whiteStrobe);
+  const redLamp = new THREE.Mesh(new THREE.SphereGeometry(0.15, 10, 8), standard(0xff2439, { emissive: 0xff1028, emissiveIntensity: 4.5 })); redLamp.position.copy(beacon.position); group.add(redLamp);
+  const whiteLamp = new THREE.Mesh(new THREE.SphereGeometry(0.13, 10, 8), standard(0xf5fbff, { emissive: 0xe6f5ff, emissiveIntensity: 0.2 })); whiteLamp.position.copy(whiteStrobe.position); group.add(whiteLamp);
+  const labelCanvas = document.createElement('canvas'); labelCanvas.width = 512; labelCanvas.height = 112;
+  const labelContext = labelCanvas.getContext('2d');
+  labelContext.fillStyle = 'rgba(5, 15, 24, .9)'; labelContext.fillRect(2, 2, 508, 108);
+  labelContext.strokeStyle = '#73eaff'; labelContext.lineWidth = 5; labelContext.strokeRect(4, 4, 504, 104);
+  labelContext.font = '700 70px Arial'; labelContext.textAlign = 'center'; labelContext.textBaseline = 'middle';
+  labelContext.fillStyle = '#f6fbff'; labelContext.shadowColor = '#32dff8'; labelContext.shadowBlur = 16; labelContext.fillText('CONDOR-1', 256, 58);
+  const callsign = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(labelCanvas), transparent: true, depthTest: false, toneMapped: false }));
+  callsign.position.set(0, 3.6, 0); callsign.scale.set(7, 1.54, 1); callsign.visible = false; group.add(callsign);
   const cone = new THREE.Mesh(new THREE.ConeGeometry(4.5, 26, 28, 1, true), new THREE.MeshBasicMaterial({ color: 0xf7fbff, transparent: true, opacity: 0.24, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
   cone.position.set(0.7, -13, 0); cone.rotation.z = Math.PI; group.add(cone);
   const groundPool = new THREE.Mesh(new THREE.CircleGeometry(5.3, 32), new THREE.MeshBasicMaterial({ color: 0xffefc2, transparent: true, opacity: 0.45, blending: THREE.AdditiveBlending, depthWrite: false }));
   groundPool.rotation.x = -Math.PI / 2; groundPool.position.set(0.7, -26, 0); group.add(groundPool);
   const search = new THREE.SpotLight(0xfff3d4, 95, 150, Math.PI / 9, 0.5, 1.1);
   const target = new THREE.Object3D(); search.position.set(0.6, -0.5, 0); target.position.set(0.7, -28, 0); group.add(search, target); search.target = target;
-  group.userData = { mainRotor, tailRotor, cone, groundPool, search, target };
+  group.userData = { mainRotor, tailRotor, cone, groundPool, search, target, beacon, whiteStrobe, redLamp, whiteLamp, callsign };
   return group;
 }

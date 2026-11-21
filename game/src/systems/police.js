@@ -59,19 +59,21 @@ export function createPolice(city) {
 
       city.helicopter.visible = this.wanted >= 5;
       if (city.helicopter.visible) {
-        city.helicopter.position.set(
-          playerPosition.x + Math.sin(this.phase * 0.19) * 22,
-          68 + Math.sin(this.phase * 0.55) * 2.5,
-          playerPosition.z + Math.cos(this.phase * 0.19) * 25,
-        );
+        if (!city.helicopter.userData.stagedShot) {
+          city.helicopter.position.set(
+            playerPosition.x + Math.sin(this.phase * 0.19) * 22,
+            68 + Math.sin(this.phase * 0.55) * 2.5,
+            playerPosition.z + Math.cos(this.phase * 0.19) * 25,
+          );
+          city.helicopter.userData.target.position.set(
+            Math.sin(this.phase * 0.65) * 25,
+            -city.helicopter.position.y + 0.45,
+            Math.cos(this.phase * 0.65) * 25,
+          );
+          city.helicopter.userData.groundPool.position.y = -city.helicopter.position.y + 0.12;
+        }
         city.helicopter.userData.mainRotor.rotation.y += dt * 16;
         city.helicopter.userData.tailRotor.rotation.x += dt * 20;
-        city.helicopter.userData.target.position.set(
-          Math.sin(this.phase * 0.65) * 25,
-          -city.helicopter.position.y + 0.45,
-          Math.cos(this.phase * 0.65) * 25,
-        );
-        city.helicopter.userData.groundPool.position.y = -city.helicopter.position.y + 0.12;
       }
     },
   };

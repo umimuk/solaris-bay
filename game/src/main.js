@@ -427,6 +427,11 @@ if (params.has('shot')) {
     if (params.get('shot') === 'chase') {
       city.helicopter.userData.mainRotor.rotation.y += 0.42;
       city.helicopter.userData.tailRotor.rotation.x += 0.55;
+      const aviationFlash = Math.sin(performance.now() / 95);
+      city.helicopter.userData.beacon.intensity = aviationFlash > 0.2 ? 18 : 1;
+      city.helicopter.userData.redLamp.material.emissiveIntensity = aviationFlash > 0.2 ? 7 : 0.4;
+      city.helicopter.userData.whiteStrobe.intensity = aviationFlash < -0.45 ? 24 : 0;
+      city.helicopter.userData.whiteLamp.material.emissiveIntensity = aviationFlash < -0.45 ? 8 : 0.25;
       const flash = Math.sin(performance.now() / 72);
       city.police.forEach((vehicle, index) => {
         vehicle.userData.policePoints.forEach((light, side) => { light.intensity = Math.max(0, flash * (side ? -1 : 1)) * 30; });
