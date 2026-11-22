@@ -11,6 +11,8 @@ export function createHud() {
     HUD_IDS.map((id) => [id, document.getElementById(id)]),
   );
   const radarContext = elements.radar?.getContext?.('2d') ?? null;
+  const slots = [...document.querySelectorAll('.loadout [data-weapon]')];
+  const dispatchRanges = Object.fromEntries([...document.querySelectorAll('[data-range]')].map((element) => [element.dataset.range, element]));
 
   function setText(id, value) {
     const element = elements[id];
@@ -67,7 +69,19 @@ export function createHud() {
       if (weaponElement?.firstChild) weaponElement.firstChild.textContent = `${combat.weapons[combat.weapon - 1] || 'UNARMED'} `;
       const reserve = combat.reserve?.[combat.weapon - 1] ?? '∞';
       setText('ammo', `${combat.ammo} / ${reserve}`);
-      setText('radio', `FM 93.7 • ${window.solRadio || 'SUNSET SYNTH'}`);
+      slots.forEach((slot, index) => {
+        const ammo = combat.ammoByWeapon?.[index] ?? 0;
+        const labels = ['PISTOL','SMG','SHOTGUN','RIFLE','KNIFE'];
+        slot.classList.toggle('active', combat.weapon === index + 1);
+        slot.textContent = `${index + 1} ${labels[index]} ${ammo}`;
+      });
+      const playerPosition = drive.state.car.position;
+      const range = (object) => object?.position ? `${Math.round(playerPosition.distanceTo(object.position))}m` : '—';
+      if (dispatchRanges.heli) dispatchRanges.heli.textContent = range(city?.helicopter);
+      if (dispatchRanges.unit1) dispatchRanges.unit1.textContent = range(city?.police?.[0]);
+      if (dispatchRanges.unit2) dispatchRanges.unit2.textContent = range(city?.police?.[1]);
+      if (dispatchRanges.roadblock) dispatchRanges.roadblock.textContent = range(city?.roadblock);
+      setText('radio', world.shotRadio || `FM 93.7 • ${window.solRadio || 'SUNSET SYNTH'}`);
       if (elements.radio) elements.radio.style.display = combat.wheel || !drive.state.active ? 'none' : '';
       if (radarContext) {
         drawMap(radarContext, drive.state.car.position, drive.state.yaw, city, police, missions.index, mode);
@@ -119,7 +133,7 @@ function drawMap(context, position, yaw, city, police, mission, mode) {
   });
   const pulse = 3 + Math.sin(performance.now() / 180) * 1.1;
   for (let i = 0; i < (police?.wanted || 0); i++) { const angle = i * Math.PI * 2 / Math.max(1, police.wanted) + performance.now() / 1600; context.fillStyle = i % 2 ? '#438dff' : '#ff3d59'; context.beginPath(); context.arc(x + Math.cos(angle) * 19 * scale, y + Math.sin(angle) * 19 * scale, pulse * scale, 0, Math.PI * 2); context.fill(); }
-  if (missionsIndexToWaypoint(mission)) { const [mx, my] = worldToRadar(...missionsIndexToWaypoint(mission)); context.fillStyle = '#ffcd68'; context.beginPath(); context.arc(mx, my, 3 * scale, 0, Math.PI * 2); context.fill(); }
+  if (missionsIndexToWaypoint(mission)) { const [mx, my] = worldToRadar(...missionsIndexToWaypoint(mission)); context.save(); context.strokeStyle = 'rgba(255,199,89,.85)'; context.lineWidth = 1.7 * scale; context.setLineDash([4 * scale, 3 * scale]); context.beginPath(); context.moveTo(width / 2, height / 2); context.lineTo(mx, my); context.stroke(); context.restore(); context.fillStyle = '#ffcd68'; context.beginPath(); context.arc(mx, my, 3 * scale, 0, Math.PI * 2); context.fill(); }
 }
 
 function missionsIndexToWaypoint(index) {

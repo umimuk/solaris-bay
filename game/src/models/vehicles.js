@@ -9,9 +9,21 @@ export const VEHICLE_TYPES = [
   { name: 'CITY SEDAN', color: 0x647583, kind: 'sedan' },
   { name: 'SBPD INTERCEPTOR', color: 0xd8d9d4, kind: 'police', police: true },
   { name: 'SBPD RESPONSE', color: 0x222d37, kind: 'swat', police: true },
+  { name: 'STREET MOTO', color: 0x2e8586, kind: 'motorcycle' },
 ];
 
 const standard = (color, options = {}) => new THREE.MeshStandardMaterial({ color, roughness: 0.35, metalness: 0.42, ...options });
+const glowMaps = new Map();
+function glowMap(color) {
+  if (glowMaps.has(color)) return glowMaps.get(color);
+  const canvas = document.createElement('canvas'); canvas.width = 96; canvas.height = 96;
+  const ctx = canvas.getContext('2d'); const gradient = ctx.createRadialGradient(48,48,2,48,48,47);
+  gradient.addColorStop(0, '#ffffff'); gradient.addColorStop(.14, `#${color.toString(16).padStart(6,'0')}`); gradient.addColorStop(.48, `rgba(${(color>>16)&255},${(color>>8)&255},${color&255},.32)`); gradient.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle=gradient;ctx.fillRect(0,0,96,96);const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;glowMaps.set(color,texture);return texture;
+}
+export function createGlowSprite(color, opacity = 0.62) {
+  return new THREE.Sprite(new THREE.SpriteMaterial({ map: glowMap(color), color: 0xffffff, transparent: true, opacity, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
+}
 const box = (parent, material, position, size) => {
   const mesh = new THREE.Mesh(new THREE.BoxGeometry(...size), material);
   mesh.position.set(...position);
@@ -42,9 +54,33 @@ function makeWheel(parent, x, z, materials, front) {
   return { pivot, wheel, front };
 }
 
+function createMotorcycle(spec, paint = null) {
+  const root = new THREE.Group(); const body = standard(paint ?? spec.color, { roughness: 0.28, metalness: 0.58 });
+  const dark = standard(0x172129, { roughness: 0.62, metalness: 0.2 }); const metal = standard(0xb4c2c0, { roughness: 0.24, metalness: 0.85 });
+  root.userData = { spec, speed: 0, steer: 0, health: 100, wheels: [], lights: [], rearLights: [], policeLights: [], policePoints: [], smoke: [] };
+  root.userData.paintMaterial = body;
+  box(root, dark, [-0.05, 0.66, 0], [1.8, 0.18, 0.28]);
+  box(root, body, [0.05, 0.96, 0], [0.86, 0.38, 0.58]);
+  box(root, dark, [-0.52, 1.11, 0], [0.88, 0.16, 0.45]);
+  box(root, body, [0.77, 1.04, 0], [0.5, 0.22, 0.4]);
+  for (const side of [-1, 1]) {
+    const fork = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.075, 0.92, 8), metal); fork.position.set(1.02, 0.79, side * 0.13); fork.rotation.z = -0.28; root.add(fork);
+    const rear = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.065, 0.92, 8), metal); rear.position.set(-0.72, 0.69, side * 0.13); rear.rotation.z = 0.68; root.add(rear);
+  }
+  const bar = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.72, 8), metal); bar.rotation.x = Math.PI / 2; bar.position.set(0.88, 1.42, 0); root.add(bar);
+  for (const side of [-1, 1]) { const grip = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.24, 8), dark); grip.rotation.x = Math.PI / 2; grip.position.set(0.88, 1.42, side * 0.43); root.add(grip); }
+  const wheelMats = { tire: standard(0x101316, { roughness: 0.95 }), rim: standard(0x81908f, { metalness: 0.88, roughness: 0.25 }), chrome: metal };
+  root.userData.wheels.push(makeWheel(root, 1.22, 0, wheelMats, true), makeWheel(root, -1.12, 0, wheelMats, false));
+  const lamp = new THREE.Mesh(new THREE.SphereGeometry(0.18, 12, 8), standard(0xffefcc, { emissive: 0xffd080, emissiveIntensity: 2.4 })); lamp.position.set(1.34, 1.13, 0); root.add(lamp);
+  const halo = createGlowSprite(0xffd88d, 0.48); halo.position.set(1.52, 1.13, 0); halo.scale.set(1.65, 1.25, 1); root.add(halo);
+  const tail = box(root, standard(0xff3445, { emissive: 0xff1428, emissiveIntensity: 2.6 }), [-1.03, 1.01, 0], [0.08, 0.12, 0.36]); root.userData.rearLights.push(tail);
+  return root;
+}
+
 /** Build a low, layered road car with a raked greenhouse and four steerable wheels. */
 export function createVehicle(type = 0, paint = null) {
   const spec = typeof type === 'number' ? VEHICLE_TYPES[type % VEHICLE_TYPES.length] : type;
+  if (spec.kind === 'motorcycle') return createMotorcycle(spec, paint);
   const root = new THREE.Group();
   const isLarge = ['suv', 'swat'].includes(spec.kind);
   const length = isLarge ? 4.8 : 4.35;
@@ -96,9 +132,11 @@ export function createVehicle(type = 0, paint = null) {
   for (const side of [-1, 1]) {
     const lamp = box(root, headMaterial, [2.2, 0.83, side * 0.61], [0.075, 0.16, 0.58]);
     root.userData.lights.push(lamp);
+    const halo = createGlowSprite(0xffd88d, 0.4); halo.position.set(2.34, 0.84, side * 0.61); halo.scale.set(1.8, 1.1, 1); root.add(halo);
   }
   const tailBar = box(root, tailMaterial, [-2.19, 0.83, 0], [0.075, 0.19, width * 0.79]);
   root.userData.rearLights.push(tailBar);
+  const tailHalo = createGlowSprite(0xff243f, 0.36); tailHalo.position.set(-2.28, 0.85, 0); tailHalo.scale.set(1.7, 0.9, 1); root.add(tailHalo);
 
   // Four wheel wells and independently steered front hubs.
   for (const x of [-1.34, 1.34]) {
@@ -137,6 +175,7 @@ export function createVehicle(type = 0, paint = null) {
       const red = side < 0;
       const lamp = box(root, standard(red ? 0xff263c : 0x287dff, { emissive: red ? 0xff102b : 0x145dff, emissiveIntensity: 4.5 }), [-0.1, 1.77, side * 0.12], [0.4, 0.13, 0.18]);
       root.userData.policeLights.push(lamp);
+      const halo = createGlowSprite(red ? 0xff1735 : 0x176aff, 0.68); halo.position.set(-0.1, 1.9, side * 0.24); halo.scale.set(2.2, 1.7, 1); root.add(halo);
       const point = new THREE.PointLight(red ? 0xff1735 : 0x176aff, 0, 16, 2);
       point.position.set(-0.1, 1.85, side * 0.3);
       root.add(point);
@@ -187,9 +226,15 @@ export function createHelicopter() {
   labelContext.fillStyle = '#f6fbff'; labelContext.shadowColor = '#32dff8'; labelContext.shadowBlur = 16; labelContext.fillText('CONDOR-1', 256, 58);
   const callsign = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(labelCanvas), transparent: true, depthTest: false, toneMapped: false }));
   callsign.position.set(0, 3.6, 0); callsign.scale.set(7, 1.54, 1); callsign.visible = false; group.add(callsign);
-  const cone = new THREE.Mesh(new THREE.ConeGeometry(4.5, 26, 28, 1, true), new THREE.MeshBasicMaterial({ color: 0xf7fbff, transparent: true, opacity: 0.24, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
+  const beamCanvas = document.createElement('canvas'); beamCanvas.width = 128; beamCanvas.height = 8;
+  const beamContext = beamCanvas.getContext('2d'); const beamFade = beamContext.createLinearGradient(0,0,128,0); beamFade.addColorStop(0,'rgba(255,248,220,0)'); beamFade.addColorStop(.2,'rgba(255,248,220,.16)'); beamFade.addColorStop(.5,'rgba(255,248,220,.42)'); beamFade.addColorStop(.8,'rgba(255,248,220,.16)'); beamFade.addColorStop(1,'rgba(255,248,220,0)'); beamContext.fillStyle=beamFade;beamContext.fillRect(0,0,128,8);
+  const beamTexture = new THREE.CanvasTexture(beamCanvas); beamTexture.colorSpace = THREE.SRGBColorSpace;
+  const cone = new THREE.Mesh(new THREE.ConeGeometry(4.5, 26, 36, 1, true), new THREE.MeshBasicMaterial({ map: beamTexture, color: 0xfff4d8, transparent: true, opacity: 0.22, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, toneMapped: false }));
   cone.position.set(0.7, -13, 0); cone.rotation.z = Math.PI; group.add(cone);
-  const groundPool = new THREE.Mesh(new THREE.CircleGeometry(5.3, 32), new THREE.MeshBasicMaterial({ color: 0xffefc2, transparent: true, opacity: 0.45, blending: THREE.AdditiveBlending, depthWrite: false }));
+  const poolCanvas = document.createElement('canvas'); poolCanvas.width = 128; poolCanvas.height = 128; const poolContext = poolCanvas.getContext('2d');
+  const poolGradient = poolContext.createRadialGradient(64,64,4,64,64,62); poolGradient.addColorStop(0,'rgba(255,247,219,.5)'); poolGradient.addColorStop(.35,'rgba(255,239,194,.25)'); poolGradient.addColorStop(1,'rgba(255,239,194,0)'); poolContext.fillStyle=poolGradient;poolContext.fillRect(0,0,128,128);
+  const poolTexture = new THREE.CanvasTexture(poolCanvas); poolTexture.colorSpace = THREE.SRGBColorSpace;
+  const groundPool = new THREE.Mesh(new THREE.CircleGeometry(5.3, 32), new THREE.MeshBasicMaterial({ map: poolTexture, transparent: true, opacity: 0.95, blending: THREE.AdditiveBlending, depthWrite: false }));
   groundPool.rotation.x = -Math.PI / 2; groundPool.position.set(0.7, -26, 0); group.add(groundPool);
   const search = new THREE.SpotLight(0xfff3d4, 95, 150, Math.PI / 9, 0.5, 1.1);
   const target = new THREE.Object3D(); search.position.set(0.6, -0.5, 0); target.position.set(0.7, -28, 0); group.add(search, target); search.target = target;

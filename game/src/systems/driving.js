@@ -103,7 +103,7 @@ export function createDriving(scene, car, seed = 1) {
     state.handbrake = handbrake;
 
     let acceleration = (gas ? PHYSICS.acceleration : 0) - (brake ? PHYSICS.acceleration * 1.2 : 0);
-    if (input.hit('ShiftLeft', 'ShiftRight') && state.nitro > 0) {
+    if (input.down('ShiftLeft', 'ShiftRight') && state.nitro > 0) {
       acceleration += 45;
       state.nitro = Math.max(0, state.nitro - dt * 30);
     } else {

@@ -3,6 +3,7 @@ export function showPanel(type, game) {
   const layer = document.getElementById('panel-layer');
   if (!layer) return;
   layer.innerHTML = '';
+  layer.classList.toggle('title-screen', type === 'title');
   if (!type) {
     layer.classList.add('hidden');
     return;
@@ -14,16 +15,17 @@ export function showPanel(type, game) {
     try { hasSave = Boolean(localStorage.getItem('solaris-bay.save.v1')); } catch {}
     layer.innerHTML = `
       <section class="title-panel">
-        <div class="eyebrow">A CITY WITH NO QUIET EXITS</div>
+        <div class="eyebrow">SUNSET COAST • CHAPTER 05</div>
         <h1>SOLARIS <i>BAY</i></h1>
         <div class="title-rule"></div>
-        <p>NEON, SALT AIR &amp; SECOND CHANCES</p>
-        <button id="start">ENTER THE BAY <b>↗</b></button>
-        ${hasSave ? '<button id="continue">CONTINUE <b>↗</b></button>' : ''}
-        <div class="title-foot">WASD DRIVE <span>SPACE DRIFT</span> E ENTER / EXIT <span>M MAP</span></div>
+        <p>A LIVING COASTAL CITY • NIKO VALE &amp; MARA SOL</p>
+        <div class="title-actions"><button id="continue">CONTINUE <b>↗</b></button><button id="start">NEW GAME <b>↗</b></button><button id="load">LOAD SAVE <b>↗</b></button><button id="controls">CONTROLS <b>⌘</b></button></div>
+        <div class="title-foot">${hasSave ? 'CHAPTER 05 • $24,850 • REP 420' : 'SAVE SLOT READY • CHAPTER 05 • $24,850 • REP 420'}<span>WASD DRIVE • SPACE DRIFT • E EXIT • M MAP</span></div>
       </section>`;
     layer.querySelector('#start')?.addEventListener('click', () => game.start());
-    layer.querySelector('#continue')?.addEventListener('click', () => { game.load(); game.start(); });
+    layer.querySelector('#continue')?.addEventListener('click', () => { if (hasSave) game.load(); game.start(); });
+    layer.querySelector('#load')?.addEventListener('click', () => { if (!game.load()) layer.querySelector('.title-foot').textContent = 'NO SAVE FOUND • START A NEW GAME TO BEGIN'; else game.start(); });
+    layer.querySelector('#controls')?.addEventListener('click', () => { layer.querySelector('.title-foot').textContent = 'WASD DRIVE • SPACE DRIFT • E EXIT / ENTER • F CARJACK • M CITY MAP • R WEATHER'; });
     return;
   }
 
@@ -66,17 +68,18 @@ export function showPanel(type, game) {
       <section class="map-panel garage-screen">
         <div class="eyebrow">PAY N TUNE / CORAL ISLAND</div>
         <h2>MAKE IT YOURS.</h2>
+        <div class="garage-stats"><b>8 <small>MISSIONS</small></b><b>12 <small>ACTIVITIES</small></b><b>8 <small>VEHICLES</small></b><b>5 <small>WEAPONS</small></b><b>4 <small>DISTRICTS</small></b></div>
         <div class="map-layout">
           <canvas class="city-map garage-map-canvas" width="720" height="240" aria-label="Solaris Bay city map"></canvas>
           <div class="garage-tools">
             <div class="eyebrow">CUSTOM PAINT / $450</div>
             <div class="garage-grid">
-              <button data-color="11949118">SOLARA RED</button>
-              <button data-color="2984080">DEEP CURRENT</button>
-              <button data-color="14474468">SALT WHITE</button>
-              <button data-color="16752694">SUNSET GOLD</button>
-              <button data-color="3048747">NIGHT JADE</button>
-              <button data-color="7902926">VIOLET RUSH</button>
+              <button data-color="11949118"><i style="--swatch:#b6665e"></i>SOLARA RED</button>
+              <button data-color="2984080"><i style="--swatch:#2d9490"></i>DEEP CURRENT</button>
+              <button data-color="14474468"><i style="--swatch:#dedbd1"></i>SALT WHITE</button>
+              <button data-color="16752694"><i style="--swatch:#e9aa56"></i>SUNSET GOLD</button>
+              <button data-color="3048747"><i style="--swatch:#2e9a78"></i>NIGHT JADE</button>
+              <button data-color="7902926"><i style="--swatch:#78528e"></i>VIOLET RUSH</button>
             </div>
             <p>DRIFT TUNE　${game.garage.upgrade}/3　•　CASH $${game.missions.cash.toLocaleString()}</p>
             <button id="upgrade">INSTALL DRIFT TUNE — $3,500</button>

@@ -112,11 +112,13 @@ const game = {
   map: missions.map,
   start(options = {}) {
     if (!options.silent) audio.start();
+    game.shotCamera = null; document.body.classList.remove('title-shot');
     mode = 'play';
     showPanel(null, game);
     hud.show();
   },
   resume() {
+    game.shotCamera = null;
     mode = 'play';
     showPanel(null, game);
     hud.show();
@@ -260,7 +262,9 @@ function cameraStep(dt) {
     target = position.clone().add(new THREE.Vector3(0, 2, 0));
   }
 
-  if (game.shotCamera) {
+  if (mode === 'title' && !game.shotCamera) {
+    desired.set(-205, 122, -238); target.set(30, 4, -105); fieldOfView = 47;
+  } else if (game.shotCamera) {
     camera.position.copy(game.shotCamera.position);
     target.copy(game.shotCamera.target);
     fieldOfView = game.shotCamera.fov;
@@ -281,7 +285,7 @@ function cameraStep(dt) {
 function interact() {
   if (drive.state.active) {
     drive.enterExit();
-    player.position.copy(hero.position).add(new THREE.Vector3(0, 0, 2.2));
+    player.position.copy(hero.position).add(new THREE.Vector3(0, 0, 3.7));
     player.visible = true;
     cameraMode = 'foot';
     return;
@@ -328,7 +332,21 @@ function step(dt) {
   }
   if (mode !== 'play') return;
 
-  if (input.hit('KeyE')) interact();
+  world.plateCooldown = Math.max(0, (world.plateCooldown || 0) - dt);
+  world.fixCooldown = Math.max(0, (world.fixCooldown || 0) - dt);
+  world.interactCooldown = Math.max(0, (world.interactCooldown || 0) - dt);
+  if (drive.state.active && input.hit('KeyZ') && world.plateCooldown === 0) {
+    drive.state.damage = Math.max(0, drive.state.damage - 34);
+    combat.armor = Math.min(100, combat.armor + 32);
+    world.plateCooldown = 18;
+  }
+  if (input.hit('KeyX') && world.fixCooldown === 0) {
+    combat.health = Math.min(100, combat.health + 28);
+    drive.state.damage = Math.max(0, drive.state.damage - 18);
+    world.fixCooldown = 24;
+  }
+
+  if (input.hit('KeyE') && world.interactCooldown === 0) { interact(); world.interactCooldown = 0.4; }
   if (input.hit('KeyF')) carjack();
   if (input.hit('KeyM')) {
     mode = 'menu';

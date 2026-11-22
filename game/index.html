@@ -58,13 +58,27 @@
     .drift { height: 35px; color: #ffb457; font: italic 700 24px Chakra, sans-serif; text-shadow: 0 0 13px #ff7934; transition: opacity .15s; }
     .weapon-line { color: #d9e7e4; font: italic 700 12px Chakra,sans-serif; }
     .weapon-line span { margin-left: 8px; color: #8ea9af; }
-    .radio { position: absolute; right: 30px; bottom: 145px; color: #c6d0cd; font-size: 10px; letter-spacing: .16em; }
+    .radio { position: absolute; left:50%; bottom:22px; transform:translateX(-50%); width:390px; padding:10px 15px 10px 61px; border:1px solid #d1e3df55; border-left:2px solid var(--gold); background:rgba(5,13,22,.82); color:#dbe8e2; font-size:11px; letter-spacing:.05em; line-height:1.35; backdrop-filter:blur(7px); }
+    .radio::before { content:'MS'; position:absolute; left:13px; top:12px; width:34px; height:34px; display:grid; place-items:center; border:1px solid #e9bb7a; border-radius:50%; background:radial-gradient(circle at 36% 29%, #d4a882 0 19%, #233541 20% 49%, #0c1921 50%); color:#fff2d8; font-size:9px; font-weight:bold; box-shadow:0 0 15px #e7ad6255; }
+    .dispatch { position:absolute; left:26px; top:197px; width:300px; padding:9px 12px; border:1px solid #d4e4e044; background:rgba(5,13,22,.73); font-size:9px; letter-spacing:.07em; }
+    .dispatch strong { color:#efbd72; font-size:10px; }
+    .dispatch div { display:flex; justify-content:space-between; margin-top:5px; color:#cadbd7; }
+    .loadout { position:absolute; top:86px; right:26px; display:flex; gap:4px; }
+    .loadout span { padding:6px 8px; border:1px solid #cddcd94b; background:#08141bcc; color:#bdcfca; font-size:8px; letter-spacing:.04em; }
+    .loadout span.active { color:#ffe1a0; border-color:#edb762; box-shadow:0 0 12px #e9a74a44; }
+    .perks { position:absolute; top:119px; right:26px; color:#93cfd0; font-size:8px; text-align:right; }
     .controls { position: absolute; left: 26px; bottom: 25px; max-width: calc(100vw - 300px); color: #94a9ab; font-size: 9px; letter-spacing: .12em; }
     .controls b { margin: 0 4px; color: #e9e8d9; }
 
     .title-panel, .modal, .map-panel { position: relative; border: 1px solid rgba(214, 228, 221, .35); background: linear-gradient(112deg, rgba(6, 13, 20, .93), rgba(13, 24, 33, .78)); box-shadow: 0 25px 90px #02070bb5; backdrop-filter: blur(12px); clip-path: polygon(0 0, 98% 0, 100% 10%, 100% 100%, 2% 100%, 0 91%); }
     #panel-layer { position: fixed; inset: 0; display: grid; place-items: center; background: linear-gradient(90deg, rgba(5, 10, 16, .48), rgba(5, 10, 16, .12) 65%, rgba(5, 10, 16, .35)); }
     .title-panel { width: min(700px, 76vw); padding: 24px 38px 22px; }
+    #panel-layer.title-screen { place-items:center start; padding:34px 0 34px 5.2vw; background:linear-gradient(90deg,rgba(5,10,16,.76),rgba(5,10,16,.38) 44%,rgba(5,10,16,.05) 78%,rgba(5,10,16,.08)); }
+    #panel-layer.title-screen .title-panel { width:min(590px,49vw); padding:25px 27px; }
+    .title-actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    .title-actions button { text-align:left; }
+    .title-screen .title-panel h1 { font-size:clamp(44px,4.1vw,54px); white-space:nowrap; }
+    body.title-shot #hud { display:none; }
     .title-panel h1 { margin: 8px 0; color: #f8f2e4; font: clamp(57px, 8vw, 104px)/.95 Faster; letter-spacing: .02em; text-shadow: 0 5px 0 #5a453d; }
     .title-panel h1 i { color: var(--gold); font-style: normal; }
     .title-panel p { margin: 13px 0 23px; color: #b8c4c2; font-size: 14px; letter-spacing: .26em; }
@@ -106,7 +120,7 @@
 
     /* Garage keeps 58% of the frame as a live car portrait, with tools on the right. */
     body.garage-shot #panel-layer { display: block; background: transparent; pointer-events: none; }
-    .garage-screen { position: absolute; inset: 0 0 0 auto; width: 44%; height: 100%; padding: 18px 22px; overflow: auto; pointer-events: auto; clip-path: none; background: linear-gradient(135deg, rgba(5,13,22,.94), rgba(8,22,31,.86)); }
+    .garage-screen { position: absolute; inset: 0 0 0 auto; width: 48%; height: 100%; padding: 18px 22px; overflow: auto; pointer-events: auto; clip-path: none; background: linear-gradient(135deg, rgba(5,13,22,.95), rgba(8,22,31,.9)); }
     .garage-screen h2 { margin: 5px 0 8px; font-size: 27px; }
     .garage-screen .map-layout { display: block; }
     .garage-screen .city-map { display: block; width: 100%; height: 166px; border-radius: 2px; }
@@ -115,6 +129,9 @@
     .garage-tools > p { color: var(--gold); font-size: 12px; }
     .garage-tools button { margin: 3px 3px 3px 0; padding: 7px 9px; font-size: 9px; }
     .garage-grid button { min-width: 31%; border-color: #ffffff35; }
+    .garage-grid i { display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--swatch);margin-right:5px;border:1px solid #fff8; }
+    .garage-stats { display:flex;justify-content:space-between;gap:5px;padding:8px 0;border-top:1px solid #ffffff24;border-bottom:1px solid #ffffff24;color:#f4c875;font-size:13px; }
+    .garage-stats small { display:block;color:#a7bdbe;font-size:7px;letter-spacing:.04em; }
     .garage-tools > p { margin: 5px 0; font: italic 700 12px Chakra, sans-serif; }
     #shot-reticle { position: fixed; left: 50%; top: 50%; transform: translate(-50%,-50%); z-index: 5; color: #e7f4ea; font: 30px Chakra,sans-serif; text-shadow: 0 0 6px #14242a; pointer-events: none; }
     .combat-shot #weapon-wheel { inset: auto 14px 74px auto; width: 250px; height: 98px; background: transparent; }
@@ -128,7 +145,10 @@
     body.garage-shot #hud .car-hud { display: none; }
     body.combat-shot #hud .car-hud { display: block; right: 24px; bottom: 22px; width: 250px; }
     body.combat-shot #hud .car-hud .drift, body.combat-shot #hud .car-hud .speedline { display: none; }
-    body.combat-shot #hud .radio { display: none; }
+    body.combat-shot #hud .radio { display:block!important; left:50%; bottom:17px; }
+    body.combat-shot #hud .radio::before { content:'NV'; border-color:#78cbd0; }
+    body.garage-shot #hud .dispatch, body.garage-shot #hud .loadout, body.garage-shot #hud .perks { display:none; }
+    body.garage-shot #panel-layer { background:linear-gradient(90deg,rgba(3,11,16,.05),rgba(3,11,16,.05) 51%,rgba(3,11,16,.66) 52%); }
 
     @media (max-width: 700px) {
       .wanted { top: 90px; right: 23px; } .economy { min-width: 110px; }
@@ -153,12 +173,14 @@
       <div class="economy"><strong id="cash">$2,500</strong><span id="respect">REP 000</span></div>
     </div>
     <div class="objective"><div id="mission-id" class="eyebrow">MISSION 01</div><b>ACTIVE CONTRACT</b><p id="objective"></p></div>
+    <div class="dispatch"><strong>SBPD LIVE DISPATCH / PURSUIT NET</strong><div><span>CONDOR-1 • SPOTLIGHT</span><b data-range="heli">42m</b></div><div><span>INTERCEPTOR-1 • RAMMING</span><b data-range="unit1">18m</b></div><div><span>UNIT-04 • FLANKING</span><b data-range="unit2">35m</b></div><div><span>ROADBLOCK • SPIKES</span><b data-range="roadblock">70m</b></div></div>
+    <div class="loadout"><span class="active" data-weapon="1">1 PISTOL 12</span><span data-weapon="2">2 SMG 30</span><span data-weapon="3">3 SHOTGUN 8</span><span data-weapon="4">4 RIFLE 24</span><span data-weapon="5">5 KNIFE 1</span></div><div class="perks">SHIFT NITRO　•　Z SWAP PLATES　•　X QUICK FIX</div>
     <div class="bottom-left">
       <div class="radar-frame"><canvas id="radar" width="126" height="126"></canvas></div>
       <div class="vitals"><small>VITALITY</small><div class="bar"><i id="health-fill" style="width:100%"></i></div><small>ARMOR</small><div class="bar armor"><i id="armor-fill" style="width:65%"></i></div></div>
     </div>
     <div class="controls"><b>WASD</b> DRIVE <b>SPACE</b> DRIFT <b>E</b> EXIT / INTERACT <b>F</b> CARJACK <b>M</b> CITY MAP <b>R</b> WEATHER <b>N</b> RADIO</div>
-    <div class="radio" id="radio">FM 93.7 • SUNSET SYNTH</div>
+    <div class="radio" id="radio">MARA SOL • FIELD OPERATOR<br>“Condor-1 is locked on! Kick it sideways through the Sunset hairpin!”</div>
     <div class="car-hud"><div id="drift" class="drift"></div><div class="speedline"><span id="gear" class="gear">1</span><strong id="speed" class="speed">000</strong><span class="unit">KM/H</span></div><div class="weapon-line" id="weapon">9MM PISTOL <span id="ammo">126 / ∞</span></div></div>
   </div>
   <div id="panel-layer"></div>

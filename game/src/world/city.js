@@ -32,15 +32,40 @@ function addRoad(parent, points, width, roadMaterial, edgeMaterial, centerMateri
     const edgePoints = samples.map((point, i) => { const tangent = curve.getTangent(i / (samples.length - 1)); return point.clone().add(new THREE.Vector3(-tangent.z, 0, tangent.x).normalize().multiplyScalar(offset * sideSign)); });
     parent.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(edgePoints), 100, 0.1, 5, false), edgeMaterial));
   }
-  if (centerMaterial) parent.add(new THREE.Mesh(new THREE.TubeGeometry(curve, 100, 0.07, 4, false), centerMaterial));
+  if (centerMaterial) {
+    for (const offset of [-0.24, 0.24]) {
+      const points = samples.map((point, i) => { const tangent = curve.getTangent(i / (samples.length - 1)); return point.clone().add(new THREE.Vector3(-tangent.z, 0, tangent.x).normalize().multiplyScalar(offset)); });
+      parent.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points), 100, 0.055, 4, false), centerMaterial));
+    }
+    const lane = new THREE.MeshBasicMaterial({ color: 0xf6f3e9 });
+    for (const sign of [-1, 1]) for (let i = 0; i < samples.length - 5; i += 12) {
+      const marks = samples.slice(i, i + 5).map((point, j) => { const tangent = curve.getTangent((i + j) / (samples.length - 1)); return point.clone().add(new THREE.Vector3(-tangent.z, 0, tangent.x).normalize().multiplyScalar(sign * width * 0.18)); });
+      parent.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(marks), 5, 0.055, 4, false), lane));
+    }
+  }
   return curve;
 }
 
-function addBuilding(parent, x, z, w, h, d, material, accent, signText = '') {
-  const building = addBox(parent, [w, h, d], material, [x, h / 2 - 0.05, z]);
-  addBox(parent, [w + 0.55, 0.34, d + 0.55], accent, [x, h + 0.13, z]);
-  for (const side of [-1, 1]) addBox(parent, [0.12, h * 0.88, 0.14], accent, [x + side * (w / 2 + 0.08), h * 0.54, z - d / 2 - 0.09]);
-  if (signText) { const sign = createSign(signText, accent.emissive?.getHex?.() || 0xf4af59); sign.position.set(x, Math.min(h - 2, 13), z - d / 2 - 0.2); parent.add(sign); }
+function addBuilding(parent, x, z, w, h, d, facade, accent, signText = '') {
+  const building = new THREE.Group(); parent.add(building);
+  const baseHeight = Math.min(5.2, h * 0.24);
+  addBox(building, [w * 1.08, baseHeight, d * 1.08], material(0xe7d4b8, { roughness: 0.82 }), [x, baseHeight / 2, z]);
+  addBox(building, [w, Math.max(4, h - baseHeight), d], facade, [x, (h + baseHeight) / 2, z]);
+  addBox(building, [w + 0.65, 0.28, d + 0.65], material(0xf2e4cb, { roughness: 0.74 }), [x, h + 0.12, z]);
+  // Refined setbacks give the skyline a recognizable coastal Deco profile.
+  if (h > 34) {
+    addBox(building, [w * 0.76, Math.min(8, h * 0.16), d * 0.78], facade, [x, h + 3.8, z]);
+    addBox(building, [w * 0.53, 4.2, d * 0.58], material(0xe9ddc8, { roughness: 0.72 }), [x, h + 9.7, z]);
+    const mast = addBox(building, [0.14, 4.4, 0.14], accent, [x, h + 14, z]);
+    mast.material = material(0xe6c28c, { emissive: 0x5c462d, emissiveIntensity: 0.24, metalness: 0.45 });
+  }
+  // A glazed lobby and warm canopy make the sidewalk edge feel occupied.
+  addBox(building, [w * 0.8, Math.min(2.6, baseHeight * 0.58), 0.1], material(0x42727b, { emissive: 0x17363b, emissiveIntensity: 0.24, metalness: 0.28, roughness: 0.25 }), [x, 1.5, z - d * 0.54]);
+  if (h < 40) {
+    const canvas = material(0xf3e4cf, { roughness: 0.8 }); const coral = material(0xd77c68, { roughness: 0.78 });
+    for (let panel = 0; panel < 8; panel++) addBox(building, [w * 0.1, 0.12, 0.72], panel % 2 ? canvas : coral, [x - w * 0.36 + panel * w * 0.103, 2.9, z - d * 0.58]);
+  }
+  if (signText) { const sign = createSign(signText, accent.emissive?.getHex?.() || 0xf4af59); sign.position.set(x, Math.min(h - 2, 4.3), z - d / 2 - 0.3); sign.scale.setScalar(0.72); building.add(sign); }
   return building;
 }
 
@@ -48,6 +73,15 @@ function addStreetLamp(parent, x, z, color = 0xffbe71) {
   const pole = material(0x26343c, { metalness: 0.72, roughness: 0.32 }); const glow = material(color, { emissive: color, emissiveIntensity: 2.2 });
   addBox(parent, [0.12, 6, 0.12], pole, [x, 3, z]); addBox(parent, [1.25, 0.12, 0.18], pole, [x + 0.48, 5.85, z]); addBox(parent, [0.45, 0.12, 0.25], glow, [x + 0.98, 5.8, z]);
   const light = new THREE.PointLight(color, 3.8, 24, 2); light.userData.streetLamp = true; light.userData.dayIntensity = 1.8; light.position.set(x + 0.98, 5.45, z); parent.add(light);
+}
+
+function addTrafficSignal(parent, x, z) {
+  const pole = material(0x34434a, { metalness: 0.68, roughness: 0.34 }); const housing = material(0x172228, { metalness: 0.25, roughness: 0.55 });
+  addBox(parent, [0.15, 6.6, 0.15], pole, [x, 3.3, z]); addBox(parent, [0.95, 0.15, 0.15], pole, [x - 0.42, 6.25, z]);
+  addBox(parent, [0.34, 1.05, 0.35], housing, [x - 0.8, 5.58, z]);
+  for (const [index, color] of [0xff4b51, 0xf5cc66, 0x53d39a].entries()) {
+    const lens = new THREE.Mesh(new THREE.SphereGeometry(0.12, 10, 8), material(color, { emissive: color, emissiveIntensity: index === 2 ? 0.75 : 0.1 })); lens.position.set(x - 0.8, 5.9 - index * 0.3, z + 0.19); parent.add(lens);
+  }
 }
 
 function addGantry(parent, x, z, yellow) {
@@ -61,25 +95,49 @@ function addGantry(parent, x, z, yellow) {
   const flood = new THREE.PointLight(0xffd18a, 19, 42, 1.5); flood.position.set(x, 16.8, z); parent.add(flood);
 }
 
+function addFerrisWheel(parent, x, z) {
+  const wheel = new THREE.Group(); wheel.position.set(x, 0, z); parent.add(wheel);
+  const rim = material(0xe5cba0, { metalness: 0.42, roughness: 0.34, emissive: 0x5b4529, emissiveIntensity: 0.2 });
+  const glow = material(0xffd58b, { emissive: 0xffc86a, emissiveIntensity: 1.05 });
+  const center = new THREE.Vector3(0, 24, 0);
+  wheel.add(new THREE.Mesh(new THREE.TorusGeometry(19, 0.34, 8, 80), rim)).position.copy(center);
+  for (let i = 0; i < 20; i++) {
+    const a = i * Math.PI * 2 / 20; const end = new THREE.Vector3(Math.cos(a) * 19, 24 + Math.sin(a) * 19, 0);
+    const spoke = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.16, center.distanceTo(end), 6), rim);
+    spoke.position.copy(center).add(end).multiplyScalar(0.5); spoke.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), end.clone().sub(center).normalize()); wheel.add(spoke);
+    const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.5, 1.7, 1.3), glow); cabin.position.set(Math.cos(a) * 19, 24 + Math.sin(a) * 19 - 1.3, 0); wheel.add(cabin);
+  }
+  for (const side of [-1, 1]) {
+    const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.58, 28, 8), rim); leg.position.set(side * 6.4, 13, 0); leg.rotation.z = side * -0.43; wheel.add(leg);
+  }
+  const hub = new THREE.Mesh(new THREE.SphereGeometry(1.25, 16, 12), glow); hub.position.copy(center); wheel.add(hub);
+  return wheel;
+}
+
 /** Construct four elevated districts around the bay, with a connected road ribbon. */
 export function createCity(scene, seed = 1) {
   const random = createRandom(seed); const textures = makeTextures(seed); const root = new THREE.Group(); scene.add(root);
-  const ocean = new THREE.Mesh(new THREE.PlaneGeometry(2000, 2000), material(0x17445b, { map: textures.water, roughness: 0.24, metalness: 0.36 }));
+  const ocean = new THREE.Mesh(new THREE.PlaneGeometry(2000, 2000), new THREE.MeshBasicMaterial({ map: textures.water, color: 0xffffff, toneMapped: false }));
   ocean.rotation.x = -Math.PI / 2; ocean.position.set(160, -0.5, 0); root.add(ocean);
-  const asphalt = material(0xb0b3b7, { map: textures.asphalt, roughness: 0.24, metalness: 0.28 });
-  const concrete = material(0x737c7c, { roughness: 0.88 }); const sidewalk = material(0xa6a49a, { roughness: 0.9 });
+  const asphalt = material(0xffffff, { map: textures.asphalt, roughness: 0.82, metalness: 0.04 });
+  const concrete = material(0xb8b4aa, { roughness: 0.88 }); const sidewalk = material(0xc2beb3, { roughness: 0.9 });
   const whiteLine = new THREE.MeshBasicMaterial({ color: 0xf4efe0 }); const yellowLine = new THREE.MeshBasicMaterial({ color: 0xffdc6a });
   const sand = material(0xb99467, { roughness: 0.95 }); const grass = material(0x55755d, { roughness: 1 });
-  const neon = [0xff3eb5, 0x35eaff, 0xffb552, 0xd7edf4].map((c) => material(c, { emissive: c, emissiveIntensity: 1.7 }));
-  textures.windows.repeat.set(1, 4.5);
-  textures.emissiveWindows.repeat.set(1, 4.5);
-  const buildingMats = [0x344453, 0x51454c, 0x294654, 0x66564c, 0x405150].map((c) => material(c, { map: textures.windows, emissiveMap: textures.emissiveWindows, emissive: 0xffffff, emissiveIntensity: 1.1, roughness: 0.44, metalness: 0.26 }));
+  const neon = [0xf39a79, 0x78cbd0, 0xe5b86e, 0xd7edf4].map((c) => material(c, { emissive: c, emissiveIntensity: 0.72 }));
+  textures.windows.repeat.set(1, 1.35);
+  const buildingMats = [
+    material(0xe7d4b8, { map: textures.windows, roughness: 0.66, metalness: 0.08 }),
+    material(0xc8dad4, { map: textures.windows, roughness: 0.58, metalness: 0.12 }),
+    material(0x829da6, { map: textures.windows, roughness: 0.34, metalness: 0.3 }),
+    material(0xe0c0a5, { map: textures.windows, roughness: 0.66, metalness: 0.08 }),
+    material(0x96afb2, { map: textures.windows, roughness: 0.38, metalness: 0.24 }),
+  ];
 
   // Broad platforms sit at -0.05 m, visibly above the -0.5 m bay water plane.
-  addLandmass(root, [[-500,-460],[15,-460],[55,-330],[8,-210],[35,-105],[-15,30],[-90,140],[-190,190],[-310,100],[-430,20],[-500,-80]], 0x8f785d);
-  addLandmass(root, [[-85,-10],[335,-10],[390,90],[360,370],[210,450],[20,350],[-80,210]], 0x777d78);
-  addLandmass(root, [[300,210],[720,210],[760,470],[300,470]], 0x727a78);
-  addLandmass(root, [[425,-245],[760,-245],[780,85],[620,130],[450,60]], 0x697a69);
+  addLandmass(root, [[-500,-460],[15,-460],[55,-330],[8,-210],[35,-105],[-15,30],[-90,140],[-190,190],[-310,100],[-430,20],[-500,-80]], 0x829784);
+  addLandmass(root, [[-85,-10],[335,-10],[390,90],[360,370],[210,450],[20,350],[-80,210]], 0xa8b2a6);
+  addLandmass(root, [[300,210],[720,210],[760,470],[300,470]], 0xa7b1a7);
+  addLandmass(root, [[425,-245],[760,-245],[780,85],[620,130],[450,60]], 0x96aa91);
   // Sandy coast, seawall and promenade line the western island edge.
   addBox(root, [14, 0.18, 485], sand, [-452, 0.03, -190]);
   addBox(root, [3, 1.4, 490], concrete, [-437, 0.55, -190]);
@@ -95,6 +153,7 @@ export function createCity(scene, seed = 1) {
     addBox(root, [w + 9, 0.13, d + 9], sidewalk, [x, 0.04, z]); addBox(root, [w, 0.13, d], asphalt, [x, 0.12, z]);
   }
   for (const z of [70, 235]) for (let i = 0; i < 11; i++) addBox(root, [1.4, 0.03, 16], whiteLine, [80 + i * 8, 0.21, z]);
+  for (const [x,z] of [[120,70],[120,235],[160,155],[315,155]]) addTrafficSignal(root,x,z);
 
   // Neon Downtown Art Deco and glass towers with illuminated window grids.
   for (let i = 0; i < 28; i++) {
@@ -125,8 +184,16 @@ export function createCity(scene, seed = 1) {
     const x = -414 + i * 55; const h = 26 + (i % 2) * 11;
     addBuilding(root, x, -365, 27, h, 20, buildingMats[(i + 1) % buildingMats.length], neon[i % 3], ['SOLARA','PALM CLUB','SUNSET LOUNGE'][i % 3]);
   }
+  const ferrisWheel = addFerrisWheel(root, -356, -122);
   for (let i = 0; i < 16; i++) {
     const palm = createPalm(); palm.position.set(-432 + (i % 4) * 15, 0, -410 + Math.floor(i / 4) * 59); palm.scale.setScalar(0.75 + random() * 0.2); root.add(palm);
+  }
+  for (const [index, z] of [-330,-247,-164].entries()) {
+    const canopy = material([0xf1e4d0,0xe9aa8d,0x9fd2ce][index], { roughness: 0.8 });
+    const pole = material(0xf2dfbd, { metalness: 0.35, roughness: 0.45 });
+    addBox(root,[0.12,1.65,0.12],pole,[-452,0.9,z]);
+    const shade = new THREE.Mesh(new THREE.ConeGeometry(2.0,0.55,10),canopy); shade.position.set(-452,2.0,z); root.add(shade);
+    const table = new THREE.Mesh(new THREE.CylinderGeometry(0.8,0.85,0.12,16),material(0xf4ead7,{roughness:0.6}));table.position.set(-452,0.82,z+2.3);root.add(table);
   }
   // Keep a clear framing strip close to the staged drift camera and road.
   for (let i = 0; i < 14; i++) addStreetLamp(root, -385 + i * 55, -240 + (i % 2) * 28, 0xffbf75);
@@ -159,13 +226,26 @@ export function createCity(scene, seed = 1) {
 
   // PAY N TUNE garage has an explicit 50 m building exclusion zone around the bay.
   const garage = new THREE.Group(); garage.position.set(610, 0, 145); root.add(garage);
-  const garageMat = material(0x293742, { metalness: 0.52, roughness: 0.34 });
+  const garageMat = material(0x78858a, { metalness: 0.22, roughness: 0.58 });
   addBox(garage, [2, 9, 26], garageMat, [-17, 4.5, 0]); addBox(garage, [2, 9, 26], garageMat, [17, 4.5, 0]);
   addBox(garage, [36, 1.2, 26], garageMat, [0, 9, 0]); addBox(garage, [32, 0.24, 22], material(0x202a31, { metalness: 0.35 }), [0, 0.16, 0]);
+  addBox(garage, [32, 7.8, 1.2], material(0xb6c0ba, { roughness: 0.72 }), [0, 4.25, -11.7]);
+  addBox(garage, [26, 0.25, 0.2], material(0xe1b471, { emissive: 0x9b6328, emissiveIntensity: 0.45 }), [0, 7.4, -10.9]);
+  addBox(garage, [13.5, 0.55, 1.1], material(0x303a3e, { metalness: 0.56, roughness: 0.42 }), [0, 1.1, -9.8]);
+  addBox(garage, [12.8, 0.18, 1.35], material(0xb6a58c, { metalness: 0.28, roughness: 0.5 }), [0, 1.43, -9.8]);
+  addBox(garage, [14, 3.3, 0.24], material(0x354249, { metalness: 0.26, roughness: 0.8 }), [0, 3.7, -10.88]);
+  const toolMetal = material(0xc4c5bb, { metalness: 0.72, roughness: 0.28 });
+  for (let i = 0; i < 7; i++) { const tool = addBox(garage, [0.18, 1.15 + (i % 3) * 0.3, 0.08], toolMetal, [-5.3 + i * 1.75, 3.5, -10.68]); tool.rotation.z = (i % 2 ? 1 : -1) * 0.16; }
+  const rackMaterial = material(0xa9b1aa, { metalness: 0.72, roughness: 0.32 });
+  for (const side of [-1, 1]) for (let layer = 0; layer < 3; layer++) {
+    const tire = new THREE.Mesh(new THREE.TorusGeometry(0.67, 0.22, 10, 24), material(0x171b1c, { roughness: 0.92 }));
+    tire.rotation.x = Math.PI / 2; tire.position.set(side * 13.5, 0.66 + layer * 1.42, -7.8); garage.add(tire);
+    addBox(garage, [2.1, 0.09, 1.7], rackMaterial, [side * 13.5, 1.42 + layer * 1.42, -7.8]);
+  }
   addBox(garage, [29, 0.24, 19], material(0x87969a, { emissive: 0x285b68, emissiveIntensity: 0.4, metalness: 0.6 }), [0, 0.32, -0.2]);
-  for (const x of [-10, 0, 10]) { const spot = new THREE.SpotLight(0xffd39a, 35, 32, Math.PI / 4, 0.6); spot.position.set(x, 8.4, 3); const target = new THREE.Object3D(); target.position.set(x, 0, 0); garage.add(spot, target); spot.target = target; }
+  for (const x of [-10, 0, 10]) { const spot = new THREE.SpotLight(0xffedca, 48, 32, Math.PI / 4, 0.6); spot.position.set(x, 8.4, 3); const target = new THREE.Object3D(); target.position.set(x, 0, 0); garage.add(spot, target); spot.target = target; const strip = addBox(garage, [4.4, 0.1, 0.55], material(0xffedcf, { emissive: 0xffdca8, emissiveIntensity: 1.1 }), [x, 8.35, 3]); }
   garage.add(new THREE.PointLight(0x46e7ff, 24, 32)); garage.children[garage.children.length - 1].position.set(4, 5, 0);
-  const sign = createSign('PAY N TUNE', 0x49e8ff); sign.position.set(610, 8, 158); root.add(sign);
+  const sign = createSign('PAY N TUNE', 0x49e8ff); sign.position.set(610, 7.7, 133.8); root.add(sign);
   addBox(root, [6, 3.2, 4], material(0x313b40), [582, 1.7, 140]); addBox(root, [5, 3.6, 4], material(0x313b40), [639, 1.9, 141]);
   for (let i = 0; i < 5; i++) { const tire = new THREE.Mesh(new THREE.TorusGeometry(0.55, 0.18, 8, 18), material(0x151719)); tire.position.set(587 + i * 1.2, 1.4, 143); root.add(tire); }
 
@@ -178,11 +258,11 @@ export function createCity(scene, seed = 1) {
   for (let i = 0; i < 17; i++) { const spike = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.55, 4), material(0xc1c8c3, { metalness: 0.8 })); spike.position.set(2.2, 0.48, -20 + i * 2.5); spike.rotation.z = Math.PI; roadblock.add(spike); }
 
   const traffic = [];
-  for (let i = 0; i < 13; i++) { const car = createVehicle(i % 5); car.position.set(-280 + (i * 67) % 650, 0.1, -80 + (i % 4) * 74); car.rotation.y = i % 2 ? Math.PI / 2 : 0; root.add(car); traffic.push(car); }
+  for (let i = 0; i < 13; i++) { const car = createVehicle(i === 12 ? 7 : i % 5); car.position.set(-280 + (i * 67) % 650, 0.1, -80 + (i % 4) * 74); car.rotation.y = i % 2 ? Math.PI / 2 : 0; root.add(car); traffic.push(car); }
   const police = [];
   for (let i = 0; i < 4; i++) { const car = createVehicle(5); car.position.set(90 + i * 11, 0.12, 15 + i * 5); root.add(car); police.push(car); }
   const swat = createVehicle(6); swat.visible = false; root.add(swat);
   const helicopter = createHelicopter(); helicopter.position.set(150, 66, -28); root.add(helicopter);
-  return { root, traffic, police, swat, helicopter, garage, roadblock, asphalt, seed, coastCurve,
+  return { root, traffic, police, swat, helicopter, ferrisWheel, garage, roadblock, asphalt, seed, coastCurve,
     roadGraph: { nodes: [[-400,-390],[-290,-350],[-120,-320],[-250,-160],[35,-30],[120,155],[315,310],[520,335],[610,145]], districts: [[-280,-280],[120,160],[520,335],[610,145]] } };
 }

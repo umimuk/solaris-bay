@@ -2,7 +2,8 @@ import * as THREE from '../../vendor/three.module.min.js';
 import { createRandom } from '../random.js';
 
 const SKY_MODES = {
-  sunset: { upper: '#171a3c', middle: '#79456d', horizon: '#ef9d67', sun: '#ffd991' },
+  sunset: { upper: '#72b9df', middle: '#d99caf', horizon: '#f4c694', sun: '#fff0c5' },
+  golden: { upper: '#7bc0e3', middle: '#e7a9a9', horizon: '#f8d39a', sun: '#fff1c9' },
   'wet-night': { upper: '#080d24', middle: '#171a3d', horizon: '#303451', sun: '#f05d68' },
   midnight: { upper: '#050916', middle: '#101a32', horizon: '#263049', sun: '#9ab8e8' },
   harbor: { upper: '#19213d', middle: '#696076', horizon: '#efa16a', sun: '#ffd28b' },
@@ -53,8 +54,8 @@ export function createSky(scene, seed = 1) {
   dome.renderOrder = -10;
   scene.add(dome);
 
-  const hemisphere = new THREE.HemisphereLight(0xb3c9f2, 0x33252d, 1.3);
-  const sun = new THREE.DirectionalLight(0xffbd83, 2.8);
+  const hemisphere = new THREE.HemisphereLight(0xcce5f2, 0x8a7058, 1.55);
+  const sun = new THREE.DirectionalLight(0xffd7a0, 3.1);
   sun.position.set(-80, 24, -95);
   const ambient = new THREE.AmbientLight(0x7590b5, 0.34);
   scene.add(hemisphere, sun, ambient);
@@ -106,11 +107,11 @@ export function updateSky(sky, dt, mode = 'sunset') {
   uniforms.sunColor.value.set(palette.sun);
 
   const night = mode === 'midnight' || mode === 'wet-night';
-  sky.sun.intensity = mode === 'sunset' || mode === 'harbor' ? 2.8 : mode === 'garage' ? 1.35 : 0.16;
+  sky.sun.intensity = mode === 'sunset' || mode === 'golden' || mode === 'harbor' ? 3.1 : mode === 'garage' ? 1.55 : mode === 'wet-night' ? 0.46 : 0.16;
   sky.sun.color.set(mode === 'garage' ? '#f7c99a' : palette.sun);
-  sky.hemisphere.intensity = night ? 0.52 : mode === 'garage' ? 0.9 : 1.38;
-  sky.hemisphere.color.set(night ? '#7389cf' : '#b4c9e7');
-  sky.ambient.intensity = night ? 0.55 : mode === 'garage' ? 0.68 : 0.35;
+  sky.hemisphere.intensity = night ? 0.86 : mode === 'garage' ? 0.9 : 1.5;
+  sky.hemisphere.color.set(night ? '#7389cf' : '#d4e9f1');
+  sky.ambient.intensity = night ? 0.88 : mode === 'garage' ? 0.82 : 0.52;
   sky.stars.material.opacity = night ? 0.84 : 0.12;
   sky.rain.visible = mode === 'wet-night';
 

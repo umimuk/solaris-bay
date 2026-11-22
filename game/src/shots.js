@@ -1,4 +1,5 @@
 import * as THREE from '../vendor/three.module.min.js';
+import { createGlowSprite } from './models/vehicles.js';
 
 function setCamera(game, position, target, fov) {
   game.shotCamera = { position: new THREE.Vector3(...position), target: new THREE.Vector3(...target), fov };
@@ -25,8 +26,11 @@ function stageDrift(game) {
     const civilian = city.traffic[index]; const p = city.coastCurve.getPoint(t); const direction = city.coastCurve.getTangent(t);
     civilian.position.set(p.x, 0.12, p.z); civilian.rotation.y = Math.atan2(-direction.z, direction.x); civilian.visible = true;
   }
+  const motorbike = city.traffic.find((vehicle) => vehicle.userData.spec?.kind === 'motorcycle');
+  if (motorbike) { const p = city.coastCurve.getPoint(0.565); const d = city.coastCurve.getTangent(0.565); motorbike.position.set(p.x, 0.1, p.z); motorbike.rotation.y = Math.atan2(-d.z, d.x); motorbike.visible = true; }
   state.freezeEffects = true;
   const forward = new THREE.Vector3(Math.cos(state.yaw), 0, -Math.sin(state.yaw)); const side = new THREE.Vector3(Math.sin(state.yaw), 0, Math.cos(state.yaw));
+  if (city.ferrisWheel) city.ferrisWheel.position.copy(car.position).addScaledVector(forward, 75).addScaledVector(side, 45);
   const rear = car.position.clone().addScaledVector(forward, -2.05);
   // Bold paired, curved skid trails taper away behind the car.
   for (let i = 0; i < 26; i++) for (const wheelSide of [-1, 1]) {
@@ -73,7 +77,7 @@ function stageDrift(game) {
   }
   world.shotMissionId = 'MISSION 01 / LAST LIGHT'; world.shotObjective = 'DRIFT THE COAST BEFORE THE SUN GOES DOWN.';
   for (const marker of game.missionMarkers) marker.visible = false;
-  setCamera(game, [car.position.x - Math.cos(state.yaw) * 7.0 - Math.sin(state.yaw) * 2.2, 3.45, car.position.z + Math.sin(state.yaw) * 7.0 - Math.cos(state.yaw) * 2.2], [car.position.x + forward.x * 3.6, 0.9, car.position.z + forward.z * 3.6], 62);
+  setCamera(game, [car.position.x - Math.cos(state.yaw) * 9.8 - Math.sin(state.yaw) * 3.3, 5.0, car.position.z + Math.sin(state.yaw) * 9.8 - Math.cos(state.yaw) * 3.3], [car.position.x + forward.x * 4.5, 1.1, car.position.z + forward.z * 4.5], 68);
   const look = game.shotCamera.target.clone().sub(game.shotCamera.position).normalize();
   game.sky.dome.material.uniforms.sunDirection.value.set(-look.z, 0.16, look.x).normalize();
   const right = new THREE.Vector3(-look.z, 0, look.x).normalize();
@@ -84,6 +88,24 @@ function stageDrift(game) {
   const sunsetDisc = document.createElement('div'); sunsetDisc.id = 'shot-sun'; sunsetDisc.setAttribute('aria-hidden', 'true'); document.body.append(sunsetDisc); document.body.classList.add('drift-shot');
   sunGlow.position.set(56, 45, -122);
   state.sparkLight.position.copy(car.position).addScaledVector(forward, -1.7).add(new THREE.Vector3(0, 0.5, 0)); state.sparkLight.intensity = 14;
+  const sparkHalo = createGlowSprite(0xff9b36, 0.8); sparkHalo.position.copy(state.sparkLight.position); sparkHalo.scale.set(8, 5, 1); game.scene.add(sparkHalo);
+  game.missions.cash = 24850; game.missions.respect = 420; game.police.wanted = 4;
+  game.police.heat = 86;
+  const pursuit = [city.police[0], city.police[1], city.police[2]];
+  city.roadblock.position.copy(car.position).addScaledVector(forward, 70);
+  pursuit.forEach((unit, index) => {
+    const side = new THREE.Vector3(Math.sin(state.yaw), 0, Math.cos(state.yaw));
+    const offsets = [[-9,0],[0,-11],[9,0]][index];
+    unit.visible = true; unit.position.copy(car.position).addScaledVector(side, offsets[0]).addScaledVector(forward, offsets[1]);
+    unit.rotation.y = state.yaw + Math.PI + (index - 1) * 0.12;
+    unit.userData.policePoints.forEach((light) => { light.intensity = 28; });
+  });
+  const viewDirection = game.shotCamera.target.clone().sub(game.shotCamera.position).normalize();
+  city.helicopter.visible = true; city.helicopter.position.copy(game.shotCamera.position).addScaledVector(viewDirection, 30).add(new THREE.Vector3(0, 8, 0));
+  city.helicopter.rotation.y = 0.9; city.helicopter.userData.stagedShot = true; city.helicopter.userData.callsign.visible = true;
+  city.helicopter.userData.callsign.scale.set(6.5, 1.45, 1);
+  world.shotMissionId = 'MISSION 05 / SUNSET HEIST'; world.shotObjective = 'CONDOR-1 IS LOCKED ON. KICK IT SIDEWAYS THROUGH THE SUNSET HAIRPIN.';
+  world.shotRadio = 'MARA SOL • FIELD OPERATOR — Condor-1 is locked on! Kick it sideways through the Sunset hairpin and break line of sight!';
 }
 
 function stageChase(game) {
@@ -105,7 +127,7 @@ function stageChase(game) {
   city.helicopter.userData.stagedShot = true;
   city.helicopter.userData.callsign.visible = true;
   city.helicopter.userData.mainRotor.rotation.y = 0.7; city.helicopter.userData.tailRotor.rotation.x = 0.9;
-  city.helicopter.userData.cone.position.set(0.7, -13, 0); city.helicopter.userData.cone.scale.set(1.15, 1.3, 1.15); city.helicopter.userData.cone.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0.65, -0.76, 0).normalize());
+  city.helicopter.userData.cone.position.set(0.7, -11, 0); city.helicopter.userData.cone.scale.set(0.38, 0.72, 0.38); city.helicopter.userData.cone.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0.65, -0.76, 0).normalize());
   city.helicopter.userData.groundPool.position.set(20, -21, 0);
   city.helicopter.userData.target.position.set(20, -21, 0);
   city.helicopter.userData.search.position.set(0.6, -0.5, 0);
@@ -117,16 +139,17 @@ function stageChase(game) {
 
 function stageCombat(game) {
   const { drive, world, combat, player, city } = game; const car = drive.state.car;
-  game.setWeather('harbor'); world.district = 'HARBOR DOCKS'; world.shotMissionId = 'MISSION 06 / DOCKSIDE HEIST'; world.shotObjective = 'CLEAR THE CONTAINER ALLEY.';
-  car.position.set(420, 0.12, 330); car.rotation.y = Math.PI * 0.78;
+  game.setWeather('wet-night'); world.district = 'NEON DOWNTOWN'; world.shotMissionId = 'MISSION 06 / DOCKSIDE SYNDICATE'; world.shotObjective = 'CLEAR THE NEON AVENUE. KEEP THE BAY CLUB IN SIGHT.';
+  world.shotRadio = 'NIKO VALE • DRIVER — Mara, I have four ahead. I’m moving through the crossfire.';
+  car.position.set(238, 0.12, 157); car.rotation.y = Math.PI * 0.78;
   if (drive.state.active) drive.enterExit();
-  player.position.set(418, 0, 328); player.rotation.y = 0; player.visible = true;
+  player.position.set(237, 0, 159); player.rotation.y = -0.12; player.visible = true;
   combat.wheel = true; combat.weapon = 4; combat.ammo = 24; combat.ammoByWeapon[3] = 24;
   combat.reserve[3] = 120;
   const healthBars = [];
   combat.flash = 0.08; combat.enemies.slice(0, 4).forEach((enemy, i) => {
     enemy.visible = true; enemy.userData.alive = true; enemy.userData.health = 55 + i * 10;
-    enemy.position.set(430 + i * 2.2, 0, 317 + (i % 2) * 8); enemy.rotation.y = Math.PI;
+    enemy.position.set(259 + i * 2.2, 0, 145 + (i % 2) * 9); enemy.rotation.y = Math.PI;
     const bar = new THREE.Group();
     const back = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.17), new THREE.MeshBasicMaterial({ color: 0x15191c, side: THREE.DoubleSide })); back.position.y = 2.28; bar.add(back);
     const fill = new THREE.Mesh(new THREE.PlaneGeometry(1.28, 0.1), new THREE.MeshBasicMaterial({ color: 0xff384e, side: THREE.DoubleSide })); fill.position.set(-0.05, 2.28, 0.012); bar.add(fill);
@@ -136,31 +159,17 @@ function stageCombat(game) {
   for (const enemy of combat.enemies.slice(4)) enemy.visible = false;
   for (const marker of game.missionMarkers) marker.visible = false;
   game.missions.cash = 14800; game.missions.respect = 420; game.police.wanted = 3;
-  // Crate, muzzle starburst, weapon barrel light and three luminous tracer beams.
-  const createContainer = (x, z, color, height = 4.6) => {
-    const group = new THREE.Group(); const body = new THREE.Mesh(new THREE.BoxGeometry(5.2, height, 12), new THREE.MeshStandardMaterial({ color, roughness: 0.76, metalness: 0.16 })); body.position.y = height / 2; group.add(body);
-    for (let rib = -5; rib <= 5; rib++) { const bar = new THREE.Mesh(new THREE.BoxGeometry(0.07, height - 0.2, 12.1), new THREE.MeshStandardMaterial({ color: 0xd6c9a1, metalness: 0.3, roughness: 0.65 })); bar.position.set(rib * 0.46, height / 2, 0); group.add(bar); }
-    group.position.set(x, 0, z); game.scene.add(group);
-  };
-  createContainer(420, 309, 0xb6443d); createContainer(438, 345, 0x17878b); createContainer(455, 308, 0xd0a33b); createContainer(459, 346, 0x243f5f);
-  // Two yellow dock cranes and the cargo ship silhouette frame the firefight.
-  for (const x of [450, 470]) { const yellow = new THREE.MeshStandardMaterial({ color: 0xe2b431, metalness: 0.48 });
-    for (const z of [302, 350]) { const leg = new THREE.Mesh(new THREE.BoxGeometry(1, 13, 1), yellow); leg.position.set(x, 6.5, z); game.scene.add(leg); }
-    const beam = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 52), yellow); beam.position.set(x, 13, 326); game.scene.add(beam);
-  }
-  const shipHull = new THREE.Mesh(new THREE.BoxGeometry(23, 4.5, 9), new THREE.MeshStandardMaterial({ color: 0x293a43 })); shipHull.position.set(460, 2.2, 282); game.scene.add(shipHull);
-  for (let i=0;i<5;i++) { const load = new THREE.Mesh(new THREE.BoxGeometry(4,3.5,7), new THREE.MeshStandardMaterial({ color:[0xb5483e,0x197f86,0xd3a83d,0x283c5b,0xb5483e][i] })); load.position.set(452+i*4,6,282); game.scene.add(load); }
-  const crate = new THREE.Mesh(new THREE.BoxGeometry(2.5, 1.8, 1.7), new THREE.MeshStandardMaterial({ color: 0x71523b, roughness: 0.9 })); crate.position.set(416, 0.9, 327); game.scene.add(crate);
-  const muzzle = new THREE.Group(); muzzle.position.set(420.2, 1.4, 327.7); game.scene.add(muzzle);
+  // Muzzle starburst, barrel light and tracers cross the downtown avenue.
+  const muzzle = new THREE.Group(); muzzle.position.set(239, 1.4, 158); game.scene.add(muzzle);
   for (let i = 0; i < 8; i++) { const ray = new THREE.Mesh(new THREE.ConeGeometry(i % 2 ? 0.12 : 0.2, i % 2 ? 0.8 : 0.48, 4), new THREE.MeshBasicMaterial({ color: i % 2 ? 0xffb33b : 0xffefad, blending: THREE.AdditiveBlending, depthWrite: false })); ray.rotation.z = i * Math.PI / 4; ray.rotation.x = Math.PI / 2; ray.position.z = -0.28; muzzle.add(ray); }
   const muzzleLight = new THREE.PointLight(0xffa637, 32, 14); muzzle.add(muzzleLight);
-  addTracer(game.scene, [421,1.45,327], [429,1.8,316], 0xffd36d, 0.05);
-  addTracer(game.scene, [421,1.55,327], [432,1.55,325], 0xfff0b3, 0.045);
-  addTracer(game.scene, [421,1.35,327], [431,1.2,334], 0xff9b37, 0.055);
-  const impact = new THREE.PointLight(0xff832d, 18, 9); impact.position.set(432, 2.6, 328); game.scene.add(impact);
+  addTracer(game.scene, [239,1.45,158], [260,1.8,143], 0xffd36d, 0.05);
+  addTracer(game.scene, [239,1.55,158], [265,1.55,153], 0xfff0b3, 0.045);
+  addTracer(game.scene, [239,1.35,158], [261,1.2,163], 0xff9b37, 0.055);
+  const impact = new THREE.PointLight(0xff832d, 18, 9); impact.position.set(261, 2.6, 153); game.scene.add(impact);
   const impactSpark = new THREE.Mesh(new THREE.IcosahedronGeometry(0.5, 1), new THREE.MeshBasicMaterial({ color: 0xffb052, wireframe: true })); impactSpark.position.copy(impact.position); game.scene.add(impactSpark);
   document.body.classList.add('combat-shot');
-  setCamera(game, [412, 2.9, 334], [431, 1.75, 323], 44);
+  setCamera(game, [230, 3.6, 164], [259, 1.75, 153], 48);
   let reticle = document.getElementById('shot-reticle');
   if (!reticle) { reticle = document.createElement('div'); reticle.id = 'shot-reticle'; reticle.textContent = '⌖'; document.body.append(reticle); }
 }
@@ -172,7 +181,16 @@ function stageGarage(game) {
   car.position.set(610, 0.42, 143); car.rotation.y = 0.18; game.paint(0x218d94, false);
   for (const marker of game.missionMarkers) marker.visible = false;
   game.cameraMode = 'garage'; document.body.classList.add('garage-shot'); game.showPanel('garage');
-  setCamera(game, [612.5, 2.6, 150], [612, 1.0, 142], 40);
+  setCamera(game, [621, 6.5, 169], [615, 1.25, 143], 28);
+}
+
+function stageTitle(game) {
+  game.setWeather('golden'); game.hud.hide(); game.cameraMode = 'title';
+  game.city.traffic.forEach((vehicle, index) => { vehicle.visible = true; vehicle.position.set(-365 + index * 42, 0.12, -280 + (index % 3) * 22); vehicle.rotation.y = 0.4; });
+  game.missions.cash = 24850; game.missions.respect = 420;
+  game.showPanel('title'); document.body.classList.add('title-shot');
+  game.world.shotMissionId = ''; game.world.shotObjective = ''; game.world.shotRadio = '';
+  setCamera(game, [-260, 78, -270], [45, 15, -185], 54);
 }
 
 /** Place deterministic camera, lighting and gameplay beats for the four evidence shots. */
@@ -182,5 +200,6 @@ export function stageShot(name, game) {
   else if (name === 'chase') stageChase(game);
   else if (name === 'combat') stageCombat(game);
   else if (name === 'garage') stageGarage(game);
+  else if (name === 'title') stageTitle(game);
   game.hud.update(game.hudState());
 }
