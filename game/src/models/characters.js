@@ -5,9 +5,12 @@ function capsule(group, material, position, radius, length) { const mesh = new T
 
 /** Articulated low-poly street characters and tactical rifle silhouettes. */
 export function createCharacter(role = 'protagonist', seed = 1) {
-  const palette = role === 'officer' ? 0x344b60 : role === 'syndicate' ? 0x242932 : role === 'pedestrian' ? 0x6a5048 : 0x294c50;
+  const pedestrianColors=[0x416b71,0xb45e4a,0x667d50,0xb29358,0x4f5684,0xd16e75,0xddd0b5,0x525d64];
+  const palette = role === 'officer' ? 0x344b60 : role === 'syndicate' ? 0x242932 : role === 'pedestrian' ? pedestrianColors[Math.abs(seed*7+3)%pedestrianColors.length|0] : 0x294c50;
   const skin = fabric(0xb77f62); const jacket = fabric(palette); const pants = fabric(role === 'syndicate' ? 0x14191f : 0x202a34); const boot = fabric(0x101316);
   const group = new THREE.Group(); group.userData = { role, phase: seed * 0.6, limbs: [] };
+  const shadowCanvas=document.createElement('canvas');shadowCanvas.width=shadowCanvas.height=64;const sctx=shadowCanvas.getContext('2d');const sg=sctx.createRadialGradient(32,32,3,32,32,31);sg.addColorStop(0,'rgba(9,12,15,.58)');sg.addColorStop(1,'rgba(9,12,15,0)');sctx.fillStyle=sg;sctx.fillRect(0,0,64,64);
+  const shadow=new THREE.Mesh(new THREE.PlaneGeometry(1.25,.8),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(shadowCanvas),transparent:true,opacity:.62,depthWrite:false}));shadow.rotation.x=-Math.PI/2;shadow.position.y=.045;group.add(shadow);
   capsule(group, pants, [0, 0.5, 0], 0.2, 0.4); capsule(group, jacket, [0, 1.16, 0], 0.34, 0.38);
   const head = new THREE.Mesh(new THREE.SphereGeometry(0.22, 14, 11), skin); head.position.set(0.06, 1.72, 0); group.add(head);
   const hair = new THREE.Mesh(new THREE.SphereGeometry(0.235, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.55), fabric(role === 'officer' ? 0x19222b : 0x17191e)); hair.position.set(0.05, 1.8, 0); group.add(hair);

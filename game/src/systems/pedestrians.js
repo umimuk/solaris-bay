@@ -2,11 +2,15 @@ import * as THREE from '../../vendor/three.module.min.js';
 import { createCharacter, animateCharacter } from '../models/characters.js';
 
 /** Sidewalk crowd that wanders, scatters from threats and regroups afterward. */
-export function createPedestrians(scene, random, count = 34) {
+export function createPedestrians(scene, random, count = 34, coastCurve = null) {
   const crowd = [];
   for (let index = 0; index < count; index++) {
     const pedestrian = createCharacter(index % 11 === 0 ? 'officer' : 'pedestrian', index);
-    pedestrian.position.set((random() - 0.5) * 700, 0, (random() - 0.5) * 700);
+    if (coastCurve && index < 26) {
+      const t=.19+(index%13)*.058;const p=coastCurve.getPoint(t);const d=coastCurve.getTangent(t);const side=new THREE.Vector3(-d.z,0,d.x).normalize();
+      pedestrian.position.copy(p).addScaledVector(side,index<13?-15:15);pedestrian.position.y=0;
+      pedestrian.rotation.y=Math.atan2(-d.z,d.x)+(index<13?Math.PI/2:-Math.PI/2);
+    } else pedestrian.position.set((random() - 0.5) * 700, 0, (random() - 0.5) * 700);
     pedestrian.userData.phase = random() * Math.PI * 2;
     pedestrian.userData.flee = 0;
     pedestrian.userData.heading = random() * Math.PI * 2;

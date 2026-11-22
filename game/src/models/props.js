@@ -1,34 +1,27 @@
 import * as THREE from '../../vendor/three.module.min.js';
+import { makePalmFrondTexture } from '../world/textures.js';
 
 const solid = (color, emissive = 0) => new THREE.MeshStandardMaterial({ color, roughness: 0.55, emissive: emissive ? color : 0, emissiveIntensity: emissive });
 const addBox = (group, geometry, material, position) => { const mesh = new THREE.Mesh(geometry, material); mesh.position.set(...position); group.add(mesh); return mesh; };
 
-/** Segmented, slightly leaning trunk with eight arched, drooping fronds. */
+let frondTexture;
+/** Segmented tropical trunk and ten feathered, arching palm crowns. */
 export function createPalm() {
   const group = new THREE.Group();
-  const bark = solid(0x79563a);
-  for (let segment = 0; segment < 7; segment++) {
-    const y = 0.38 + segment * 0.62;
-    const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.2 - segment * 0.012, 0.24 - segment * 0.012, 0.72, 8), bark);
-    trunk.position.set(segment * 0.035, y, 0); trunk.rotation.z = -0.055; group.add(trunk);
+  const bark = solid(0x79563a); let previous=new THREE.Vector3(0,0,0);
+  for (let segment = 0; segment < 10; segment++) {
+    const t=(segment+1)/10;const next=new THREE.Vector3(.22*Math.sin(t*1.1),t*6.7,0);const delta=next.clone().sub(previous);
+    const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.14-t*.07,.23-t*.065,delta.length(),9),bark);trunk.position.copy(previous).add(next).multiplyScalar(.5);trunk.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),delta.normalize());group.add(trunk);previous=next;
   }
-  const crown = new THREE.Vector3(0.25, 4.85, 0);
-  for (let frond = 0; frond < 8; frond++) {
-    const angle = frond * Math.PI / 4;
-    const direction = new THREE.Vector3(Math.cos(angle), 0, Math.sin(angle));
-    const points = [crown.clone(), crown.clone().addScaledVector(direction, 0.78).add(new THREE.Vector3(0, 0.35, 0)), crown.clone().addScaledVector(direction, 1.65).add(new THREE.Vector3(0, 0.03, 0)), crown.clone().addScaledVector(direction, 2.55).add(new THREE.Vector3(0, -0.58, 0)), crown.clone().addScaledVector(direction, 3.2).add(new THREE.Vector3(0, -1.05, 0))];
-    const curve = new THREE.CatmullRomCurve3(points);
-    const rib = new THREE.Mesh(new THREE.TubeGeometry(curve, 14, 0.055, 5, false), solid(0x9eb877)); group.add(rib);
-    for (let leaf = 1; leaf <= 8; leaf++) {
-      const t = leaf / 9;
-      const base = curve.getPoint(t);
-      for (const side of [-1, 1]) {
-        const end = base.clone().addScaledVector(new THREE.Vector3(-direction.z, 0, direction.x), side * (0.42 + Math.sin(t * Math.PI) * 0.34)).add(new THREE.Vector3(0, -0.36 - t * 0.34, 0));
-        const mid = base.clone().lerp(end, 0.55).add(new THREE.Vector3(0, -0.13, 0));
-        const leafCurve = new THREE.CatmullRomCurve3([base, mid, end]);
-        const blade = new THREE.Mesh(new THREE.TubeGeometry(leafCurve, 5, 0.045, 4, false), solid(frond % 2 ? 0x47785d : 0x588764)); group.add(blade);
-      }
-    }
+  if(!frondTexture)frondTexture=makePalmFrondTexture();
+  const crown=new THREE.Vector3(.22*Math.sin(1.1),6.55,0);
+  const frondMat=new THREE.MeshStandardMaterial({map:frondTexture,transparent:true,alphaTest:.25,side:THREE.DoubleSide,roughness:.78,metalness:.02});
+  for(let i=0;i<10;i++){
+    const angle=i*Math.PI*2/10;const dir=new THREE.Vector3(Math.cos(angle),0,Math.sin(angle));const side=new THREE.Vector3(-dir.z,0,dir.x);
+    const verts=[],uv=[],idx=[];const rows=12;
+    for(let j=0;j<=rows;j++){const t=j/rows;const center=crown.clone().addScaledVector(dir,3.85*t).add(new THREE.Vector3(0,1.15*Math.sin(Math.PI*t)-1.45*t,0));const width=(.24+.55*Math.sin(Math.PI*t))*(1-t*.42);
+      const a=center.clone().addScaledVector(side,-width);const b=center.clone().addScaledVector(side,width);verts.push(a.x,a.y,a.z,b.x,b.y,b.z);uv.push(t,0,t,1);if(j<rows){const k=j*2;idx.push(k,k+1,k+2,k+1,k+3,k+2);}}
+    const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(verts,3));geo.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));geo.setIndex(idx);geo.computeVertexNormals();group.add(new THREE.Mesh(geo,frondMat));
   }
   return group;
 }

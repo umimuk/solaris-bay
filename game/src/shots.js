@@ -1,5 +1,38 @@
 import * as THREE from '../vendor/three.module.min.js';
 import { createGlowSprite } from './models/vehicles.js';
+import { createSign } from './models/props.js';
+import { createPalm } from './models/props.js';
+
+function addBoulevardBackdrop(game, origin, forward, side) {
+  const cream=new THREE.MeshStandardMaterial({color:0xe7d7bc,roughness:.78});const ivory=new THREE.MeshStandardMaterial({color:0xf4ead8,roughness:.7});
+  const glass=new THREE.MeshStandardMaterial({color:0x24495a,roughness:.22,metalness:.24});const rail=new THREE.MeshStandardMaterial({color:0xd8cbb3,roughness:.52,metalness:.18});
+  for(let i=0;i<3;i++)for(const s of [-1,1]){
+    const position=origin.clone().addScaledVector(forward,10+i*19).addScaledVector(side,s*(29+(i%2)*4));const h=19+(i*7)%14;const group=new THREE.Group();group.position.copy(position);
+    const body=new THREE.Mesh(new THREE.BoxGeometry(17,h,15),cream);body.position.y=h/2;group.add(body);
+    const base=new THREE.Mesh(new THREE.BoxGeometry(18,2.2,16),ivory);base.position.y=1.1;group.add(base);
+    const roof=new THREE.Mesh(new THREE.BoxGeometry(18.4,.4,16.4),ivory);roof.position.y=h+.2;group.add(roof);
+    for(let floor=1;floor<h/4;floor++){const y=floor*3.7+2.4;const ledge=new THREE.Mesh(new THREE.BoxGeometry(16.2,.16,1.1),ivory);ledge.position.set(0,y,s*7.7);group.add(ledge);
+      const glazing=new THREE.Mesh(new THREE.BoxGeometry(14.6,1.5,.08),glass);glazing.position.set(0,y-1.05,s*7.58);group.add(glazing);
+      const guard=new THREE.Mesh(new THREE.BoxGeometry(15,.62,.07),rail);guard.position.set(0,y+.26,s*8.02);group.add(guard);
+      for(const face of [-1,1]){const sideGlass=new THREE.Mesh(new THREE.BoxGeometry(.08,1.5,13.2),glass);sideGlass.position.set(face*8.58,y-1.05,0);group.add(sideGlass);}
+    }
+    game.scene.add(group);
+  }
+}
+
+function addShotSkyline(game) {
+  game.camera.updateMatrixWorld(true);const set=new THREE.Group();set.position.copy(game.camera.position);set.quaternion.copy(game.camera.quaternion);game.scene.add(set);const facades=[0xf1e5d1,0xe8d5bd,0xd9e4df,0xf2d8c7];
+  for(const x of [-67,-49,-31,-16,16,31,49,67]){
+    const height=21+(Math.abs(x)*7%20);const facade=new THREE.MeshStandardMaterial({color:facades[Math.abs(x)%facades.length],roughness:.72});
+    const body=new THREE.Mesh(new THREE.BoxGeometry(15,height,13),facade);body.position.set(x,-8+height/2,-112);set.add(body);
+    const roof=new THREE.Mesh(new THREE.BoxGeometry(15.7,.38,13.7),new THREE.MeshStandardMaterial({color:0xf7eddd,roughness:.6}));roof.position.set(x,-8+height,-112);set.add(roof);
+    const glass=new THREE.MeshStandardMaterial({color:0x274b5a,roughness:.2,metalness:.28});
+    for(let floor=0;floor<Math.floor(height/4);floor++)for(let column=-1;column<=1;column++){
+      const window=new THREE.Mesh(new THREE.BoxGeometry(3.3,1.9,.12),glass);window.position.set(x+column*4,-7+floor*3.5,-105.35);set.add(window);
+      if(floor%2===0){const balcony=new THREE.Mesh(new THREE.BoxGeometry(4,.12,.85),new THREE.MeshStandardMaterial({color:0xf8f0e1,roughness:.68}));balcony.position.set(x+column*4,-5.9+floor*3.5,-104.9);set.add(balcony);}
+    }
+  }
+}
 
 function setCamera(game, position, target, fov) {
   game.shotCamera = { position: new THREE.Vector3(...position), target: new THREE.Vector3(...target), fov };
@@ -22,14 +55,17 @@ function stageDrift(game) {
   car.userData.steer = -0.75;
   for (const wheel of car.userData.wheels) if (wheel.front) wheel.pivot.rotation.y = -0.62;
   world.district = 'SUNSET COAST';
-  for (const [index, t] of [0.555, 0.59].entries()) {
+  const forward=new THREE.Vector3(Math.cos(state.yaw),0,-Math.sin(state.yaw)); const side=new THREE.Vector3(Math.sin(state.yaw),0,Math.cos(state.yaw));
+  addBoulevardBackdrop(game,car.position,forward,side);
+  for(let i=0;i<5;i++)for(const sign of [-1,1]){const palm=createPalm();palm.position.copy(car.position).addScaledVector(forward,(i-2)*17).addScaledVector(side,sign*22);palm.scale.setScalar(.95);city.root.add(palm);}
+  pedestrians.list.slice(0,26).forEach((person,i)=>{const row=i%13;const sign=i<13?-1:1;person.position.copy(car.position).addScaledVector(forward,(row-6)*4.2).addScaledVector(side,sign*14.5);person.position.y=0;person.visible=true;});
+  for (const [index, t] of [0.555, 0.59, 0.625, 0.66].entries()) {
     const civilian = city.traffic[index]; const p = city.coastCurve.getPoint(t); const direction = city.coastCurve.getTangent(t);
-    civilian.position.set(p.x, 0.12, p.z); civilian.rotation.y = Math.atan2(-direction.z, direction.x); civilian.visible = true;
+    const lateral=new THREE.Vector3(-direction.z,0,direction.x).normalize();civilian.position.set(p.x+lateral.x*(index%2?4:-4), 0.12, p.z+lateral.z*(index%2?4:-4)); civilian.rotation.y = Math.atan2(-direction.z, direction.x); civilian.visible = true;
   }
   const motorbike = city.traffic.find((vehicle) => vehicle.userData.spec?.kind === 'motorcycle');
   if (motorbike) { const p = city.coastCurve.getPoint(0.565); const d = city.coastCurve.getTangent(0.565); motorbike.position.set(p.x, 0.1, p.z); motorbike.rotation.y = Math.atan2(-d.z, d.x); motorbike.visible = true; }
   state.freezeEffects = true;
-  const forward = new THREE.Vector3(Math.cos(state.yaw), 0, -Math.sin(state.yaw)); const side = new THREE.Vector3(Math.sin(state.yaw), 0, Math.cos(state.yaw));
   if (city.ferrisWheel) city.ferrisWheel.position.copy(car.position).addScaledVector(forward, 75).addScaledVector(side, 45);
   const rear = car.position.clone().addScaledVector(forward, -2.05);
   // Bold paired, curved skid trails taper away behind the car.
@@ -78,6 +114,7 @@ function stageDrift(game) {
   world.shotMissionId = 'MISSION 01 / LAST LIGHT'; world.shotObjective = 'DRIFT THE COAST BEFORE THE SUN GOES DOWN.';
   for (const marker of game.missionMarkers) marker.visible = false;
   setCamera(game, [car.position.x - Math.cos(state.yaw) * 9.8 - Math.sin(state.yaw) * 3.3, 5.0, car.position.z + Math.sin(state.yaw) * 9.8 - Math.cos(state.yaw) * 3.3], [car.position.x + forward.x * 4.5, 1.1, car.position.z + forward.z * 4.5], 68);
+  addShotSkyline(game);
   const look = game.shotCamera.target.clone().sub(game.shotCamera.position).normalize();
   game.sky.dome.material.uniforms.sunDirection.value.set(-look.z, 0.16, look.x).normalize();
   const right = new THREE.Vector3(-look.z, 0, look.x).normalize();
@@ -102,8 +139,7 @@ function stageDrift(game) {
   });
   const viewDirection = game.shotCamera.target.clone().sub(game.shotCamera.position).normalize();
   city.helicopter.visible = true; city.helicopter.position.copy(game.shotCamera.position).addScaledVector(viewDirection, 30).add(new THREE.Vector3(0, 8, 0));
-  city.helicopter.rotation.y = 0.9; city.helicopter.userData.stagedShot = true; city.helicopter.userData.callsign.visible = true;
-  city.helicopter.userData.callsign.scale.set(6.5, 1.45, 1);
+  city.helicopter.rotation.y = 0.9; city.helicopter.userData.stagedShot = true; city.helicopter.userData.callsign.visible = false;
   world.shotMissionId = 'MISSION 05 / SUNSET HEIST'; world.shotObjective = 'CONDOR-1 IS LOCKED ON. KICK IT SIDEWAYS THROUGH THE SUNSET HAIRPIN.';
   world.shotRadio = 'MARA SOL • FIELD OPERATOR — Condor-1 is locked on! Kick it sideways through the Sunset hairpin and break line of sight!';
 }
@@ -125,7 +161,7 @@ function stageChase(game) {
   }
   city.helicopter.visible = true; city.helicopter.position.set(270, 22, 157); city.helicopter.rotation.y = 3.04;
   city.helicopter.userData.stagedShot = true;
-  city.helicopter.userData.callsign.visible = true;
+  city.helicopter.userData.callsign.visible = false;
   city.helicopter.userData.mainRotor.rotation.y = 0.7; city.helicopter.userData.tailRotor.rotation.x = 0.9;
   city.helicopter.userData.cone.position.set(0.7, -11, 0); city.helicopter.userData.cone.scale.set(0.38, 0.72, 0.38); city.helicopter.userData.cone.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0.65, -0.76, 0).normalize());
   city.helicopter.userData.groundPool.position.set(20, -21, 0);
@@ -157,6 +193,8 @@ function stageCombat(game) {
   });
   game.healthBars = healthBars;
   for (const enemy of combat.enemies.slice(4)) enemy.visible = false;
+  const hitCanvas=document.createElement('canvas');hitCanvas.width=320;hitCanvas.height=100;const hitCtx=hitCanvas.getContext('2d');hitCtx.font='900 54px Chakra,Arial';hitCtx.textAlign='center';hitCtx.fillStyle='#ffe193';hitCtx.shadowColor='#ff9b32';hitCtx.shadowBlur=18;hitCtx.fillText('HEAD 85',160,64);
+  const hitSprite=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(hitCanvas),transparent:true,depthWrite:false,toneMapped:false}));hitSprite.position.set(260.2,3.25,145);hitSprite.scale.set(3.3,1.05,1);game.scene.add(hitSprite);
   for (const marker of game.missionMarkers) marker.visible = false;
   game.missions.cash = 14800; game.missions.respect = 420; game.police.wanted = 3;
   // Muzzle starburst, barrel light and tracers cross the downtown avenue.
@@ -178,19 +216,42 @@ function stageGarage(game) {
   const { drive, world } = game; const car = drive.state.car;
   game.setWeather('garage'); world.district = 'CORAL ISLAND';
   world.shotMissionId = 'PAY N TUNE / SOLARIS BAY MAP'; world.shotObjective = 'YOUR BAY. YOUR BUILD. YOUR WAY OUT.';
-  car.position.set(610, 0.42, 143); car.rotation.y = 0.18; game.paint(0x218d94, false);
+  car.position.set(607, 0.42, 143); car.rotation.y = 0.18; game.paint(0x218d94, false);
+  for(const [x,y,z,intensity,color] of [[609,5.4,148,76,0xfff0d0],[613,3.2,138,42,0xb5f7ff]]){const fill=new THREE.PointLight(color,intensity,28,1.4);fill.position.set(x,y,z);game.scene.add(fill);}
+  const pegboard=new THREE.Mesh(new THREE.BoxGeometry(20,8,.26),new THREE.MeshStandardMaterial({color:0xc7bda9,roughness:.9}));pegboard.position.set(580,5,134.08);game.scene.add(pegboard);
+  for(let i=0;i<7;i++){const tool=new THREE.Mesh(new THREE.BoxGeometry(.18,1.2+(i%3)*.25,.12),new THREE.MeshStandardMaterial({color:i%2?0x38454a:0xb9b5a8,metalness:.55,roughness:.35}));tool.position.set(572+i*2.2,4.5,134.28);game.scene.add(tool);}
+  for(let i=0;i<3;i++){const bar=new THREE.Mesh(new THREE.BoxGeometry(4.8,.15,.7),new THREE.MeshBasicMaterial({color:0xfff0d0,toneMapped:false}));bar.position.set(604+i*6,9.3,140);game.scene.add(bar);}
+  const garageSign=createSign('PAY N TUNE',0x49e8ff);garageSign.position.set(580,8.1,134.28);garageSign.scale.setScalar(1.35);game.scene.add(garageSign);
   for (const marker of game.missionMarkers) marker.visible = false;
   game.cameraMode = 'garage'; document.body.classList.add('garage-shot'); game.showPanel('garage');
-  setCamera(game, [621, 6.5, 169], [615, 1.25, 143], 28);
+  setCamera(game, [617, 3.1, 148], [610, 0.9, 143], 43);
+  game.camera.updateMatrixWorld(true);const studio=new THREE.Group();studio.position.copy(game.camera.position);studio.quaternion.copy(game.camera.quaternion);game.scene.add(studio);
+  const wall=new THREE.Mesh(new THREE.BoxGeometry(24,12,.7),new THREE.MeshStandardMaterial({color:0xd9ceb7,roughness:.83}));wall.position.set(-3,0,-18);studio.add(wall);
+  const shopSign=createSign('PAY N TUNE',0x49e8ff);shopSign.position.set(-3,4.2,-17.55);shopSign.scale.set(1.7,1.7,1);studio.add(shopSign);
+  for(let i=0;i<8;i++){const tool=new THREE.Mesh(new THREE.BoxGeometry(.24,1.6+(i%3)*.38,.13),new THREE.MeshStandardMaterial({color:i%2?0x344249:0xa3a69f,metalness:.55,roughness:.32}));tool.position.set(-10+i*2,0.1,-17.5);studio.add(tool);}
+  for(let i=0;i<4;i++){const strip=new THREE.Mesh(new THREE.BoxGeometry(6,.13,.42),new THREE.MeshBasicMaterial({color:0xfff0cb,toneMapped:false}));strip.position.set(-10+i*5,6,-15);studio.add(strip);}
+  for(let i=0;i<3;i++){const tire=new THREE.Mesh(new THREE.TorusGeometry(.72,.23,9,20),new THREE.MeshStandardMaterial({color:0x171c20,roughness:.9}));tire.position.set(7,1.1+i*1.75,-17.5);studio.add(tire);}
 }
 
 function stageTitle(game) {
   game.setWeather('golden'); game.hud.hide(); game.cameraMode = 'title';
+  if(game.city.ferrisWheel)game.city.ferrisWheel.position.set(-246,0,-444);
+  const bridge=new THREE.Group();bridge.position.set(-210,0,-378);game.city.root.add(bridge);
+  const white=new THREE.MeshStandardMaterial({color:0xf0ede2,metalness:.42,roughness:.34});const deck=new THREE.Mesh(new THREE.BoxGeometry(78,.55,4),new THREE.MeshStandardMaterial({color:0x65747a,metalness:.52,roughness:.4}));deck.position.y=4;bridge.add(deck);
+  for(const x of [-36,36]){const tower=new THREE.Mesh(new THREE.BoxGeometry(1.7,24,1.8),white);tower.position.set(x,12,0);bridge.add(tower);}
+  const cableCurve=new THREE.CatmullRomCurve3([new THREE.Vector3(-36,24,0),new THREE.Vector3(-18,15,0),new THREE.Vector3(0,11,0),new THREE.Vector3(18,15,0),new THREE.Vector3(36,24,0)]);bridge.add(new THREE.Mesh(new THREE.TubeGeometry(cableCurve,32,.16,6,false),white));
+  for(let i=-5;i<=5;i++){const x=i*6;const y=11+(Math.abs(x)/36)*13;bridge.add(new THREE.Mesh(new THREE.CylinderGeometry(.035,.035,y-4,5),white)).position.set(x,(y+4)/2,0);}
   game.city.traffic.forEach((vehicle, index) => { vehicle.visible = true; vehicle.position.set(-365 + index * 42, 0.12, -280 + (index % 3) * 22); vehicle.rotation.y = 0.4; });
   game.missions.cash = 24850; game.missions.respect = 420;
   game.showPanel('title'); document.body.classList.add('title-shot');
   game.world.shotMissionId = ''; game.world.shotObjective = ''; game.world.shotRadio = '';
-  setCamera(game, [-260, 78, -270], [45, 15, -185], 54);
+  setCamera(game, [-500, 21, -365], [-170, 17, -350], 54);
+  const wheelPos=game.camera.localToWorld(new THREE.Vector3(55,-10,-145));wheelPos.y=0;game.city.ferrisWheel.position.copy(wheelPos);
+  game.camera.updateMatrixWorld(true);const titleBridge=new THREE.Group();titleBridge.position.copy(game.camera.localToWorld(new THREE.Vector3(68,-7,-160)));titleBridge.quaternion.copy(game.camera.quaternion);game.scene.add(titleBridge);
+  const bridgeMat=new THREE.MeshStandardMaterial({color:0xf2eee4,metalness:.42,roughness:.32});const titleDeck=new THREE.Mesh(new THREE.BoxGeometry(86,.6,4),new THREE.MeshStandardMaterial({color:0x64747a,metalness:.5,roughness:.38}));titleDeck.position.y=4;titleBridge.add(titleDeck);
+  for(const x of [-40,40]){const tower=new THREE.Mesh(new THREE.BoxGeometry(1.6,25,1.8),bridgeMat);tower.position.set(x,13,0);titleBridge.add(tower);}
+  const mainCable=new THREE.CatmullRomCurve3([new THREE.Vector3(-40,25,0),new THREE.Vector3(-20,16,0),new THREE.Vector3(0,12,0),new THREE.Vector3(20,16,0),new THREE.Vector3(40,25,0)]);titleBridge.add(new THREE.Mesh(new THREE.TubeGeometry(mainCable,36,.15,6,false),bridgeMat));
+  for(let i=-6;i<=6;i++){const x=i*6.2;const y=12+Math.abs(x)/40*13;const hanger=new THREE.Mesh(new THREE.CylinderGeometry(.035,.035,y-4,5),bridgeMat);hanger.position.set(x,(y+4)/2,0);titleBridge.add(hanger);}
 }
 
 /** Place deterministic camera, lighting and gameplay beats for the four evidence shots. */

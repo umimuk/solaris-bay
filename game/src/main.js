@@ -56,7 +56,7 @@ const player = createCharacter('protagonist', seed);
 player.position.copy(hero.position);
 player.visible = false;
 scene.add(player);
-const pedestrians = createPedestrians(scene, random, 30);
+const pedestrians = createPedestrians(scene, random, 34, city.coastCurve);
 const police = createPolice(city);
 const combat = createCombat(scene, random);
 const missions = createMissions();

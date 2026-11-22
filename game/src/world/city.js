@@ -52,6 +52,12 @@ function addBuilding(parent, x, z, w, h, d, facade, accent, signText = '') {
   addBox(building, [w * 1.08, baseHeight, d * 1.08], material(0xe7d4b8, { roughness: 0.82 }), [x, baseHeight / 2, z]);
   addBox(building, [w, Math.max(4, h - baseHeight), d], facade, [x, (h + baseHeight) / 2, z]);
   addBox(building, [w + 0.65, 0.28, d + 0.65], material(0xf2e4cb, { roughness: 0.74 }), [x, h + 0.12, z]);
+  const balconyMat=material(0xf5eee0,{roughness:.65});const railMat=material(0xb6c2bd,{metalness:.65,roughness:.32});
+  for(let y=7.2;y<h-2;y+=5.2){
+    addBox(building,[w*.88,.16,.95],balconyMat,[x,y,z-d*.56]);
+    addBox(building,[w*.82,.08,.08],railMat,[x,y+.55,z-d*.94]);
+    for(let r=-2;r<=2;r++)addBox(building,[.055,.48,.055],railMat,[x+r*w*.16,y+.3,z-d*.94]);
+  }
   // Refined setbacks give the skyline a recognizable coastal Deco profile.
   if (h > 34) {
     addBox(building, [w * 0.76, Math.min(8, h * 0.16), d * 0.78], facade, [x, h + 3.8, z]);
@@ -64,6 +70,7 @@ function addBuilding(parent, x, z, w, h, d, facade, accent, signText = '') {
   if (h < 40) {
     const canvas = material(0xf3e4cf, { roughness: 0.8 }); const coral = material(0xd77c68, { roughness: 0.78 });
     for (let panel = 0; panel < 8; panel++) addBox(building, [w * 0.1, 0.12, 0.72], panel % 2 ? canvas : coral, [x - w * 0.36 + panel * w * 0.103, 2.9, z - d * 0.58]);
+    addBox(building,[w*.82,2.5,.12],material(0x244657,{roughness:.18,metalness:.35,emissive:0x173442,emissiveIntensity:.25}),[x,1.55,z-d*.56]);
   }
   if (signText) { const sign = createSign(signText, accent.emissive?.getHex?.() || 0xf4af59); sign.position.set(x, Math.min(h - 2, 4.3), z - d / 2 - 0.3); sign.scale.setScalar(0.72); building.add(sign); }
   return building;
@@ -134,10 +141,10 @@ export function createCity(scene, seed = 1) {
   ];
 
   // Broad platforms sit at -0.05 m, visibly above the -0.5 m bay water plane.
-  addLandmass(root, [[-500,-460],[15,-460],[55,-330],[8,-210],[35,-105],[-15,30],[-90,140],[-190,190],[-310,100],[-430,20],[-500,-80]], 0x829784);
-  addLandmass(root, [[-85,-10],[335,-10],[390,90],[360,370],[210,450],[20,350],[-80,210]], 0xa8b2a6);
-  addLandmass(root, [[300,210],[720,210],[760,470],[300,470]], 0xa7b1a7);
-  addLandmass(root, [[425,-245],[760,-245],[780,85],[620,130],[450,60]], 0x96aa91);
+  addLandmass(root, [[-500,-460],[15,-460],[55,-330],[8,-210],[35,-105],[-15,30],[-90,140],[-190,190],[-310,100],[-430,20],[-500,-80]], 0xcfc1a8);
+  addLandmass(root, [[-85,-10],[335,-10],[390,90],[360,370],[210,450],[20,350],[-80,210]], 0xe0d5c0);
+  addLandmass(root, [[300,210],[720,210],[760,470],[300,470]], 0xd7cfbb);
+  addLandmass(root, [[425,-245],[760,-245],[780,85],[620,130],[450,60]], 0xcac4ad);
   // Sandy coast, seawall and promenade line the western island edge.
   addBox(root, [14, 0.18, 485], sand, [-452, 0.03, -190]);
   addBox(root, [3, 1.4, 490], concrete, [-437, 0.55, -190]);
@@ -146,6 +153,18 @@ export function createCity(scene, seed = 1) {
 
   // Coast highway hairpin plus approach; fine edge stripes and double center lines.
   const coastCurve = addRoad(root, [[-400,-390],[-290,-350],[-190,-365],[-120,-320],[-170,-265],[-285,-275],[-325,-220],[-250,-160],[-115,-180],[-10,-95],[45,20]], 20, asphalt, whiteLine, yellowLine);
+  // A continuous coastal neighborhood follows the bend so every approach view meets a street wall.
+  for(let i=0;i<11;i++){
+    const t=.12+i*.078;const p=coastCurve.getPoint(t);const tangent=coastCurve.getTangent(t);const side=new THREE.Vector3(-tangent.z,0,tangent.x).normalize();
+    for(const sign of [-1,1]){
+      const pos=p.clone().addScaledVector(side,sign*(32+(i%2)*4));const width=16+(i%3)*3;const height=18+(i*13%23);const depth=15+(i%2)*4;
+      addBox(root,[width+7,.16,depth+9],sidewalk,[pos.x,.08,pos.z]);
+      const facade=buildingMats[(i+(sign>0?2:0))%buildingMats.length];const accent=neon[(i+(sign>0?1:0))%neon.length];
+      addBuilding(root,pos.x,pos.z,width,height,depth,facade,accent,['SOLARA','BAY MARINA','SUNSET CAFE','PALM HOTEL'][i%4]);
+      const palm=createPalm();palm.position.copy(p).addScaledVector(side,sign*18);palm.scale.setScalar(.92+(i%3)*.06);root.add(palm);
+      if(i%3===0)addTrafficSignal(root,pos.x,pos.z+sign*11);
+    }
+  }
   addRoad(root, [[-430,-80],[-280,-40],[-110,-60],[35,-30],[155,45],[270,75],[430,15]], 22, asphalt, whiteLine, yellowLine);
   for (let i = 0; i < 22; i++) { const t = 0.29 + i * 0.004; const point = coastCurve.getPoint(t); const curb = addBox(root, [1.2, 0.12, 2.2], material(i % 2 ? 0xf5eee0 : 0xd74240), [point.x + (i % 2 ? 9.2 : -9.2), 0.12, point.z]); curb.rotation.y = 0.6; }
   // Downtown elevated sidewalks, crosswalks and gridded boulevards.

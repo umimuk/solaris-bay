@@ -13,7 +13,19 @@ export const VEHICLE_TYPES = [
 ];
 
 const standard = (color, options = {}) => new THREE.MeshStandardMaterial({ color, roughness: 0.35, metalness: 0.42, ...options });
+const carPaint = (color) => new THREE.MeshPhysicalMaterial({ color, roughness: 0.22, metalness: 0.52, clearcoat: 0.9, clearcoatRoughness: 0.12 });
 const glowMaps = new Map();
+let contactMap;
+function addContactShadow(root, width = 4.8, depth = 2.5) {
+  if (!contactMap) {
+    const canvas = document.createElement('canvas'); canvas.width = canvas.height = 128;
+    const ctx = canvas.getContext('2d'); const g = ctx.createRadialGradient(64,64,8,64,64,63);
+    g.addColorStop(0,'rgba(10,13,17,.72)'); g.addColorStop(.42,'rgba(10,13,17,.38)'); g.addColorStop(1,'rgba(10,13,17,0)');
+    ctx.fillStyle=g;ctx.fillRect(0,0,128,128); contactMap=new THREE.CanvasTexture(canvas);
+  }
+  const shadow = new THREE.Mesh(new THREE.PlaneGeometry(width, depth), new THREE.MeshBasicMaterial({ map:contactMap, transparent:true, opacity:.62, depthWrite:false, toneMapped:false }));
+  shadow.rotation.x=-Math.PI/2; shadow.position.y=.045; shadow.renderOrder=1; root.add(shadow); return shadow;
+}
 function glowMap(color) {
   if (glowMaps.has(color)) return glowMaps.get(color);
   const canvas = document.createElement('canvas'); canvas.width = 96; canvas.height = 96;
@@ -59,6 +71,7 @@ function createMotorcycle(spec, paint = null) {
   const dark = standard(0x172129, { roughness: 0.62, metalness: 0.2 }); const metal = standard(0xb4c2c0, { roughness: 0.24, metalness: 0.85 });
   root.userData = { spec, speed: 0, steer: 0, health: 100, wheels: [], lights: [], rearLights: [], policeLights: [], policePoints: [], smoke: [] };
   root.userData.paintMaterial = body;
+  addContactShadow(root, 3.6, 1.5);
   box(root, dark, [-0.05, 0.66, 0], [1.8, 0.18, 0.28]);
   box(root, body, [0.05, 0.96, 0], [0.86, 0.38, 0.58]);
   box(root, dark, [-0.52, 1.11, 0], [0.88, 0.16, 0.45]);
@@ -85,23 +98,32 @@ export function createVehicle(type = 0, paint = null) {
   const isLarge = ['suv', 'swat'].includes(spec.kind);
   const length = isLarge ? 4.8 : 4.35;
   const width = isLarge ? 2.02 : 1.94;
-  const body = standard(paint ?? spec.color, { roughness: 0.24, metalness: 0.66 });
+  const body = carPaint(paint ?? spec.color);
   const materials = {
     body, dark: standard(0x101820), glass: new THREE.MeshPhysicalMaterial({ color: 0x142b3a, roughness: 0.12, metalness: 0.55, transparent: true, opacity: 0.91 }),
     chrome: standard(0xc0c8c5, { roughness: 0.2, metalness: 0.92 }), rim: standard(0x6e7b83, { roughness: 0.24, metalness: 0.94 }), tire: standard(0x101216, { roughness: 0.9 }),
   };
+  const plateCanvas=document.createElement('canvas'); plateCanvas.width=256; plateCanvas.height=80; const pc=plateCanvas.getContext('2d');
+  pc.fillStyle='#e9e3ca';pc.fillRect(0,0,256,80);pc.strokeStyle='#22333b';pc.lineWidth=8;pc.strokeRect(4,4,248,72);pc.fillStyle='#172833';pc.font='bold 42px Chakra, Arial';pc.textAlign='center';pc.textBaseline='middle';pc.fillText(spec.police?'SBPD 05':'SOLARIS',128,40);
+  const plateMat=new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(plateCanvas),toneMapped:false});
   const headMaterial = standard(0xffeac4, { emissive: 0xffc46b, emissiveIntensity: 2.6 });
   const tailMaterial = standard(0xff2436, { emissive: 0xf0142a, emissiveIntensity: 3.0 });
   root.userData = { spec, speed: 0, steer: 0, health: 100, wheels: [], lights: [], rearLights: [], policeLights: [], policePoints: [], smoke: [] };
   root.userData.paintMaterial = body;
+  addContactShadow(root, length + 1.4, width + 1.25);
 
   // Broad lower chassis, splitter, diffuser and side skirts establish the stance.
-  box(root, body, [0, 0.62, 0], [length, 0.47, width]);
+  box(root, body, [0, 0.48, 0], [length * 0.82, 0.18, width * 0.82]);
   const shellProfile = new THREE.Shape();
-  shellProfile.moveTo(-2.19, 0.43); shellProfile.lineTo(2.12, 0.43); shellProfile.lineTo(2.03, 0.69);
-  shellProfile.lineTo(1.44, 0.85); shellProfile.lineTo(0.96, 0.94); shellProfile.lineTo(-1.32, 0.94);
-  shellProfile.lineTo(-1.88, 0.83); shellProfile.lineTo(-2.13, 0.68); shellProfile.closePath();
-  const shell = new THREE.Mesh(new THREE.ExtrudeGeometry(shellProfile, { depth: width * 0.92, bevelEnabled: true, bevelSegments: 2, steps: 1, bevelSize: 0.055, bevelThickness: 0.045 }), body);
+  const profile = spec.kind === 'suv' || spec.kind === 'swat' || spec.kind === 'van'
+    ? [[-2.4,.43],[2.4,.43],[2.28,.92],[1.8,1.12],[1.58,1.92],[.95,2.08],[-1.5,2.04],[-2.05,1.5],[-2.34,.93]]
+    : spec.kind === 'sedan' || spec.kind === 'police'
+      ? [[-2.22,.43],[2.18,.43],[2.08,.76],[1.43,.98],[.92,1.36],[.42,1.43],[-1.18,1.38],[-1.75,.98],[-2.14,.77]]
+      : spec.kind === 'muscle'
+        ? [[-2.22,.43],[2.18,.43],[2.08,.79],[1.48,1.02],[.92,1.25],[-1.17,1.25],[-1.72,1.04],[-2.15,.75]]
+        : [[-2.19,.43],[2.12,.43],[2.03,.69],[1.44,.85],[.96,.94],[-1.32,.94],[-1.88,.83],[-2.13,.68]];
+  shellProfile.moveTo(profile[0][0], profile[0][1]); for (const [x,y] of profile.slice(1)) shellProfile.lineTo(x,y); shellProfile.closePath();
+  const shell = new THREE.Mesh(new THREE.ExtrudeGeometry(shellProfile, { depth: width * 0.92, bevelEnabled: true, bevelThickness: 0.08, bevelSize: 0.06, bevelSegments: 2, steps: 1 }), body);
   shell.position.z = -width * 0.46; root.add(shell);
   box(root, materials.dark, [2.17, 0.42, 0], [0.24, 0.16, width * 1.04]);
   box(root, materials.dark, [-2.17, 0.45, 0], [0.25, 0.2, width * 1.02]);
@@ -136,17 +158,16 @@ export function createVehicle(type = 0, paint = null) {
   }
   const tailBar = box(root, tailMaterial, [-2.19, 0.83, 0], [0.075, 0.19, width * 0.79]);
   root.userData.rearLights.push(tailBar);
+  const plate = new THREE.Mesh(new THREE.PlaneGeometry(.86,.27),plateMat); plate.rotation.y=-Math.PI/2;plate.position.set(-2.28,.55,0);root.add(plate);
+  for(const side of [-1,1]) { const exhaust=new THREE.Mesh(new THREE.CylinderGeometry(.095,.12,.2,12),materials.chrome);exhaust.rotation.z=Math.PI/2;exhaust.position.set(-2.32,.43,side*.48);root.add(exhaust); }
   const tailHalo = createGlowSprite(0xff243f, 0.36); tailHalo.position.set(-2.28, 0.85, 0); tailHalo.scale.set(1.7, 0.9, 1); root.add(tailHalo);
 
-  // Four wheel wells and independently steered front hubs.
+  // Flush body-colored fender lips follow the wheel silhouette; no raised arch pipes.
   for (const x of [-1.34, 1.34]) {
     for (const side of [-1, 1]) {
       const z = side * (width * 0.53);
-      const arch = new THREE.Mesh(new THREE.TorusGeometry(0.47, 0.09, 8, 24, Math.PI), body);
-      // TorusGeometry is already in the wheel's vertical XY plane (the axle is Z).
-      // Rotating it around X laid the arch flat like a hoop on top of the tire.
-      arch.position.set(x, 0.62, z * 0.94);
-      root.add(arch);
+      const flare = new THREE.Mesh(new THREE.CylinderGeometry(.56,.56,.07,24,1,true,0,Math.PI), body);
+      flare.rotation.x=Math.PI/2; flare.position.set(x,.64,z*.94); root.add(flare);
       root.userData.wheels.push(makeWheel(root, x, z, materials, x > 0));
     }
   }
@@ -200,16 +221,18 @@ export function updateVehicle(vehicle, dt, speed, steer, braking) {
 /** Tactical helicopter with rotors, nav lamps, volumetric search beam and ground pool. */
 export function createHelicopter() {
   const group = new THREE.Group();
-  const fuselage = standard(0x344854, { metalness: 0.55, roughness: 0.36 });
+  const fuselage = carPaint(0xf0eee5); const navy = carPaint(0x132b3c);
   const metal = standard(0x9ba8a7, { metalness: 0.78 });
-  box(group, fuselage, [0, 0, 0], [3.6, 1.18, 1.42]);
-  const nose = new THREE.Mesh(new THREE.SphereGeometry(0.78, 18, 12), standard(0x183f52, { metalness: 0.5, roughness: 0.12 }));
-  nose.scale.set(1.05, 0.7, 0.9); nose.position.x = 1.55; group.add(nose);
-  box(group, fuselage, [-2.65, 0.22, 0], [3.5, 0.32, 0.38]);
-  box(group, fuselage, [-4.25, 0.3, 0], [0.7, 0.72, 0.42]);
+  const hull = new THREE.Mesh(new THREE.SphereGeometry(1,32,20),fuselage); hull.scale.set(2.0,.68,.78); group.add(hull);
+  const canopy = new THREE.Mesh(new THREE.SphereGeometry(1,24,16),new THREE.MeshPhysicalMaterial({color:0x17445a,roughness:.1,metalness:.46,clearcoat:1,transparent:true,opacity:.9})); canopy.scale.set(.92,.57,.72); canopy.position.set(1.2,.18,0); group.add(canopy);
+  const tailCurve=new THREE.CatmullRomCurve3([new THREE.Vector3(-1.3,.05,0),new THREE.Vector3(-2.4,.2,0),new THREE.Vector3(-3.5,.42,0),new THREE.Vector3(-4.4,.5,0)]);
+  group.add(new THREE.Mesh(new THREE.TubeGeometry(tailCurve,24,.16,10,false),navy));
+  const fin = new THREE.Mesh(new THREE.BoxGeometry(.72,.12,.76),navy); fin.position.set(-4.1,.83,0); fin.rotation.z=-.5; group.add(fin);
+  const stripe = new THREE.Mesh(new THREE.BoxGeometry(2.7,.15,1.54),navy); stripe.position.set(-.15,-.12,0); group.add(stripe);
   const mainRotor = new THREE.Group();
-  for (let i = 0; i < 4; i++) { const blade = box(mainRotor, metal, [0, 0, 0], [0.2, 0.055, 8]); blade.rotation.y = i * Math.PI / 2; }
-  mainRotor.position.y = 0.82; group.add(mainRotor);
+  for (let i = 0; i < 4; i++) { const blade = box(mainRotor, metal, [0, 0, 0], [0.24, 0.045, 8]); blade.rotation.y = i * Math.PI / 2; }
+  mainRotor.position.y = 1.02; group.add(mainRotor);
+  const disc = new THREE.Mesh(new THREE.CircleGeometry(7.3,48),new THREE.MeshBasicMaterial({color:0xe9f5f7,transparent:true,opacity:.075,depthWrite:false,side:THREE.DoubleSide})); disc.rotation.x=-Math.PI/2;disc.position.y=.99;group.add(disc);
   const tailRotor = new THREE.Group();
   for (let i = 0; i < 4; i++) { const blade = box(tailRotor, metal, [0, 0, 0], [0.1, 1.9, 0.07]); blade.rotation.z = i * Math.PI / 2; }
   tailRotor.position.set(-4.22, 0.38, 0.28); group.add(tailRotor);
@@ -218,14 +241,7 @@ export function createHelicopter() {
   const whiteStrobe = new THREE.PointLight(0xf2f8ff, 0, 22); whiteStrobe.position.set(1.15, 0.9, 0); group.add(whiteStrobe);
   const redLamp = new THREE.Mesh(new THREE.SphereGeometry(0.15, 10, 8), standard(0xff2439, { emissive: 0xff1028, emissiveIntensity: 4.5 })); redLamp.position.copy(beacon.position); group.add(redLamp);
   const whiteLamp = new THREE.Mesh(new THREE.SphereGeometry(0.13, 10, 8), standard(0xf5fbff, { emissive: 0xe6f5ff, emissiveIntensity: 0.2 })); whiteLamp.position.copy(whiteStrobe.position); group.add(whiteLamp);
-  const labelCanvas = document.createElement('canvas'); labelCanvas.width = 512; labelCanvas.height = 112;
-  const labelContext = labelCanvas.getContext('2d');
-  labelContext.fillStyle = 'rgba(5, 15, 24, .9)'; labelContext.fillRect(2, 2, 508, 108);
-  labelContext.strokeStyle = '#73eaff'; labelContext.lineWidth = 5; labelContext.strokeRect(4, 4, 504, 104);
-  labelContext.font = '700 70px Arial'; labelContext.textAlign = 'center'; labelContext.textBaseline = 'middle';
-  labelContext.fillStyle = '#f6fbff'; labelContext.shadowColor = '#32dff8'; labelContext.shadowBlur = 16; labelContext.fillText('CONDOR-1', 256, 58);
-  const callsign = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(labelCanvas), transparent: true, depthTest: false, toneMapped: false }));
-  callsign.position.set(0, 3.6, 0); callsign.scale.set(7, 1.54, 1); callsign.visible = false; group.add(callsign);
+  const callsign = new THREE.Group(); callsign.visible = false; group.add(callsign);
   const beamCanvas = document.createElement('canvas'); beamCanvas.width = 128; beamCanvas.height = 8;
   const beamContext = beamCanvas.getContext('2d'); const beamFade = beamContext.createLinearGradient(0,0,128,0); beamFade.addColorStop(0,'rgba(255,248,220,0)'); beamFade.addColorStop(.2,'rgba(255,248,220,.16)'); beamFade.addColorStop(.5,'rgba(255,248,220,.42)'); beamFade.addColorStop(.8,'rgba(255,248,220,.16)'); beamFade.addColorStop(1,'rgba(255,248,220,0)'); beamContext.fillStyle=beamFade;beamContext.fillRect(0,0,128,8);
   const beamTexture = new THREE.CanvasTexture(beamCanvas); beamTexture.colorSpace = THREE.SRGBColorSpace;
@@ -238,6 +254,6 @@ export function createHelicopter() {
   groundPool.rotation.x = -Math.PI / 2; groundPool.position.set(0.7, -26, 0); group.add(groundPool);
   const search = new THREE.SpotLight(0xfff3d4, 95, 150, Math.PI / 9, 0.5, 1.1);
   const target = new THREE.Object3D(); search.position.set(0.6, -0.5, 0); target.position.set(0.7, -28, 0); group.add(search, target); search.target = target;
-  group.userData = { mainRotor, tailRotor, cone, groundPool, search, target, beacon, whiteStrobe, redLamp, whiteLamp, callsign };
+  group.userData = { mainRotor, tailRotor, cone, groundPool, search, target, beacon, whiteStrobe, redLamp, whiteLamp, callsign, disc };
   return group;
 }
