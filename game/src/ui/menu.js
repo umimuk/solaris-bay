@@ -17,11 +17,11 @@ export function showPanel(type, game) {
       <section class="title-panel">
         <div class="title-crest" aria-hidden="true">☀</div>
         <div class="eyebrow">SUNSET COAST • CHAPTER 05</div>
-        <h1>SOLARIS <i>BAY</i></h1>
+        <h1 class="title-logo" aria-label="SOLARIS BAY"><svg viewBox="0 0 620 184" role="img" aria-hidden="true"><defs><linearGradient id="chrome-sunset" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset=".22" stop-color="#b9f7ff"/><stop offset=".46" stop-color="#fff4cb"/><stop offset=".68" stop-color="#ffb14e"/><stop offset="1" stop-color="#e74e45"/></linearGradient><linearGradient id="sunset-disc" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#ffd14e"/><stop offset="1" stop-color="#fb654b"/></linearGradient></defs><circle cx="482" cy="72" r="55" fill="url(#sunset-disc)"/><path d="M428 72h108M436 88h92M448 104h68M465 120h34" stroke="#153048" stroke-width="8"/><text x="12" y="95" fill="url(#chrome-sunset)" stroke="#102537" stroke-width="5" paint-order="stroke" font-family="Arial,sans-serif" font-size="77" font-weight="900" font-style="italic" letter-spacing="-5">SOLARIS</text><text x="250" y="166" fill="url(#chrome-sunset)" stroke="#102537" stroke-width="5" paint-order="stroke" font-family="Arial,sans-serif" font-size="68" font-weight="900" font-style="italic" letter-spacing="8">BAY</text></svg></h1>
         <div class="title-rule"></div>
         <p>A LIVING COASTAL CITY • NIKO VALE &amp; MARA SOL</p>
-        <div class="title-actions"><button id="continue">CONTINUE <b>↗</b></button><button id="start">NEW GAME <b>↗</b></button><button id="load">LOAD GAME <b>↗</b></button><button id="garage">PAY N TUNE GARAGE <b>↗</b></button><button id="settings">SETTINGS <b>⚙</b></button><button id="controls">CONTROLS <b>⌘</b></button></div>
-        <div class="title-foot">${hasSave ? 'CHAPTER 05 • $24,850 • REP 420' : 'SAVE SLOT READY • CHAPTER 05 • $24,850 • REP 420'}<span>WASD DRIVE • SPACE DRIFT • E EXIT • M MAP</span></div>
+        <div class="title-actions"><button id="start">NEW GAME <b>↗</b></button><button id="continue" class="selected">CONTINUE <b>↗</b></button><button id="load">LOAD GAME <b>↗</b></button><button id="garage">PAY N TUNE GARAGE <b>↗</b></button><button id="settings">SETTINGS <b>⚙</b></button><button id="controls">CONTROLS <b>⌘</b></button></div>
+        <div class="title-foot">${hasSave ? 'CHAPTER 05 • $48,250 • REP 420' : 'SAVE SLOT READY • CHAPTER 05 • $48,250 • REP 420'}<span>WASD DRIVE • SPACE DRIFT • E EXIT • M MAP</span></div>
       </section>`;
     layer.querySelector('#start')?.addEventListener('click', () => game.start());
     layer.querySelector('#continue')?.addEventListener('click', () => { if (hasSave) game.load(); game.start(); });
@@ -99,6 +99,7 @@ export function showPanel(type, game) {
             <section class="dossier-card"><div class="card-heading"><b>ACTIVE CONTRACT</b><span>MISSION 05 / 10</span></div><p class="contract-title">SUNSET HEIST</p><p class="contract-copy">Break the coastal pursuit. Reach the marina before the last light.</p><ul class="contract-list"><li>✓ Secure the SOLARIS GT</li><li>✓ Evade the first SBPD unit</li><li>○ Lose CONDOR-1's spotlight</li></ul></section>
             <section class="dossier-card"><div class="card-heading"><b>VEHICLE TELEMETRY</b><span>GT / CURRENT BUILD</span></div>${[['TOP SPEED',94],['DRIFT CONTROL',91],['ARMOR',78]].map(([name,value])=>`<div class="progress-row telemetry"><span>${name}</span><b>${value}%</b><i><em style="width:${value}%"></em></i></div>`).join('')}</section>
             <section class="dossier-card crew-card"><div class="card-heading"><b>CREW / PURSUIT</b><span>TRUST 82 • HEAT 64</span></div><div class="dual-bars"><span>CREW TRUST<i><em style="width:82%"></em></i></span><span>PURSUIT HEAT<i><em style="width:64%"></em></i></span></div><p>MARA [READY]　•　NIKO [READY]</p></section>
+            <div class="save-slots"><div class="save-slot active">SLOT 1 · CH.05 · $48,250 <b>[ACTIVE]</b></div><div class="save-slot">SLOT 2 · CH.03 · $21,700</div><div class="save-slot">SLOT 3 · EMPTY</div></div>
             <div class="dossier-actions"><button id="save">SAVE GAME</button><button id="load">LOAD GAME</button><button id="close">RESUME</button></div>
           </aside>
         </div>
@@ -137,6 +138,13 @@ function drawGarageMap(canvas) {
   const ctx = canvas.getContext('2d'); const w = canvas.width; const h = canvas.height;
   ctx.clearRect(0, 0, w, h);
   ctx.fillStyle = '#071a2c'; ctx.fillRect(0, 0, w, h);
+  const district = (color, points) => { ctx.beginPath(); points.forEach(([x,y], index) => index ? ctx.lineTo(w*x,h*y) : ctx.moveTo(w*x,h*y)); ctx.closePath(); ctx.fillStyle = color; ctx.fill(); };
+  district('rgba(209,145,55,.52)', [[0,0],[.24,0],[.32,.2],[.26,.4],[.34,.58],[.27,.82],[.18,1],[0,1]]);
+  district('rgba(126,67,204,.48)', [[.3,0],[.88,0],[.9,.23],[.74,.34],[.66,.6],[.42,.63],[.34,.4]]);
+  district('rgba(22,175,175,.48)', [[.56,.61],[1,.56],[1,1],[.63,1]]);
+  district('rgba(37,101,190,.52)', [[.2,.69],[.55,.68],[.61,1],[.19,1]]);
+  ctx.strokeStyle = 'rgba(226,247,244,.58)'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(w*.2,0); ctx.bezierCurveTo(w*.35,h*.2,w*.24,h*.39,w*.4,h*.54); ctx.bezierCurveTo(w*.53,h*.68,w*.47,h*.83,w*.63,h); ctx.stroke();
   ctx.fillStyle = '#0b3448'; ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(w*.22,0); ctx.lineTo(w*.31,h*.19); ctx.lineTo(w*.25,h*.38); ctx.lineTo(w*.34,h*.56); ctx.lineTo(w*.27,h*.79); ctx.lineTo(w*.18,h); ctx.lineTo(0,h); ctx.closePath(); ctx.fill();
   ctx.fillStyle = '#0f3c52'; ctx.beginPath(); ctx.moveTo(w*.55,0); ctx.lineTo(w*.86,0); ctx.lineTo(w*.9,h*.2); ctx.lineTo(w*.82,h*.35); ctx.lineTo(w*.72,h*.42); ctx.closePath(); ctx.fill();
   ctx.fillStyle = '#0c3246'; ctx.beginPath(); ctx.moveTo(w*.57,h*.61); ctx.lineTo(w,h*.57); ctx.lineTo(w,h); ctx.lineTo(w*.63,h); ctx.closePath(); ctx.fill();
@@ -157,7 +165,7 @@ function drawGarageMap(canvas) {
   ctx.strokeStyle='#abb8b7';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(w*.24,h*.42);ctx.lineTo(w*.88,h*.48);ctx.moveTo(w*.54,h*.19);ctx.lineTo(w*.52,h*.83);ctx.stroke();
   ctx.strokeStyle='#dae3dc';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(w*.23,h*.41);ctx.lineTo(w*.9,h*.47);ctx.stroke();
   ctx.setLineDash([5,5]);ctx.strokeStyle='#42f0ef';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(w*.17,h*.31);ctx.bezierCurveTo(w*.3,h*.2,w*.44,h*.7,w*.66,h*.54);ctx.bezierCurveTo(w*.73,h*.5,w*.71,h*.69,w*.82,h*.76);ctx.stroke();ctx.setLineDash([]);
-  ctx.font='bold 15px Chakra,Arial';ctx.fillStyle='#d9c28d';ctx.shadowColor='#02080f';ctx.shadowBlur=5;
+  ctx.font='bold 15px Chakra,Arial';ctx.fillStyle='#fff0c2';ctx.shadowColor='#02080f';ctx.shadowBlur=5;
   ctx.fillText('SUNSET COAST',14,24);ctx.fillText('NEON DOWNTOWN',w*.4,34);ctx.fillText('HARBOR DOCKS',w*.65,h*.91);ctx.fillText('CORAL ISLAND',w*.72,h*.31);
   ctx.shadowBlur=0;
   for (const [x,y,color] of [[.13,.28,'#ff6476'],[.45,.34,'#ffd36f'],[.57,.73,'#5ff5fa'],[.82,.22,'#ffc664']]) {

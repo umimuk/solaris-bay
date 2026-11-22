@@ -3,7 +3,7 @@ import { createRandom } from '../random.js';
 
 const SKY_MODES = {
   sunset: { upper: '#2f8ed4', middle: '#85cef5', horizon: '#ffe6b8', sun: '#fff4d6' },
-  golden: { upper: '#2d1a3e', middle: '#b84b39', horizon: '#f59b4c', sun: '#ffe39e' },
+  golden: { upper: '#2b78c6', middle: '#7ec8f2', horizon: '#f5e6cc', sun: '#fff2cd' },
   'wet-night': { upper: '#080d24', middle: '#171a3d', horizon: '#303451', sun: '#f05d68' },
   midnight: { upper: '#050916', middle: '#101a32', horizon: '#263049', sun: '#9ab8e8' },
   harbor: { upper: '#19213d', middle: '#696076', horizon: '#efa16a', sun: '#ffd28b' },
@@ -107,7 +107,6 @@ export function updateSky(sky, dt, mode = 'sunset') {
   uniforms.middleColor.value.set(palette.middle);
   uniforms.zenithColor.value.set(palette.upper);
   uniforms.sunColor.value.set(palette.sun);
-
   const night = mode === 'midnight' || mode === 'wet-night';
   sky.sun.intensity = mode === 'sunset' || mode === 'golden' || mode === 'harbor' ? 3.1 : mode === 'garage' ? 1.55 : mode === 'wet-night' ? 0.46 : 0.16;
   sky.sun.color.set(mode === 'garage' ? '#f7c99a' : palette.sun);

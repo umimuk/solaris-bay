@@ -15,7 +15,7 @@ export function createPalm() {
   }
   if(!frondTexture)frondTexture=makePalmFrondTexture();
   const crown=new THREE.Vector3(.22*Math.sin(1.1),6.55,0);
-  const frondMat=new THREE.MeshStandardMaterial({map:frondTexture,transparent:true,alphaTest:.25,side:THREE.DoubleSide,roughness:.78,metalness:.02});
+  const frondMat=new THREE.MeshStandardMaterial({map:frondTexture,color:0x62dc4d,transparent:true,alphaTest:.25,side:THREE.DoubleSide,roughness:.78,metalness:.02});
   for(let i=0;i<16;i++){
     const angle=i*Math.PI*2/16;const dir=new THREE.Vector3(Math.cos(angle),0,Math.sin(angle));const side=new THREE.Vector3(-dir.z,0,dir.x);
     const verts=[],uv=[],idx=[];const rows=16;

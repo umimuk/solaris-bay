@@ -8,6 +8,18 @@ const UP = new THREE.Vector3(0, 1, 0);
 /** Arcade street car dynamics, drift scoring, skid trails and tire effects. */
 export function createDriving(scene, car, seed = 1) {
   const random = createRandom(seed);
+  const smokeCanvas = document.createElement('canvas');
+  smokeCanvas.width = 128;
+  smokeCanvas.height = 128;
+  const smokeContext = smokeCanvas.getContext('2d');
+  const smokeGradient = smokeContext.createRadialGradient(64, 64, 0, 64, 64, 64);
+  smokeGradient.addColorStop(0, 'rgba(255,255,255,0.55)');
+  smokeGradient.addColorStop(0.54, 'rgba(240,244,250,0.22)');
+  smokeGradient.addColorStop(1, 'rgba(255,255,255,0.0)');
+  smokeContext.fillStyle = smokeGradient;
+  smokeContext.fillRect(0, 0, 128, 128);
+  const smokeTexture = new THREE.CanvasTexture(smokeCanvas);
+  smokeTexture.colorSpace = THREE.SRGBColorSpace;
   const state = {
     car, speed: 0, yaw: Math.PI * 0.1, slip: 0, drift: 0, score: 0,
     combo: 1, damage: 0, nitro: 100, handbrake: false, active: true,
@@ -23,17 +35,22 @@ export function createDriving(scene, car, seed = 1) {
       if (spark && state.sparks.length > 180) continue;
       const localDirection = new THREE.Vector3(-1.2 - random() * 3.2, 0.35 + random() * 2.2, (random() - 0.5) * 3.2);
       const direction = localDirection.applyAxisAngle(UP, state.yaw).normalize();
-      const material = new THREE.MeshBasicMaterial({
-        color: spark ? (i % 4 === 0 ? 0xfff9dc : i % 3 === 0 ? 0xff9d1c : 0xff5a14) : 0x9a8879,
-        transparent: true,
-        opacity: spark ? 1 : 0.3,
-        blending: spark ? THREE.AdditiveBlending : THREE.NormalBlending,
-        depthWrite: false,
-      });
-      const geometry = spark
-        ? new THREE.CylinderGeometry(0.022, 0.038, 1.2 + random() * 1.6, 6)
-        : new THREE.SphereGeometry(0.26 + random() * 0.32, 9, 7);
-      const mesh = new THREE.Mesh(geometry, material);
+      const effectMaterial = spark
+        ? new THREE.MeshBasicMaterial({
+          color: i % 4 === 0 ? 0xfff9dc : i % 3 === 0 ? 0xff9d1c : 0xff5a14,
+          transparent: true,
+          opacity: 1,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+        })
+        : new THREE.SpriteMaterial({
+          map: smokeTexture, color: 0xffffff, transparent: true, opacity: 0.9,
+          depthWrite: false, toneMapped: false,
+        });
+      const mesh = spark
+        ? new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.038, 1.2 + random() * 1.6, 6), effectMaterial)
+        : new THREE.Sprite(effectMaterial);
+      if (!spark) mesh.scale.set(1.2, 0.9, 1);
       mesh.position.copy(position);
       if (spark) mesh.quaternion.setFromUnitVectors(UP, direction);
       mesh.userData = {
@@ -81,11 +98,11 @@ export function createDriving(scene, car, seed = 1) {
         particle.position.addScaledVector(data.velocity, dt);
         if (kind === 'sparks') data.velocity.y -= 9.8 * dt;
         else data.velocity.y += 0.22 * dt;
-        particle.material.opacity = Math.max(0, data.life / data.maxLife) * (kind === 'sparks' ? 1 : 0.3);
+        particle.material.opacity = Math.max(0, data.life / data.maxLife) * (kind === 'sparks' ? 1 : 0.9);
         if (kind === 'smoke') particle.scale.multiplyScalar(1 + dt * 0.42);
         if (data.life <= 0) {
           scene.remove(particle);
-          particle.geometry.dispose();
+          particle.geometry?.dispose();
           particle.material.dispose();
           particles.splice(i, 1);
         }

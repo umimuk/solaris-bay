@@ -73,7 +73,8 @@ export function createHud() {
         const ammo = combat.ammoByWeapon?.[index] ?? 0;
         const labels = ['PISTOL','SMG','SHOTGUN','RIFLE','KNIFE'];
         slot.classList.toggle('active', combat.weapon === index + 1);
-        slot.textContent = `${index + 1} ${labels[index]} ${ammo}`;
+        const label = slot.querySelector('i');
+        if (label) label.textContent = `${index + 1} ${labels[index]} ${ammo}`;
       });
       const playerPosition = drive.state.car.position;
       const range = (object) => object?.position ? `${Math.round(playerPosition.distanceTo(object.position))}m` : '—';
@@ -81,7 +82,16 @@ export function createHud() {
       if (dispatchRanges.unit1) dispatchRanges.unit1.textContent = range(city?.police?.[0]);
       if (dispatchRanges.unit2) dispatchRanges.unit2.textContent = range(city?.police?.[1]);
       if (dispatchRanges.roadblock) dispatchRanges.roadblock.textContent = range(city?.roadblock);
-      setText('radio', world.shotRadio || `FM 93.7 • ${window.solRadio || 'SUNSET SYNTH'}`);
+      const radioCopy = elements.radio?.querySelector('.radio-copy span');
+      if (radioCopy) {
+        const message = world.shotRadio || `FM 93.7 • ${window.solRadio || 'SUNSET SYNTH'}`;
+        radioCopy.textContent = message.includes('—') ? message.split('—').slice(1).join('—').trim() : message;
+        const radioHeading = elements.radio.querySelector('.radio-copy b');
+        if (radioHeading) radioHeading.textContent = message.includes('NIKO') ? 'NIKO VALE • DRIVER' : 'MARA SOL • FIELD OPERATOR';
+        const avatar = elements.radio.querySelector('.radio-avatar');
+        if (avatar && message.includes('NIKO')) avatar.innerHTML = '<circle cx="18" cy="18" r="17" fill="#1b3442"/><path d="M6 36q2-14 12-14t12 14" fill="#547d83"/><ellipse cx="18" cy="14" rx="7" ry="8" fill="#d69b77"/><path d="M10 13Q11 4 19 5q8 0 8 9l-5-4-8 1z" fill="#342921"/>';
+      }
+      else setText('radio', world.shotRadio || `FM 93.7 • ${window.solRadio || 'SUNSET SYNTH'}`);
       if (elements.radio) elements.radio.style.display = combat.wheel || !drive.state.active ? 'none' : '';
       if (radarContext) {
         drawMap(radarContext, drive.state.car.position, drive.state.yaw, city, police, missions.index, mode);
