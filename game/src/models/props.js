@@ -5,7 +5,6 @@ const solid = (color, emissive = 0) => new THREE.MeshStandardMaterial({ color, r
 const addBox = (group, geometry, material, position) => { const mesh = new THREE.Mesh(geometry, material); mesh.position.set(...position); group.add(mesh); return mesh; };
 
 let frondTexture;
-export function createStripedAwning(width=9,depth=1.35){const group=new THREE.Group(),colors=[0xe77963,0xf4eee1,0x35b9b8,0xf4eee1,0xd8ad4a,0xf4eee1];for(let i=0;i<12;i++){const panel=new THREE.Mesh(new THREE.BoxGeometry(width/12,.14,depth),solid(colors[i%colors.length]));panel.position.set(-width/2+(i+.5)*width/12,0,depth/2);group.add(panel)}const edge=new THREE.Mesh(new THREE.BoxGeometry(width,.12,.1),solid(0xf2eadb));edge.position.set(0,-.08,depth);group.add(edge);return group}
 /** Segmented tropical trunk and ten feathered, arching palm crowns. */
 export function createPalm() {
   const group = new THREE.Group();

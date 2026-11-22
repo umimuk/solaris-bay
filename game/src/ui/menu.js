@@ -1,17 +1,51 @@
-function u(i,t){let e=document.getElementById("panel-layer");if(!e)return;if(e.innerHTML="",e.classList.toggle("title-screen",i==="title"),!i){e.classList.add("hidden");return}if(e.classList.remove("hidden"),i==="title"){let l=!1;try{l=Boolean(localStorage.getItem("solaris-bay.save.v1"))}catch{}e.innerHTML=`
+/** Build the title, pause, district map, garage and story result panels. */
+export function showPanel(type, game) {
+  const layer = document.getElementById('panel-layer');
+  if (!layer) return;
+  layer.innerHTML = '';
+  layer.classList.toggle('title-screen', type === 'title');
+  if (!type) {
+    layer.classList.add('hidden');
+    return;
+  }
+  layer.classList.remove('hidden');
+
+  if (type === 'title') {
+    let hasSave = false;
+    try { hasSave = Boolean(localStorage.getItem('solaris-bay.save.v1')); } catch {}
+    layer.innerHTML = `
       <section class="title-panel">
-        <h1 class="title-logo">SOLARIS <i>BAY</i></h1>
+        <div class="title-crest" aria-hidden="true">☀</div>
+        <div class="eyebrow">SUNSET COAST • CHAPTER 05</div>
+        <h1>SOLARIS <i>BAY</i></h1>
         <div class="title-rule"></div>
-        <p>A LIVING COASTAL CRIME SANDBOX</p>
-        <div class="title-actions"><button id="continue">CONTINUE <b>➜</b></button><button id="start">NEW GAME</button><button id="load">LOAD GAME</button><button id="garage-menu">PAY N TUNE GARAGE</button><button id="settings-menu">SETTINGS</button><button id="controls">CONTROLS</button></div>
-        <div class="title-foot">${l?"CHAPTER 05 • $24,850 • REP 420":"SAVE SLOT READY • CHAPTER 05 • $24,850 • REP 420"}<span>WASD DRIVE • SPACE DRIFT • E EXIT • M MAP</span></div>
-      </section>`,e.querySelector("#start")?.addEventListener("click",()=>t.start()),e.querySelector("#continue")?.addEventListener("click",()=>{if(l)t.load();t.start()}),e.querySelector("#load")?.addEventListener("click",()=>{if(!t.load())e.querySelector(".title-foot").textContent="NO SAVE FOUND • START A NEW GAME TO BEGIN";else t.start()}),e.querySelector("#garage-menu")?.addEventListener("click",()=>t.showPanel("garage")),e.querySelector("#settings-menu")?.addEventListener("click",()=>{e.querySelector(".title-foot").textContent="AUDIO • DISPLAY • ACCESSIBILITY"}),e.querySelector("#controls")?.addEventListener("click",()=>{e.querySelector(".title-foot").textContent="WASD DRIVE • SPACE DRIFT • E EXIT / ENTER • F CARJACK • M CITY MAP • R WEATHER"});return}if(i==="pause"){e.innerHTML=`
+        <p>A LIVING COASTAL CITY • NIKO VALE &amp; MARA SOL</p>
+        <div class="title-actions"><button id="continue">CONTINUE <b>↗</b></button><button id="start">NEW GAME <b>↗</b></button><button id="load">LOAD GAME <b>↗</b></button><button id="garage">PAY N TUNE GARAGE <b>↗</b></button><button id="settings">SETTINGS <b>⚙</b></button><button id="controls">CONTROLS <b>⌘</b></button></div>
+        <div class="title-foot">${hasSave ? 'CHAPTER 05 • $24,850 • REP 420' : 'SAVE SLOT READY • CHAPTER 05 • $24,850 • REP 420'}<span>WASD DRIVE • SPACE DRIFT • E EXIT • M MAP</span></div>
+      </section>`;
+    layer.querySelector('#start')?.addEventListener('click', () => game.start());
+    layer.querySelector('#continue')?.addEventListener('click', () => { if (hasSave) game.load(); game.start(); });
+    layer.querySelector('#load')?.addEventListener('click', () => { if (!game.load()) layer.querySelector('.title-foot').textContent = 'NO SAVE FOUND • START A NEW GAME TO BEGIN'; else game.start(); });
+    layer.querySelector('#controls')?.addEventListener('click', () => { layer.querySelector('.title-foot').textContent = 'WASD DRIVE • SPACE DRIFT • E EXIT / ENTER • F CARJACK • M CITY MAP • R WEATHER'; });
+    layer.querySelector('#garage')?.addEventListener('click', () => game.showPanel('garage'));
+    layer.querySelector('#settings')?.addEventListener('click', () => { layer.querySelector('.title-foot').textContent = 'DISPLAY: FULL SCREEN • AUDIO: STEREO • CAMERA: CINEMATIC'; });
+    return;
+  }
+
+  if (type === 'pause') {
+    layer.innerHTML = `
       <section class="modal">
         <div class="eyebrow">SOLARIS BAY / PAUSED</div>
         <h2>TAKE A BREATH.</h2>
         <p>Press <b>ESC</b> to return to the street.</p>
         <button id="resume">RESUME DRIVE</button>
-      </section>`,e.querySelector("#resume")?.addEventListener("click",()=>t.resume());return}if(i==="map"){e.innerHTML=`
+      </section>`;
+    layer.querySelector('#resume')?.addEventListener('click', () => game.resume());
+    return;
+  }
+
+  if (type === 'map') {
+    layer.innerHTML = `
       <section class="map-panel">
         <div class="eyebrow">SOLARIS BAY • FIELD ATLAS</div>
         <h2>FOUR DISTRICTS. ONE WAY OUT.</h2>
@@ -24,17 +58,24 @@ function u(i,t){let e=document.getElementById("panel-layer");if(!e)return;if(e.i
             <span class="map-label island">CORAL ISLAND</span>
             <b class="map-pin">YOU ARE HERE</b>
           </div>
-          <div class="map-list">${c(t)}</div>
+          <div class="map-list">${renderMissionRows(game)}</div>
         </div>
         <button id="close">CLOSE MAP　ESC</button>
-      </section>`,e.querySelector("#close")?.addEventListener("click",()=>t.resume());return}if(i==="garage"){e.innerHTML=`
-      <section class="map-panel garage-screen">
-        <div class="eyebrow">PAY N TUNE / CORAL ISLAND</div>
-        <h2>MAKE IT YOURS.</h2>
-        <div class="garage-stats"><b>8 <small>MISSIONS</small></b><b>12 <small>ACTIVITIES</small></b><b>8 <small>VEHICLES</small></b><b>5 <small>WEAPONS</small></b><b>4 <small>DISTRICTS</small></b></div>
-        <div class="map-layout">
-          <canvas class="city-map garage-map-canvas" width="720" height="240" aria-label="Solaris Bay city map"></canvas>
-          <div class="garage-tools">
+      </section>`;
+    layer.querySelector('#close')?.addEventListener('click', () => game.resume());
+    return;
+  }
+
+  if (type === 'garage') {
+    layer.innerHTML = `
+      <section class="garage-screen">
+        <header class="dossier-header"><div class="dossier-heading"><div class="eyebrow">SOLARIS BAY // COMMAND DOSSIER</div><h2>PAY N TUNE <span>•</span> SOLARIS GT</h2></div><nav class="dossier-nav"><b>MAP &amp; DISTRICTS</b><span>MISSIONS</span><span>PAY N TUNE GARAGE</span><span>WEAPONS</span><span>CREW</span><span>STATS</span></nav></header>
+        <div class="garage-stats"><b>10 <small>MISSIONS</small></b><b>28 <small>ACTIVITIES</small></b><b>18 <small>VEHICLES</small></b><b>8 <small>WEAPONS</small></b><b>4 <small>DISTRICTS</small></b><b>3 <small>RANKS</small></b></div>
+        <div class="dossier-layout">
+          <div class="dossier-left">
+            <section class="dossier-card district-map-card"><div class="card-heading"><b>FIELD ATLAS</b><span>4 DISTRICTS / LIVE ROUTE</span></div><canvas class="city-map garage-map-canvas" width="720" height="300" aria-label="Solaris Bay tactical city map"></canvas></section>
+            <section class="dossier-card showroom-card"><div class="card-heading"><b>PAY N TUNE / LIVE SHOWROOM</b><span>STUDIO LIGHT / 360° TURNTABLE</span></div><div class="showroom-overlay"><strong>SOLARIS GT</strong><span>METALLIC CYAN • TWIN TURBO</span><i>DRIFT SPEC / 94 TOP SPEED</i></div>
+              <div class="garage-tools">
             <div class="eyebrow">CUSTOM PAINT / $450</div>
             <div class="garage-grid">
               <button data-color="11949118"><i style="--swatch:#b6665e"></i>SOLARA RED</button>
@@ -44,26 +85,93 @@ function u(i,t){let e=document.getElementById("panel-layer");if(!e)return;if(e.i
               <button data-color="3048747"><i style="--swatch:#2e9a78"></i>NIGHT JADE</button>
               <button data-color="7902926"><i style="--swatch:#78528e"></i>VIOLET RUSH</button>
             </div>
-            <p>DRIFT TUNE　${t.garage.upgrade}/3　•　CASH $${t.missions.cash.toLocaleString()}</p>
+            <p>DRIFT TUNE　${game.garage.upgrade}/3　•　CASH $${game.missions.cash.toLocaleString()}</p>
             <button id="upgrade">INSTALL DRIFT TUNE — $3,500</button>
             <button id="turbo">INSTALL TURBO — $6,000</button>
             <button id="repair">REPAIR &amp; SERVICE — $750</button>
             <div class="eyebrow">STORY CONTRACTS</div>
-            <div class="map-list">${c(t)}</div>
-            <button id="save">SAVE GAME</button>
-            <button id="load">LOAD GAME</button>
-            <button id="close">LEAVE GARAGE</button>
+            <div class="map-list">${renderMissionRows(game)}</div>
+              </div>
+            </section>
           </div>
+          <aside class="dossier-right">
+            <section class="dossier-card"><div class="card-heading"><b>DISTRICT CONTROL</b><span>REPUTATION</span></div>${[['SUNSET COAST',68],['NEON DOWNTOWN',42],['CORAL ISLAND',76],['HARBOR DOCKS',31]].map(([name,value])=>`<div class="progress-row"><span>${name}</span><b>${value}%</b><i><em style="width:${value}%"></em></i></div>`).join('')}</section>
+            <section class="dossier-card"><div class="card-heading"><b>ACTIVE CONTRACT</b><span>MISSION 05 / 10</span></div><p class="contract-title">SUNSET HEIST</p><p class="contract-copy">Break the coastal pursuit. Reach the marina before the last light.</p><ul class="contract-list"><li>✓ Secure the SOLARIS GT</li><li>✓ Evade the first SBPD unit</li><li>○ Lose CONDOR-1's spotlight</li></ul></section>
+            <section class="dossier-card"><div class="card-heading"><b>VEHICLE TELEMETRY</b><span>GT / CURRENT BUILD</span></div>${[['TOP SPEED',94],['DRIFT CONTROL',91],['ARMOR',78]].map(([name,value])=>`<div class="progress-row telemetry"><span>${name}</span><b>${value}%</b><i><em style="width:${value}%"></em></i></div>`).join('')}</section>
+            <section class="dossier-card crew-card"><div class="card-heading"><b>CREW / PURSUIT</b><span>TRUST 82 • HEAT 64</span></div><div class="dual-bars"><span>CREW TRUST<i><em style="width:82%"></em></i></span><span>PURSUIT HEAT<i><em style="width:64%"></em></i></span></div><p>MARA [READY]　•　NIKO [READY]</p></section>
+            <div class="dossier-actions"><button id="save">SAVE GAME</button><button id="load">LOAD GAME</button><button id="close">RESUME</button></div>
+          </aside>
         </div>
-      </section>`,e.querySelectorAll("[data-color]").forEach((l)=>{l.addEventListener("click",()=>t.paint(Number(l.dataset.color)))}),E(e.querySelector(".garage-map-canvas")),e.querySelector("#upgrade")?.addEventListener("click",()=>t.upgrade()),e.querySelector("#turbo")?.addEventListener("click",()=>t.turbo()),e.querySelector("#repair")?.addEventListener("click",()=>t.repair?.()),e.querySelector("#save")?.addEventListener("click",()=>t.save()),e.querySelector("#load")?.addEventListener("click",()=>t.load()),e.querySelector("#close")?.addEventListener("click",()=>{document.body.classList.remove("garage-shot"),t.resume()});return}if(i==="result")e.innerHTML=`
+      </section>`;
+    layer.querySelectorAll('[data-color]').forEach((button) => {
+      button.addEventListener('click', () => game.paint(Number(button.dataset.color)));
+    });
+    drawGarageMap(layer.querySelector('.garage-map-canvas'));
+    layer.querySelector('#upgrade')?.addEventListener('click', () => game.upgrade());
+    layer.querySelector('#turbo')?.addEventListener('click', () => game.turbo());
+    layer.querySelector('#repair')?.addEventListener('click', () => game.repair?.());
+    layer.querySelector('#save')?.addEventListener('click', () => game.save());
+    layer.querySelector('#load')?.addEventListener('click', () => game.load());
+    layer.querySelector('#close')?.addEventListener('click', () => {
+      document.body.classList.remove('garage-shot');
+      game.resume();
+    });
+    return;
+  }
+
+  if (type === 'result') {
+    layer.innerHTML = `
       <section class="modal result">
         <div class="eyebrow">STORY CHAPTER COMPLETE</div>
         <h2>MISSION PASSED</h2>
         <p>THE BAY REMEMBERS WHO SHOWED UP.</p>
         <button id="next">CONTINUE STORY　↗</button>
-      </section>`,e.querySelector("#next")?.addEventListener("click",()=>t.nextMission())}function E(i){if(!i)return;let t=i.getContext("2d"),e=i.width,l=i.height;t.fillStyle="#12394e",t.fillRect(0,0,e,l);let s=(o,n)=>{t.beginPath(),o.forEach(([a,r],d)=>d?t.lineTo(a*e,r*l):t.moveTo(a*e,r*l)),t.closePath(),t.fillStyle=n,t.fill()};s([[0,0.05],[0.32,0.04],[0.36,0.18],[0.32,0.34],[0.39,0.52],[0.33,0.76],[0.23,0.93],[0.08,0.78],[0,0.64]],"#9a8365"),s([[0.28,0.18],[0.72,0.14],[0.77,0.42],[0.67,0.67],[0.48,0.61],[0.31,0.47]],"#747e79"),s([[0.53,0.58],[0.94,0.56],[0.98,0.94],[0.58,0.94]],"#777d79"),s([[0.54,0.03],[0.91,0.04],[0.93,0.37],[0.73,0.44],[0.55,0.29]],"#687c69"),t.lineCap="round",t.lineJoin="round",t.strokeStyle="#e1bd78",t.lineWidth=7,t.beginPath(),t.moveTo(e*0.08,l*0.19),t.bezierCurveTo(e*0.27,l*0.1,e*0.35,l*0.25,e*0.27,l*0.37),t.bezierCurveTo(e*0.16,l*0.53,e*0.31,l*0.68,e*0.48,l*0.55),t.stroke(),t.strokeStyle="#363e43",t.lineWidth=10,t.beginPath(),t.moveTo(e*0.26,l*0.5),t.lineTo(e*0.73,l*0.51),t.moveTo(e*0.46,l*0.22),t.lineTo(e*0.46,l*0.72),t.moveTo(e*0.63,l*0.2),t.lineTo(e*0.63,l*0.72),t.stroke(),t.strokeStyle="#54e7f5",t.lineWidth=4,t.beginPath(),t.moveTo(e*0.68,l*0.41),t.lineTo(e*0.68,l*0.79),t.stroke(),t.font="bold 16px Chakra,Arial",t.fillStyle="#ffe4ae",t.shadowColor="#06121b",t.shadowBlur=5,t.fillText("SUNSET COAST",18,28),t.fillText("NEON DOWNTOWN",e*0.36,58),t.fillText("HARBOR DOCKS",e*0.52,l*0.88),t.fillText("CORAL ISLAND",e*0.73,l*0.37),t.shadowBlur=0,t.fillStyle="#ffd264",t.beginPath(),t.arc(e*0.77,l*0.77,7,0,Math.PI*2),t.fill(),t.fillStyle="#f2f0dc",t.fillText("PAY N TUNE",e*0.78,l*0.81);for(let[o,n,a]of[[0.12,0.29,"#ff586d"],[0.47,0.38,"#ffcf67"],[0.57,0.72,"#64eaff"],[0.81,0.23,"#ffcf67"]])t.fillStyle=a,t.beginPath(),t.arc(e*o,l*n,5,0,Math.PI*2),t.fill();t.fillStyle="#68f0e7",t.beginPath(),t.moveTo(e*0.58,l*0.46),t.lineTo(e*0.58-6,l*0.48),t.lineTo(e*0.58+6,l*0.48),t.closePath(),t.fill()}function c(i){return i.missions.map.map((t,e)=>`
-    <div class="mission-row ${e===i.missions.index?"active":""}">
-      <small>${t[0]}　${t[3]}</small>
-      <b>${t[1]}</b>
-      <span>${e<i.missions.index?"COMPLETE":e===i.missions.index?"CURRENT OBJECTIVE":"LOCKED"}</span>
-    </div>`).join("")}export{u as showPanel};
+      </section>`;
+    layer.querySelector('#next')?.addEventListener('click', () => game.nextMission());
+  }
+}
+
+/** Locally draw the four landmasses, road network, districts, bridge and map pins. */
+function drawGarageMap(canvas) {
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d'); const w = canvas.width; const h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = '#071a2c'; ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = '#0b3448'; ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(w*.22,0); ctx.lineTo(w*.31,h*.19); ctx.lineTo(w*.25,h*.38); ctx.lineTo(w*.34,h*.56); ctx.lineTo(w*.27,h*.79); ctx.lineTo(w*.18,h); ctx.lineTo(0,h); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#0f3c52'; ctx.beginPath(); ctx.moveTo(w*.55,0); ctx.lineTo(w*.86,0); ctx.lineTo(w*.9,h*.2); ctx.lineTo(w*.82,h*.35); ctx.lineTo(w*.72,h*.42); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#0c3246'; ctx.beginPath(); ctx.moveTo(w*.57,h*.61); ctx.lineTo(w,h*.57); ctx.lineTo(w,h); ctx.lineTo(w*.63,h); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = '#63dce5'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(w*.28,0); ctx.bezierCurveTo(w*.34,h*.18,w*.23,h*.27,w*.32,h*.42); ctx.bezierCurveTo(w*.41,h*.55,w*.47,h*.69,w*.59,h*.61); ctx.stroke();
+  ctx.fillStyle = '#283748';
+  for (let row = 0; row < 5; row++) for (let column = 0; column < 13; column++) {
+    const x = w * (.3 + column * .047 + (row % 2) * .012);
+    const y = h * (.08 + row * .105);
+    const width = w * (.033 + (column % 3) * .003);
+    const height = h * (.065 + (row % 2) * .008);
+    ctx.fillStyle = ['#324454','#3b4a58','#293b4b','#46515b'][((row * 13 + column) * 7) % 4];
+    ctx.fillRect(x,y,width,height);
+    ctx.strokeStyle = '#64727b'; ctx.lineWidth = 1; ctx.strokeRect(x,y,width,height);
+  }
+  ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle='#c3a466';ctx.lineWidth=5;
+  ctx.beginPath();ctx.moveTo(w*.07,h*.27);ctx.bezierCurveTo(w*.18,h*.08,w*.31,h*.24,w*.42,h*.39);ctx.bezierCurveTo(w*.54,h*.55,w*.5,h*.83,w*.69,h*.73);ctx.stroke();
+  ctx.strokeStyle='#abb8b7';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(w*.24,h*.42);ctx.lineTo(w*.88,h*.48);ctx.moveTo(w*.54,h*.19);ctx.lineTo(w*.52,h*.83);ctx.stroke();
+  ctx.strokeStyle='#dae3dc';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(w*.23,h*.41);ctx.lineTo(w*.9,h*.47);ctx.stroke();
+  ctx.setLineDash([5,5]);ctx.strokeStyle='#42f0ef';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(w*.17,h*.31);ctx.bezierCurveTo(w*.3,h*.2,w*.44,h*.7,w*.66,h*.54);ctx.bezierCurveTo(w*.73,h*.5,w*.71,h*.69,w*.82,h*.76);ctx.stroke();ctx.setLineDash([]);
+  ctx.font='bold 15px Chakra,Arial';ctx.fillStyle='#d9c28d';ctx.shadowColor='#02080f';ctx.shadowBlur=5;
+  ctx.fillText('SUNSET COAST',14,24);ctx.fillText('NEON DOWNTOWN',w*.4,34);ctx.fillText('HARBOR DOCKS',w*.65,h*.91);ctx.fillText('CORAL ISLAND',w*.72,h*.31);
+  ctx.shadowBlur=0;
+  for (const [x,y,color] of [[.13,.28,'#ff6476'],[.45,.34,'#ffd36f'],[.57,.73,'#5ff5fa'],[.82,.22,'#ffc664']]) {
+    ctx.strokeStyle=color;ctx.globalAlpha=.55;ctx.beginPath();ctx.arc(w*x,h*y,16,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=1;ctx.fillStyle=color;ctx.beginPath();ctx.arc(w*x,h*y,4.5,0,Math.PI*2);ctx.fill();
+  }
+  for (const [x,y] of [[.2,.52],[.78,.63]]) { ctx.fillStyle='#ffd16f';ctx.beginPath();ctx.moveTo(w*x,h*y-8);ctx.lineTo(w*x+8,h*y);ctx.lineTo(w*x,h*y+8);ctx.lineTo(w*x-8,h*y);ctx.closePath();ctx.fill();ctx.fillStyle='#6be2e9';ctx.fillRect(w*x-3,h*y-3,6,6); }
+  ctx.fillStyle='#f5eee0';ctx.font='bold 11px Chakra,Arial';ctx.fillText('PAY N TUNE',w*.74,h*.8);
+}
+
+function renderMissionRows(game) {
+  return game.missions.map.map((mission, index) => `
+    <div class="mission-row ${index === game.missions.index ? 'active' : ''}">
+      <small>${mission[0]}　${mission[3]}</small>
+      <b>${mission[1]}</b>
+      <span>${index < game.missions.index ? 'COMPLETE' : index === game.missions.index ? 'CURRENT OBJECTIVE' : 'LOCKED'}</span>
+    </div>`).join('');
+}

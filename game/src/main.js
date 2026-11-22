@@ -1,1 +1,470 @@
-import*as a from"../vendor/three.module.min.js";import{createRandom as Z}from"./random.js";import{createInput as J}from"./input.js";import{createSky as Q,updateSky as K}from"./world/sky.js";import{createCity as ee}from"./world/city.js";import{createVehicle as te,updateVehicle as Se}from"./models/vehicles.js";import{createCharacter as ae,animateCharacter as ie}from"./models/characters.js";import{createDriving as re}from"./systems/driving.js";import{updateTraffic as oe}from"./systems/traffic.js";import{createPedestrians as se}from"./systems/pedestrians.js";import{createPolice as ne}from"./systems/police.js";import{createCombat as ce}from"./systems/combat.js";import{createMissions as pe}from"./systems/missions.js";import{createGarage as de}from"./systems/garage.js";import{loadSave as _,saveGame as z}from"./systems/save.js";import{createAudio as le}from"./systems/audio.js";import{createHud as he}from"./ui/hud.js";import{renderWeaponWheel as B}from"./ui/weaponWheel.js";import{showPanel as T}from"./ui/menu.js";import{stageShot as me}from"./shots.js";var L=new URLSearchParams(location.search),A=Number(L.get("seed")||1),G=Z(A),ue=document.querySelector("#view"),b=new a.WebGLRenderer({canvas:ue,antialias:!0,alpha:!1,powerPreference:"high-performance"});b.setPixelRatio(Math.min(devicePixelRatio,1.75));b.setSize(innerWidth,innerHeight);b.outputColorSpace=a.SRGBColorSpace;b.toneMapping=a.ACESFilmicToneMapping;b.toneMappingExposure=1.13;var n=new a.Scene;n.background=new a.Color(15377009);n.fog=new a.FogExp2(10188418,0.0015);var M=new a.PerspectiveCamera(58,innerWidth/innerHeight,0.1,2400),N=Q(n,A),u=ee(n,A),d=te(0);d.position.set(-180,0.1,-325);d.rotation.y=0.32;n.add(d);var P=new a.SpotLight(16768419,35,75,Math.PI/5,0.55,1.2),W=new a.Object3D;n.add(P,W);P.target=W;var i=re(n,d,A+13),c=ae("protagonist",A);c.position.copy(d.position);c.visible=!1;n.add(c);var U=se(n,G,34,u.coastCurve),V=ne(u),f=ce(n,G),r=pe(),k=le(),p=J(),x=he(),m=_();if(m)r.cash=m.cash??r.cash,r.respect=m.respect??0,r.completed=Array.isArray(m.completed)?m.completed:[],r.index=Math.min(r.completed.length,7);var g="title",v="drive",C=0,F=performance.now(),D=58,R="sunset",I="SUNSET SYNTH",l={district:"SUNSET COAST"},fe=[[-115,-340],[-240,-310],[325,315],[100,40],[470,120],[680,220],[330,280],[-115,-340]],q=fe.map(([e,o])=>{let s=new a.Group,h=new a.Mesh(new a.OctahedronGeometry(1.15,0),new a.MeshBasicMaterial({color:6811120,transparent:!0,opacity:0.9})),w=new a.Mesh(new a.TorusGeometry(2.1,0.07,6,32),new a.MeshBasicMaterial({color:16761710,transparent:!0,opacity:0.82}));return w.rotation.x=Math.PI/2,h.position.y=3.2,s.add(h,w),s.position.set(e,0,o),n.add(s),s}),t={drive:i,player:c,combat:f,missions:r,police:V,hud:x,world:l,map:r.map,start(e={}){if(!e.silent)k.start();t.shotCamera=null,document.body.classList.remove("title-shot"),g="play",T(null,t),x.show()},resume(){t.shotCamera=null,g="play",T(null,t),x.show()},paint(e,o=!0){if(o&&r.cash<450)return!1;if(o)r.cash-=450;if(d.userData.paintMaterial)d.userData.paintMaterial.color.setHex(e);return t.garage.respray(e),x.update(S()),!0},upgrade(){if(r.cash<3500||t.garage.upgrade>=3)return!1;return r.cash-=3500,t.garage.upgradeCar(),d.userData.upgrades={...d.userData.upgrades||{},drift:t.garage.upgrade},x.update(S()),!0},turbo(){if(t.garage.turbo||r.cash<6000)return!1;return r.cash-=6000,t.garage.installTurbo(),d.userData.upgrades={...d.userData.upgrades||{},turbo:!0},x.update(S()),!0},repair(){if(r.cash<750)return!1;return r.cash-=750,i.state.damage=0,f.health=100,f.armor=100,t.save(),x.update(S()),!0},save(){let e={cash:r.cash,respect:r.respect,completed:r.completed,weapons:f.unlockedWeapons,paint:t.garage.paint,upgrade:t.garage.upgrade,turbo:t.garage.turbo,position:i.state.car.position.toArray(),time:C};return z(e)},load(){let e=_();if(!e)return!1;if(r.cash=e.cash??r.cash,r.respect=e.respect??r.respect,r.completed=Array.isArray(e.completed)?e.completed:[],r.index=Math.min(r.completed.length,7),Array.isArray(e.position))i.state.car.position.fromArray(e.position);if(e.paint)t.paint(e.paint,!1);if(e.upgrade)t.garage.upgrade=e.upgrade;return t.garage.turbo=Boolean(e.turbo),x.update(S()),!0},nextMission(){r.advance(),t.resume()},setWeather(e){R=e,K(N,0,R),n.background.set(e==="wet-night"||e==="midnight"?593435:e==="harbor"?2368572:e==="twilight"?9467021:12246256),n.fog.color.set(e==="wet-night"?1055276:e==="midnight"?593435:e==="harbor"?4866133:e==="twilight"?16762764:e==="golden"||e==="sunset"?16049350:10197915),n.fog.density=e==="wet-night"?0.0025:e==="midnight"?0.002:e==="twilight"?0.0018:e==="golden"||e==="sunset"?0.0028:0.0015,n.traverse((o)=>{if(o.material?.emissiveMap)o.material.emissiveIntensity=e==="wet-night"||e==="midnight"?1.65:1.1;if(o.userData?.streetLamp)o.intensity=e==="wet-night"||e==="midnight"?8:e==="sunset"?3.8:5.5}),P.intensity=e==="sunset"?0:e==="garage"?12:32}};t.city=u;t.scene=n;t.sky=N;t.pedestrians=U;t.missionMarkers=q;window.__SOLARIS_GAME=t;window.__SOLARIS_INPUT=p;Object.defineProperty(t,"mode",{get:()=>g});t.garage=de(r,z);t.showPanel=(e)=>T(e,t);t.camera=M;Object.defineProperty(t,"cameraMode",{get:()=>v,set:(e)=>{v=e}});if(m){if(Array.isArray(m.position))i.state.car.position.fromArray(m.position);if(C=m.time??0,Array.isArray(m.weapons))f.unlockedWeapons=m.weapons;if(m.paint)t.paint(m.paint,!1);if(m.upgrade)t.garage.upgrade=m.upgrade;t.garage.turbo=Boolean(m.turbo)}function S(){return{drive:i,police:V,missions:r,combat:f,world:l,mode:g,city:u}}t.hudState=S;T("title",t);function j(e){let o=i.state.car.position,s=i.state.yaw,h=new a.Vector3(Math.cos(s),0,-Math.sin(s)),w=new a.Vector3(Math.sin(s),0,Math.cos(s)),y,E;if(i.state.active)y=o.clone().addScaledVector(h,-9.2).add(new a.Vector3(0,4.1+i.state.slip*0.7,0)).addScaledVector(w,-i.state.slip*3.1),E=o.clone().addScaledVector(h,5).add(new a.Vector3(0,1,0));else y=c.position.clone().add(new a.Vector3(-7,3.6,5)),E=c.position.clone().add(new a.Vector3(0,1.3,0));if(v==="garage")y.set(617,3.6,126),E.set(610,1.05,143);else if(v==="chase"){let X=new a.Vector3(Math.cos(s),0,-Math.sin(s));y=o.clone().addScaledVector(X,-13).add(new a.Vector3(0,6,0)),E=o.clone().add(new a.Vector3(0,2,0))}if(g==="title"&&!t.shotCamera)y.set(-205,122,-238),E.set(30,4,-105),D=47;else if(t.shotCamera)M.position.copy(t.shotCamera.position),E.copy(t.shotCamera.target),D=t.shotCamera.fov;else M.position.lerp(y,1-Math.exp(-e*4)),D=a.MathUtils.damp(D,58+Math.min(18,Math.abs(i.state.speed)*0.17+i.state.slip*10),3.2,e);let O=58+Math.min(18,Math.abs(i.state.speed)*0.17+i.state.slip*10);M.fov=t.shotCamera?t.shotCamera.fov:D,M.lookAt(E),M.updateProjectionMatrix();let H=o.clone().addScaledVector(h,2.7);P.position.set(H.x,H.y+1,H.z),W.position.set(H.x+h.x*30,H.y,H.z+h.z*30)}function ge(){if(i.state.active){i.enterExit(),c.position.copy(d.position).add(new a.Vector3(0,0,3.7)),c.visible=!0,v="foot";return}if(c.position.distanceTo(d.position)<5){i.enterExit(),c.visible=!1,v="drive";return}if(d.position.distanceTo(new a.Vector3(610,0,145))<28)g="menu",t.garage.open=!0,T("garage",t)}function we(){if(i.state.active)return;let e=null,o=6;for(let s of u.traffic){let h=c.position.distanceTo(s.position);if(h<o)o=h,e=s}if(!e)return;u.traffic=u.traffic.filter((s)=>s!==e),u.traffic.push(d),n.remove(d),d=e,i.state.car=d,i.state.active=!0,i.state.speed=0,i.state.yaw=d.rotation.y,c.visible=!1,v="drive"}function Ee(e){if(C+=e,(g==="menu"||g==="pause")&&p.hit("Escape")){t.resume();return}if(g!=="play")return;if(l.plateCooldown=Math.max(0,(l.plateCooldown||0)-e),l.fixCooldown=Math.max(0,(l.fixCooldown||0)-e),l.interactCooldown=Math.max(0,(l.interactCooldown||0)-e),i.state.active&&p.hit("KeyZ")&&l.plateCooldown===0)i.state.damage=Math.max(0,i.state.damage-34),f.armor=Math.min(100,f.armor+32),l.plateCooldown=18;if(p.hit("KeyX")&&l.fixCooldown===0)f.health=Math.min(100,f.health+28),i.state.damage=Math.max(0,i.state.damage-18),l.fixCooldown=24;if(p.hit("KeyE")&&l.interactCooldown===0)ge(),l.interactCooldown=0.4;if(p.hit("KeyF"))we();if(p.hit("KeyM"))g="menu",T("map",t);if(p.hit("Escape"))g="pause",T("pause",t);if(p.hit("KeyR"))t.setWeather(R==="sunset"?"wet-night":R==="wet-night"?"midnight":"sunset");if(p.hit("KeyN"))I=k.nextStation();window.solRadio=I;let o=!1;if(i.state.active)i.step(e,p,l),P.intensity=R==="sunset"?3:38;else{let w=p.down("ShiftLeft")?12:6,y=Number(p.down("KeyW","ArrowUp"))-Number(p.down("KeyS","ArrowDown")),E=Number(p.down("KeyD","ArrowRight"))-Number(p.down("KeyA","ArrowLeft"));c.position.x+=E*w*e,c.position.z-=y*w*e,ie(c,C,Boolean(y||E)),o=p.down("Mouse0"),l.district=c.position.z<-210?"SUNSET COAST":c.position.x>330?"CORAL ISLAND":c.position.z>230?"HARBOR DOCKS":"NEON DOWNTOWN"}V.step(e,i.state.car.position,o),oe(u,e,i.state.car.position),U.step(e,C,o||V.wanted>0,i.state.car.position),f.step(e,p,M,c.position,!i.state.active);let s=i.state.active?i.state.car.position:c.position,h=r.step(e,i.state.drift,l.district,{position:s,speed:i.state.speed,wanted:V.wanted,kills:f.kills,health:f.health});if(q.forEach((w,y)=>{w.visible=y===r.index&&!r.complete,w.rotation.y+=e*0.7,w.children[0].position.y=3.2+Math.sin(C*2.4)*0.28}),h)g="menu",T("result",t);if(Math.abs(i.state.speed)>4)k.engine(i.state.speed);k.update(e),K(N,e,R),n.fog.color.set(R==="wet-night"?1055276:R==="midnight"?593435:10188418),n.fog.density=R==="wet-night"?0.0025:0.0015}function Y(e){requestAnimationFrame(Y);let o=Math.min(0.04,(e-F)/1000);if(F=e,Ee(o),j(o),b.render(n,M),t.showroomRender?.(),g==="play")x.update(S()),B(f);p.consume()}addEventListener("keydown",(e)=>{if(g==="title"&&(e.code==="Enter"||e.code==="Space"))e.preventDefault(),t.start()});addEventListener("resize",()=>{b.setSize(innerWidth,innerHeight),M.aspect=innerWidth/innerHeight,M.updateProjectionMatrix()});if(L.has("shot")){g="play",T(null,t),x.show(),me(L.get("shot"),t,A);let e=0,o=()=>{j(0);for(let s of t.healthBars||[])s.lookAt(M.position);if(L.get("shot")==="chase"){u.helicopter.userData.mainRotor.rotation.y+=0.42,u.helicopter.userData.tailRotor.rotation.x+=0.55;let s=Math.sin(performance.now()/95);u.helicopter.userData.beacon.intensity=s>0.2?18:1,u.helicopter.userData.redLamp.material.emissiveIntensity=s>0.2?7:0.4,u.helicopter.userData.whiteStrobe.intensity=s<-0.45?24:0,u.helicopter.userData.whiteLamp.material.emissiveIntensity=s<-0.45?8:0.25;let h=Math.sin(performance.now()/72);u.police.forEach((w,y)=>{w.userData.policePoints.forEach((E,O)=>{E.intensity=Math.max(0,h*(O?-1:1))*30}),w.userData.policeLights.forEach((E,O)=>{E.material.emissiveIntensity=Math.max(1.2,h*(O?-1:1)*2.5+2.5)})})}if(L.get("shot")==="drift")i.state.sparkLight.intensity=14;if(b.render(n,M),t.showroomRender?.(),x.update(S()),B(f),e+=1,e>=2)window.__SOLARIS_SHOT_READY=!0;requestAnimationFrame(o)};requestAnimationFrame(o)}else requestAnimationFrame(Y);
+import * as THREE from '../vendor/three.module.min.js';
+import { createRandom } from './random.js';
+import { createInput } from './input.js';
+import { createSky, updateSky } from './world/sky.js';
+import { createCity } from './world/city.js';
+import { createVehicle, updateVehicle } from './models/vehicles.js';
+import { createCharacter, animateCharacter } from './models/characters.js';
+import { createDriving } from './systems/driving.js';
+import { updateTraffic } from './systems/traffic.js';
+import { createPedestrians } from './systems/pedestrians.js';
+import { createPolice } from './systems/police.js';
+import { createCombat } from './systems/combat.js';
+import { createMissions } from './systems/missions.js';
+import { createGarage } from './systems/garage.js';
+import { loadSave, saveGame } from './systems/save.js';
+import { createAudio } from './systems/audio.js';
+import { createHud } from './ui/hud.js';
+import { renderWeaponWheel } from './ui/weaponWheel.js';
+import { showPanel } from './ui/menu.js';
+import { stageShot } from './shots.js';
+
+const params = new URLSearchParams(location.search);
+const seed = Number(params.get('seed') || 1);
+const random = createRandom(seed);
+const canvas = document.querySelector('#view');
+const renderer = new THREE.WebGLRenderer({
+  canvas,
+  antialias: true,
+  alpha: false,
+  powerPreference: 'high-performance',
+});
+renderer.setPixelRatio(Math.min(devicePixelRatio, 1.75));
+renderer.setSize(innerWidth, innerHeight);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.13;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xeaa271);
+scene.fog = new THREE.FogExp2(0x9b7682, 0.0015);
+const camera = new THREE.PerspectiveCamera(58, innerWidth / innerHeight, 0.1, 2400);
+const sky = createSky(scene, seed);
+const city = createCity(scene, seed);
+let hero = createVehicle(0);
+hero.position.set(-180, 0.1, -325);
+hero.rotation.y = 0.32;
+scene.add(hero);
+
+const headLamp = new THREE.SpotLight(0xffdda3, 35, 75, Math.PI / 5, 0.55, 1.2);
+const headTarget = new THREE.Object3D();
+scene.add(headLamp, headTarget);
+headLamp.target = headTarget;
+
+const drive = createDriving(scene, hero, seed + 13);
+const player = createCharacter('protagonist', seed);
+player.position.copy(hero.position);
+player.visible = false;
+scene.add(player);
+const pedestrians = createPedestrians(scene, random, 34, city.coastCurve);
+const police = createPolice(city);
+const combat = createCombat(scene, random);
+const missions = createMissions();
+const audio = createAudio();
+const input = createInput();
+const hud = createHud();
+const stored = loadSave();
+
+if (stored) {
+  missions.cash = stored.cash ?? missions.cash;
+  missions.respect = stored.respect ?? 0;
+  missions.completed = Array.isArray(stored.completed) ? stored.completed : [];
+  missions.index = Math.min(missions.completed.length, 7);
+}
+
+let mode = 'title';
+let cameraMode = 'drive';
+let elapsed = 0;
+let last = performance.now();
+let fieldOfView = 58;
+let weather = 'sunset';
+let radio = 'SUNSET SYNTH';
+const world = { district: 'SUNSET COAST' };
+const missionTargets = [
+  [-115, -340], [-240, -310], [325, 315], [100, 40], [470, 120],
+  [680, 220], [330, 280], [-115, -340],
+];
+const missionMarkers = missionTargets.map(([x, z]) => {
+  const marker = new THREE.Group();
+  const core = new THREE.Mesh(
+    new THREE.OctahedronGeometry(1.15, 0),
+    new THREE.MeshBasicMaterial({ color: 0x67edf0, transparent: true, opacity: 0.9 }),
+  );
+  const ring = new THREE.Mesh(
+    new THREE.TorusGeometry(2.1, 0.07, 6, 32),
+    new THREE.MeshBasicMaterial({ color: 0xffc36e, transparent: true, opacity: 0.82 }),
+  );
+  ring.rotation.x = Math.PI / 2;
+  core.position.y = 3.2;
+  marker.add(core, ring);
+  marker.position.set(x, 0, z);
+  scene.add(marker);
+  return marker;
+});
+const game = {
+  drive,
+  player,
+  combat,
+  missions,
+  police,
+  hud,
+  world,
+  map: missions.map,
+  start(options = {}) {
+    if (!options.silent) audio.start();
+    game.shotCamera = null; document.body.classList.remove('title-shot');
+    mode = 'play';
+    showPanel(null, game);
+    hud.show();
+  },
+  resume() {
+    game.shotCamera = null;
+    mode = 'play';
+    showPanel(null, game);
+    hud.show();
+  },
+  paint(color, charge = true) {
+    if (charge && missions.cash < 450) return false;
+    if (charge) missions.cash -= 450;
+    if (hero.userData.paintMaterial) hero.userData.paintMaterial.color.setHex(color);
+    game.garage.respray(color);
+    hud.update(hudState());
+    return true;
+  },
+  upgrade() {
+    if (missions.cash < 3500 || game.garage.upgrade >= 3) return false;
+    missions.cash -= 3500;
+    game.garage.upgradeCar();
+    hero.userData.upgrades = { ...(hero.userData.upgrades || {}), drift: game.garage.upgrade };
+    hud.update(hudState());
+    return true;
+  },
+  turbo() {
+    if (game.garage.turbo || missions.cash < 6000) return false;
+    missions.cash -= 6000;
+    game.garage.installTurbo();
+    hero.userData.upgrades = { ...(hero.userData.upgrades || {}), turbo: true };
+    hud.update(hudState());
+    return true;
+  },
+  repair() {
+    if (missions.cash < 750) return false;
+    missions.cash -= 750;
+    drive.state.damage = 0;
+    combat.health = 100;
+    combat.armor = 100;
+    game.save();
+    hud.update(hudState());
+    return true;
+  },
+  save() {
+    const data = {
+      cash: missions.cash,
+      respect: missions.respect,
+      completed: missions.completed,
+      weapons: combat.unlockedWeapons,
+      paint: game.garage.paint,
+      upgrade: game.garage.upgrade,
+      turbo: game.garage.turbo,
+      position: drive.state.car.position.toArray(),
+      time: elapsed,
+    };
+    return saveGame(data);
+  },
+  load() {
+    const data = loadSave();
+    if (!data) return false;
+    missions.cash = data.cash ?? missions.cash;
+    missions.respect = data.respect ?? missions.respect;
+    missions.completed = Array.isArray(data.completed) ? data.completed : [];
+    missions.index = Math.min(missions.completed.length, 7);
+    if (Array.isArray(data.position)) drive.state.car.position.fromArray(data.position);
+    if (data.paint) game.paint(data.paint, false);
+    if (data.upgrade) game.garage.upgrade = data.upgrade;
+    game.garage.turbo = Boolean(data.turbo);
+    hud.update(hudState());
+    return true;
+  },
+  nextMission() {
+    missions.advance();
+    game.resume();
+  },
+  setWeather(mode) {
+    weather = mode;
+    updateSky(sky, 0, weather);
+    scene.background.set(mode === 'wet-night' || mode === 'midnight' ? 0x090e1b : mode === 'harbor' ? 0x24243c : 0x8c586c);
+    scene.fog.color.set(mode === 'wet-night' ? 0x101a2c : mode === 'midnight' ? 0x090e1b : mode === 'harbor' ? 0x4a4055 : 0x9b7682);
+    scene.fog.density = mode === 'wet-night' ? 0.0025 : mode === 'midnight' ? 0.002 : 0.0015;
+    scene.traverse((object) => {
+      if (object.material?.emissiveMap) object.material.emissiveIntensity = mode === 'wet-night' || mode === 'midnight' ? 1.65 : 1.1;
+      if (object.userData?.streetLamp) object.intensity = mode === 'wet-night' || mode === 'midnight' ? 8 : mode === 'sunset' ? 3.8 : 5.5;
+    });
+    headLamp.intensity = mode === 'sunset' ? 0 : mode === 'garage' ? 12 : 32;
+  },
+};
+game.city = city;
+game.scene = scene;
+game.sky = sky;
+game.pedestrians = pedestrians;
+game.missionMarkers = missionMarkers;
+window.__SOLARIS_GAME = game;
+window.__SOLARIS_INPUT = input;
+Object.defineProperty(game, 'mode', { get: () => mode });
+game.garage = createGarage(missions, saveGame);
+game.showPanel = (type) => showPanel(type, game);
+game.camera = camera;
+Object.defineProperty(game, 'cameraMode', {
+  get: () => cameraMode,
+  set: (value) => { cameraMode = value; },
+});
+
+if (stored) {
+  if (Array.isArray(stored.position)) drive.state.car.position.fromArray(stored.position);
+  elapsed = stored.time ?? 0;
+  if (Array.isArray(stored.weapons)) combat.unlockedWeapons = stored.weapons;
+  if (stored.paint) game.paint(stored.paint, false);
+  if (stored.upgrade) game.garage.upgrade = stored.upgrade;
+  game.garage.turbo = Boolean(stored.turbo);
+}
+
+function hudState() {
+  return { drive, police, missions, combat, world, mode, city };
+}
+game.hudState = hudState;
+showPanel('title', game);
+
+/** Smooth third-person chase camera with speed-driven wide-angle response. */
+function cameraStep(dt) {
+  const position = drive.state.car.position;
+  const yaw = drive.state.yaw;
+  const forward = new THREE.Vector3(Math.cos(yaw), 0, -Math.sin(yaw));
+  const right = new THREE.Vector3(Math.sin(yaw), 0, Math.cos(yaw));
+  let desired;
+  let target;
+
+  if (drive.state.active) {
+    desired = position.clone()
+      .addScaledVector(forward, -9.2)
+      .add(new THREE.Vector3(0, 4.1 + drive.state.slip * 0.7, 0))
+      .addScaledVector(right, -drive.state.slip * 3.1);
+    target = position.clone().addScaledVector(forward, 5).add(new THREE.Vector3(0, 1, 0));
+  } else {
+    desired = player.position.clone().add(new THREE.Vector3(-7, 3.6, 5));
+    target = player.position.clone().add(new THREE.Vector3(0, 1.3, 0));
+  }
+
+  if (cameraMode === 'garage') {
+    desired.set(617, 3.6, 126);
+    target.set(610, 1.05, 143);
+  } else if (cameraMode === 'chase') {
+    const direction = new THREE.Vector3(Math.cos(yaw), 0, -Math.sin(yaw));
+    desired = position.clone().addScaledVector(direction, -13).add(new THREE.Vector3(0, 6, 0));
+    target = position.clone().add(new THREE.Vector3(0, 2, 0));
+  }
+
+  if (mode === 'title' && !game.shotCamera) {
+    desired.set(-205, 122, -238); target.set(30, 4, -105); fieldOfView = 47;
+  } else if (game.shotCamera) {
+    camera.position.copy(game.shotCamera.position);
+    target.copy(game.shotCamera.target);
+    fieldOfView = game.shotCamera.fov;
+  } else {
+    camera.position.lerp(desired, 1 - Math.exp(-dt * 4));
+    fieldOfView = THREE.MathUtils.damp(fieldOfView, 58 + Math.min(18, Math.abs(drive.state.speed) * 0.17 + drive.state.slip * 10), 3.2, dt);
+  }
+  const targetFov = 58 + Math.min(18, Math.abs(drive.state.speed) * 0.17 + drive.state.slip * 10);
+  camera.fov = game.shotCamera ? game.shotCamera.fov : fieldOfView;
+  camera.lookAt(target);
+  camera.updateProjectionMatrix();
+
+  const front = position.clone().addScaledVector(forward, 2.7);
+  headLamp.position.set(front.x, front.y + 1, front.z);
+  headTarget.position.set(front.x + forward.x * 30, front.y, front.z + forward.z * 30);
+}
+
+function interact() {
+  if (drive.state.active) {
+    drive.enterExit();
+    player.position.copy(hero.position).add(new THREE.Vector3(0, 0, 3.7));
+    player.visible = true;
+    cameraMode = 'foot';
+    return;
+  }
+  if (player.position.distanceTo(hero.position) < 5) {
+    drive.enterExit();
+    player.visible = false;
+    cameraMode = 'drive';
+    return;
+  }
+  if (hero.position.distanceTo(new THREE.Vector3(610, 0, 145)) < 28) {
+    mode = 'menu';
+    game.garage.open = true;
+    showPanel('garage', game);
+  }
+}
+
+function carjack() {
+  if (drive.state.active) return;
+  let nearest = null;
+  let range = 6;
+  for (const vehicle of city.traffic) {
+    const distance = player.position.distanceTo(vehicle.position);
+    if (distance < range) { range = distance; nearest = vehicle; }
+  }
+  if (!nearest) return;
+  city.traffic = city.traffic.filter((vehicle) => vehicle !== nearest);
+  city.traffic.push(hero);
+  scene.remove(hero);
+  hero = nearest;
+  drive.state.car = hero;
+  drive.state.active = true;
+  drive.state.speed = 0;
+  drive.state.yaw = hero.rotation.y;
+  player.visible = false;
+  cameraMode = 'drive';
+}
+
+function step(dt) {
+  elapsed += dt;
+  if ((mode === 'menu' || mode === 'pause') && input.hit('Escape')) {
+    game.resume();
+    return;
+  }
+  if (mode !== 'play') return;
+
+  world.plateCooldown = Math.max(0, (world.plateCooldown || 0) - dt);
+  world.fixCooldown = Math.max(0, (world.fixCooldown || 0) - dt);
+  world.interactCooldown = Math.max(0, (world.interactCooldown || 0) - dt);
+  if (drive.state.active && input.hit('KeyZ') && world.plateCooldown === 0) {
+    drive.state.damage = Math.max(0, drive.state.damage - 34);
+    combat.armor = Math.min(100, combat.armor + 32);
+    world.plateCooldown = 18;
+  }
+  if (input.hit('KeyX') && world.fixCooldown === 0) {
+    combat.health = Math.min(100, combat.health + 28);
+    drive.state.damage = Math.max(0, drive.state.damage - 18);
+    world.fixCooldown = 24;
+  }
+
+  if (input.hit('KeyE') && world.interactCooldown === 0) { interact(); world.interactCooldown = 0.4; }
+  if (input.hit('KeyF')) carjack();
+  if (input.hit('KeyM')) {
+    mode = 'menu';
+    showPanel('map', game);
+  }
+  if (input.hit('Escape')) {
+    mode = 'pause';
+    showPanel('pause', game);
+  }
+  if (input.hit('KeyR')) {
+    game.setWeather(weather === 'sunset' ? 'wet-night' : weather === 'wet-night' ? 'midnight' : 'sunset');
+  }
+  if (input.hit('KeyN')) radio = audio.nextStation();
+  window.solRadio = radio;
+
+  let crime = false;
+  if (drive.state.active) {
+    drive.step(dt, input, world);
+    headLamp.intensity = weather === 'sunset' ? 3 : 38;
+  } else {
+    const speed = input.down('ShiftLeft') ? 12 : 6;
+    const forward = Number(input.down('KeyW', 'ArrowUp')) - Number(input.down('KeyS', 'ArrowDown'));
+    const side = Number(input.down('KeyD', 'ArrowRight')) - Number(input.down('KeyA', 'ArrowLeft'));
+    player.position.x += side * speed * dt;
+    player.position.z -= forward * speed * dt;
+    animateCharacter(player, elapsed, Boolean(forward || side));
+    crime = input.down('Mouse0');
+    world.district = player.position.z < -210 ? 'SUNSET COAST'
+      : player.position.x > 330 ? 'CORAL ISLAND'
+        : player.position.z > 230 ? 'HARBOR DOCKS' : 'NEON DOWNTOWN';
+  }
+
+  police.step(dt, drive.state.car.position, crime);
+  updateTraffic(city, dt, drive.state.car.position);
+  pedestrians.step(dt, elapsed, crime || police.wanted > 0, drive.state.car.position);
+  combat.step(dt, input, camera, player.position, !drive.state.active);
+  const missionPosition = drive.state.active ? drive.state.car.position : player.position;
+  const missionCompleted = missions.step(dt, drive.state.drift, world.district, {
+    position: missionPosition,
+    speed: drive.state.speed,
+    wanted: police.wanted,
+    kills: combat.kills,
+    health: combat.health,
+  });
+  missionMarkers.forEach((marker, index) => {
+    marker.visible = index === missions.index && !missions.complete;
+    marker.rotation.y += dt * 0.7;
+    marker.children[0].position.y = 3.2 + Math.sin(elapsed * 2.4) * 0.28;
+  });
+  if (missionCompleted) {
+    mode = 'menu';
+    showPanel('result', game);
+  }
+  if (Math.abs(drive.state.speed) > 4) audio.engine(drive.state.speed);
+  audio.update(dt);
+  updateSky(sky, dt, weather);
+  scene.fog.color.set(weather === 'wet-night' ? 0x101a2c : weather === 'midnight' ? 0x090e1b : 0x9b7682);
+  scene.fog.density = weather === 'wet-night' ? 0.0025 : 0.0015;
+}
+
+function renderFrame(now) {
+  requestAnimationFrame(renderFrame);
+  const dt = Math.min(0.04, (now - last) / 1000);
+  last = now;
+  step(dt);
+  cameraStep(dt);
+  renderer.render(scene, camera);
+  if (mode === 'play') {
+    hud.update(hudState());
+    renderWeaponWheel(combat);
+  }
+  input.consume();
+}
+
+addEventListener('keydown', (event) => {
+  if (mode === 'title' && (event.code === 'Enter' || event.code === 'Space')) {
+    event.preventDefault(); game.start();
+  }
+});
+
+addEventListener('resize', () => {
+  renderer.setSize(innerWidth, innerHeight);
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+});
+
+if (params.has('shot')) {
+  mode = 'play';
+  showPanel(null, game);
+  hud.show();
+  stageShot(params.get('shot'), game, seed);
+  let renderedFrames = 0;
+  const renderShotFrame = () => {
+    cameraStep(0);
+    for (const bar of game.healthBars || []) bar.lookAt(camera.position);
+    if (params.get('shot') === 'chase') {
+      city.helicopter.userData.mainRotor.rotation.y += 0.42;
+      city.helicopter.userData.tailRotor.rotation.x += 0.55;
+      const aviationFlash = Math.sin(performance.now() / 95);
+      city.helicopter.userData.beacon.intensity = aviationFlash > 0.2 ? 18 : 1;
+      city.helicopter.userData.redLamp.material.emissiveIntensity = aviationFlash > 0.2 ? 7 : 0.4;
+      city.helicopter.userData.whiteStrobe.intensity = aviationFlash < -0.45 ? 24 : 0;
+      city.helicopter.userData.whiteLamp.material.emissiveIntensity = aviationFlash < -0.45 ? 8 : 0.25;
+      const flash = Math.sin(performance.now() / 72);
+      city.police.forEach((vehicle, index) => {
+        vehicle.userData.policePoints.forEach((light, side) => { light.intensity = Math.max(0, flash * (side ? -1 : 1)) * 30; });
+        vehicle.userData.policeLights.forEach((light, side) => { light.material.emissiveIntensity = Math.max(1.2, flash * (side ? -1 : 1) * 2.5 + 2.5); });
+      });
+    }
+    if (params.get('shot') === 'drift') drive.state.sparkLight.intensity = 14;
+    renderer.render(scene, camera);
+    hud.update(hudState());
+    renderWeaponWheel(combat);
+    renderedFrames += 1;
+    if (renderedFrames >= 2) window.__SOLARIS_SHOT_READY = true;
+    requestAnimationFrame(renderShotFrame);
+  };
+  requestAnimationFrame(renderShotFrame);
+} else {
+  requestAnimationFrame(renderFrame);
+}

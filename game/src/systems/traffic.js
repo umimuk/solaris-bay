@@ -8,6 +8,7 @@ export function updateTraffic(city, dt, player) {
 
   city.traffic.forEach((car, index) => {
     const data = car.userData;
+    if (data.stagedShot) return;
     data.routePhase ??= (index / city.traffic.length) * routeLength;
     data.cruiseSpeed ??= 8 + (index % 5) * 1.8;
     data.routePhase = (data.routePhase + dt * data.cruiseSpeed / 28) % routeLength;

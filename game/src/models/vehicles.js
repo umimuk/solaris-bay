@@ -1,1 +1,259 @@
-import*as e from"../../vendor/three.module.min.js";var W=[{name:"SOLARIS GT",color:14175029,kind:"sports"},{name:"V8 TORCH",color:2699835,kind:"muscle"},{name:"APEX R",color:14144975,kind:"super"},{name:"COASTAL X",color:5860194,kind:"suv"},{name:"CITY SEDAN",color:6583683,kind:"sedan"},{name:"SBPD INTERCEPTOR",color:14211540,kind:"police",police:!0},{name:"SBPD RESPONSE",color:2239799,kind:"swat",police:!0},{name:"STREET MOTO",color:3048838,kind:"motorcycle"}],f=(o,E={})=>new e.MeshStandardMaterial({color:o,roughness:0.35,metalness:0.42,...E}),O=(o)=>new e.MeshPhysicalMaterial({color:o,roughness:0.22,metalness:0.52,clearcoat:0.9,clearcoatRoughness:0.12}),z=new Map,A;function N(o,E=4.8,n=2.5){if(!A){let r=document.createElement("canvas");r.width=r.height=128;let p=r.getContext("2d"),s=p.createRadialGradient(64,64,8,64,64,63);s.addColorStop(0,"rgba(6, 10, 18, 0.82)"),s.addColorStop(0.42,"rgba(6, 10, 18, 0.38)"),s.addColorStop(1,"rgba(10,13,17,0)"),p.fillStyle=s,p.fillRect(0,0,128,128),A=new e.CanvasTexture(r)}let t=new e.Mesh(new e.PlaneGeometry(E,n),new e.MeshBasicMaterial({map:A,transparent:!0,opacity:0.62,depthWrite:!1,toneMapped:!1}));return t.rotation.x=-Math.PI/2,t.position.y=0.06,t.renderOrder=2,o.add(t),t}function X(o){if(z.has(o))return z.get(o);let E=document.createElement("canvas");E.width=96,E.height=96;let n=E.getContext("2d"),t=n.createRadialGradient(48,48,2,48,48,47);t.addColorStop(0,"#ffffff"),t.addColorStop(0.14,`#${o.toString(16).padStart(6,"0")}`),t.addColorStop(0.48,`rgba(${o>>16&255},${o>>8&255},${o&255},.32)`),t.addColorStop(1,"rgba(0,0,0,0)"),n.fillStyle=t,n.fillRect(0,0,96,96);let r=new e.CanvasTexture(E);return r.colorSpace=e.SRGBColorSpace,z.set(o,r),r}function L(o,E=0.62){return new e.Sprite(new e.SpriteMaterial({map:X(o),color:16777215,transparent:!0,opacity:E,blending:e.AdditiveBlending,depthWrite:!1,toneMapped:!1}))}var a=(o,E,n,t)=>{let r=new e.Mesh(new e.BoxGeometry(...t),E);return r.position.set(...n),o.add(r),r};function V(o,E,n,t,r){let p=new e.Group;p.position.set(E,0.43,n),o.add(p);let s=new e.Group,i=new e.Mesh(new e.CylinderGeometry(0.4,0.4,0.28,24),t.tire);i.rotation.x=Math.PI/2,s.add(i);let c=new e.Mesh(new e.CylinderGeometry(0.25,0.25,0.292,16),t.rim);c.rotation.x=Math.PI/2,s.add(c);let m=new e.Mesh(new e.CylinderGeometry(0.075,0.075,0.31,12),t.chrome);m.rotation.x=Math.PI/2,s.add(m);for(let h=0;h<5;h++){let T=h*Math.PI*2/5,u=a(s,t.chrome,[Math.cos(T)*0.12,Math.sin(T)*0.12,0],[0.045,0.25,0.035]);u.rotation.z=T}return p.add(s),{pivot:p,wheel:s,front:r}}function Y(o,E=null){let n=new e.Group,t=f(E??o.color,{roughness:0.28,metalness:0.58}),r=f(1515817,{roughness:0.62,metalness:0.2}),p=f(11846336,{roughness:0.24,metalness:0.85});n.userData={spec:o,speed:0,steer:0,health:100,wheels:[],lights:[],rearLights:[],policeLights:[],policePoints:[],smoke:[]},n.userData.paintMaterial=t,N(n,3.6,1.5),a(n,r,[-0.05,0.66,0],[1.8,0.18,0.28]),a(n,t,[0.05,0.96,0],[0.86,0.38,0.58]),a(n,r,[-0.52,1.11,0],[0.88,0.16,0.45]),a(n,t,[0.77,1.04,0],[0.5,0.22,0.4]);for(let T of[-1,1]){let u=new e.Mesh(new e.CylinderGeometry(0.055,0.075,0.92,8),p);u.position.set(1.02,0.79,T*0.13),u.rotation.z=-0.28,n.add(u);let H=new e.Mesh(new e.CylinderGeometry(0.05,0.065,0.92,8),p);H.position.set(-0.72,0.69,T*0.13),H.rotation.z=0.68,n.add(H)}let s=new e.Mesh(new e.CylinderGeometry(0.035,0.035,0.72,8),p);s.rotation.x=Math.PI/2,s.position.set(0.88,1.42,0),n.add(s);for(let T of[-1,1]){let u=new e.Mesh(new e.CylinderGeometry(0.06,0.06,0.24,8),r);u.rotation.x=Math.PI/2,u.position.set(0.88,1.42,T*0.43),n.add(u)}let i={tire:f(1053462,{roughness:0.95}),rim:f(8491151,{metalness:0.88,roughness:0.25}),chrome:p};n.userData.wheels.push(V(n,1.22,0,i,!0),V(n,-1.12,0,i,!1));let c=new e.Mesh(new e.SphereGeometry(0.18,12,8),f(16773068,{emissive:16765056,emissiveIntensity:2.4}));c.position.set(1.34,1.13,0),n.add(c);let m=L(16767117,0.48);m.position.set(1.52,1.13,0),m.scale.set(1.65,1.25,1),n.add(m);let h=a(n,f(16725061,{emissive:16716840,emissiveIntensity:2.6}),[-1.03,1.01,0],[0.08,0.12,0.36]);return n.userData.rearLights.push(h),n}function j(o=0,E=null){let n=typeof o==="number"?W[o%W.length]:o;if(n.kind==="motorcycle")return Y(n,E);let t=new e.Group,r=["suv","swat"].includes(n.kind),p=r?4.8:4.35,s=r?2.02:1.94,i=O(E??n.color),c={body:i,dark:f(1054752),glass:new e.MeshPhysicalMaterial({color:1321786,roughness:0.12,metalness:0.55,transparent:!0,opacity:0.91}),chrome:f(12634309,{roughness:0.2,metalness:0.92}),rim:f(7240579,{roughness:0.24,metalness:0.94}),tire:f(1053206,{roughness:0.9})},m=document.createElement("canvas");m.width=256,m.height=80;let h=m.getContext("2d");h.fillStyle="#e9e3ca",h.fillRect(0,0,256,80),h.strokeStyle="#22333b",h.lineWidth=8,h.strokeRect(4,4,248,72),h.fillStyle="#172833",h.font="bold 42px Chakra, Arial",h.textAlign="center",h.textBaseline="middle",h.fillText(n.police?"SBPD 05":"SOLARIS",128,40);let T=new e.MeshBasicMaterial({map:new e.CanvasTexture(m),toneMapped:!1}),u=f(16771780,{emissive:16761963,emissiveIntensity:2.6}),H=f(16720950,{emissive:15733802,emissiveIntensity:3});t.userData={spec:n,speed:0,steer:0,health:100,wheels:[],lights:[],rearLights:[],policeLights:[],policePoints:[],smoke:[]},t.userData.paintMaterial=i,N(t,p+1.4,s+1.25),a(t,i,[0,0.48,0],[p*0.82,0.18,s*0.82]);let x=new e.Shape,C=n.kind==="suv"||n.kind==="swat"||n.kind==="van"?[[-2.4,0.43],[2.4,0.43],[2.28,0.92],[1.8,1.12],[1.58,1.92],[0.95,2.08],[-1.5,2.04],[-2.05,1.5],[-2.34,0.93]]:n.kind==="sedan"||n.kind==="police"?[[-2.22,0.43],[2.18,0.43],[2.08,0.76],[1.43,0.98],[0.92,1.36],[0.42,1.43],[-1.18,1.38],[-1.75,0.98],[-2.14,0.77]]:n.kind==="muscle"?[[-2.22,0.43],[2.18,0.43],[2.08,0.79],[1.48,1.02],[0.92,1.25],[-1.17,1.25],[-1.72,1.04],[-2.15,0.75]]:[[-2.19,0.43],[2.12,0.43],[2.03,0.69],[1.44,0.85],[0.96,0.94],[-1.32,0.94],[-1.88,0.83],[-2.13,0.68]];x.moveTo(C[0][0],C[0][1]);for(let[l,d]of C.slice(1))x.lineTo(l,d);x.closePath();let G=new e.Mesh(new e.ExtrudeGeometry(x,{depth:s*0.92,bevelEnabled:!0,bevelThickness:0.08,bevelSize:0.06,bevelSegments:2,steps:1}),i);G.position.z=-s*0.46,t.add(G),a(t,c.dark,[2.17,0.42,0],[0.24,0.16,s*1.04]),a(t,c.dark,[-2.17,0.45,0],[0.25,0.2,s*1.02]),a(t,c.chrome,[-2.3,0.5,-0.39],[0.12,0.1,0.2]),a(t,c.chrome,[-2.3,0.5,0.39],[0.12,0.1,0.2]);for(let l of[-1,1])a(t,c.dark,[0,0.43,l*(s*0.51)],[2.75,0.16,0.13]);let k=a(t,i,[1.05,0.89,0],[1.78,0.2,s*0.93]);k.rotation.z=-0.055,a(t,i,[-1.63,0.84,0],[0.92,0.28,s*0.95]);let P=a(t,i,[-0.34,1.52,0],[1.45,0.12,s*0.63]);P.rotation.z=-0.04;let I=a(t,c.glass,[0.52,1.25,0],[0.09,0.67,s*0.69]);I.rotation.z=-0.46;let g=a(t,c.glass,[-1.08,1.25,0],[0.09,0.58,s*0.67]);g.rotation.z=0.48;for(let l of[-1,1]){let d=a(t,c.glass,[-0.28,1.27,l*s*0.365],[1.12,0.47,0.055]);d.rotation.z=-0.04,a(t,c.dark,[0.2,1.06,l*s*0.51],[0.78,0.08,0.08]);let R=a(t,i,[0.5,1.07,l*s*0.61],[0.22,0.13,0.18]);R.rotation.z=-0.12}a(t,c.dark,[2.12,0.69,0],[0.13,0.27,s*0.92]);for(let l of[-1,1]){let d=a(t,u,[2.2,0.83,l*0.61],[0.075,0.16,0.58]);t.userData.lights.push(d);let R=L(16767117,0.4);R.position.set(2.34,0.84,l*0.61),R.scale.set(1.8,1.1,1),t.add(R)}let D=a(t,H,[-2.19,0.83,0],[0.075,0.19,s*0.79]);t.userData.rearLights.push(D);let M=new e.Mesh(new e.PlaneGeometry(0.86,0.27),T);M.rotation.y=-Math.PI/2,M.position.set(-2.28,0.55,0),t.add(M);for(let l of[-1,1]){let d=new e.Mesh(new e.CylinderGeometry(0.095,0.12,0.2,12),c.chrome);d.rotation.z=Math.PI/2,d.position.set(-2.32,0.43,l*0.48),t.add(d)}let y=L(16720959,0.36);y.position.set(-2.28,0.85,0),y.scale.set(1.7,0.9,1),t.add(y);for(let l of[-1.34,1.34])for(let d of[-1,1]){let R=d*(s*0.53),w=new e.Mesh(new e.CylinderGeometry(0.56,0.56,0.07,24,1,!0,0,Math.PI),i);w.rotation.x=Math.PI/2,w.position.set(l,0.64,R*0.94),t.add(w),t.userData.wheels.push(V(t,l,R,c,l>0))}if(n.kind==="sports"||n.kind==="super"){for(let l of[-1,1]){let d=a(t,c.dark,[-1.69,1.05,l*0.61],[0.12,0.45,0.1]);d.rotation.z=-0.08}a(t,i,[-1.7,1.29,0],[0.19,0.09,1.58])}if(n.kind==="muscle")a(t,i,[1.12,1.02,0],[1.18,0.13,0.8]),a(t,i,[-1.63,1.12,0],[0.18,0.27,1.35]);if(n.police){a(t,c.dark,[0,0.77,0],[2.05,0.25,s*0.99]),a(t,f(15987176),[0,0.88,0],[0.8,0.22,s*0.98]),a(t,c.dark,[2.3,0.57,0],[0.27,0.35,s*1.12]);for(let d of[-1,1])a(t,c.chrome,[2.34,0.56,d*0.78],[0.08,0.46,0.08]);let l=a(t,c.dark,[-0.1,1.64,0],[0.93,0.14,0.38]);l.userData.lightbar=!0;for(let d of[-1,1]){let R=d<0,w=a(t,f(R?16721468:2653695,{emissive:R?16715819:1334783,emissiveIntensity:4.5}),[-0.1,1.77,d*0.12],[0.4,0.13,0.18]);t.userData.policeLights.push(w);let S=L(R?16717621:1534719,0.68);S.position.set(-0.1,1.9,d*0.24),S.scale.set(2.2,1.7,1),t.add(S);let b=new e.PointLight(R?16717621:1534719,0,16,2);b.position.set(-0.1,1.85,d*0.3),t.add(b),t.userData.policePoints.push(b)}}return t}function F(o,E,n,t,r){o.userData.speed=n;for(let s of o.userData.wheels)if(s.wheel.rotation.x-=n*E/0.4,s.front)s.pivot.rotation.y=t*0.62;for(let s of o.userData.rearLights)s.material.emissiveIntensity=r?3.8:3;let p=Math.sin(performance.now()*0.018);o.userData.policeLights.forEach((s,i)=>{s.material.emissiveIntensity=p*(i%2?1.7:0.6)+3.1}),o.userData.policePoints.forEach((s,i)=>{s.intensity=o.visible?Math.max(0,p*(i?-1:1))*28:0})}function _(){let o=new e.Group,E=O(15789797),n=O(1256252),t=f(10201255,{metalness:0.78}),r=new e.Mesh(new e.SphereGeometry(1,32,20),E);r.scale.set(2,0.68,0.78),o.add(r);let p=new e.Mesh(new e.SphereGeometry(1,24,16),new e.MeshPhysicalMaterial({color:1524826,roughness:0.1,metalness:0.46,clearcoat:1,transparent:!0,opacity:0.9}));p.scale.set(0.92,0.57,0.72),p.position.set(1.2,0.18,0),o.add(p);let s=new e.CatmullRomCurve3([new e.Vector3(-1.3,0.05,0),new e.Vector3(-2.4,0.2,0),new e.Vector3(-3.5,0.42,0),new e.Vector3(-4.4,0.5,0)]);o.add(new e.Mesh(new e.TubeGeometry(s,24,0.16,10,!1),n));let i=new e.Mesh(new e.BoxGeometry(0.72,0.12,0.76),n);i.position.set(-4.1,0.83,0),i.rotation.z=-0.5,o.add(i);let c=new e.Mesh(new e.BoxGeometry(2.7,0.15,1.54),n);c.position.set(-0.15,-0.12,0),o.add(c);let m=new e.Group;for(let v=0;v<4;v++){let B=a(m,t,[0,0,0],[0.24,0.045,8]);B.rotation.y=v*Math.PI/2}m.position.y=1.02,o.add(m);let h=new e.Mesh(new e.CircleGeometry(7.3,48),new e.MeshBasicMaterial({color:15332855,transparent:!0,opacity:0.075,depthWrite:!1,side:e.DoubleSide}));h.rotation.x=-Math.PI/2,h.position.y=0.99,o.add(h);let T=new e.Group;for(let v=0;v<4;v++){let B=a(T,t,[0,0,0],[0.1,1.9,0.07]);B.rotation.z=v*Math.PI/2}T.position.set(-4.22,0.38,0.28),o.add(T);let u=new e.PointLight(16721723,9,18);u.position.set(-0.7,0.8,0),o.add(u);let H=new e.PointLight(3538826,8,15);H.position.set(0.2,0.2,0.8),o.add(H);let x=new e.PointLight(15923455,0,22);x.position.set(1.15,0.9,0),o.add(x);let C=new e.Mesh(new e.SphereGeometry(0.15,10,8),f(16720953,{emissive:16715816,emissiveIntensity:4.5}));C.position.copy(u.position),o.add(C);let G=new e.Mesh(new e.SphereGeometry(0.13,10,8),f(16120831,{emissive:15136255,emissiveIntensity:0.2}));G.position.copy(x.position),o.add(G);let k=new e.Group;k.visible=!1,o.add(k);let P=document.createElement("canvas");P.width=128,P.height=8;let I=P.getContext("2d"),g=I.createLinearGradient(0,0,128,0);g.addColorStop(0,"rgba(255,248,220,0)"),g.addColorStop(0.2,"rgba(255,248,220,.16)"),g.addColorStop(0.5,"rgba(255,248,220,.42)"),g.addColorStop(0.8,"rgba(255,248,220,.16)"),g.addColorStop(1,"rgba(255,248,220,0)"),I.fillStyle=g,I.fillRect(0,0,128,8);let D=new e.CanvasTexture(P);D.colorSpace=e.SRGBColorSpace;let M=new e.Mesh(new e.ConeGeometry(4.5,26,36,1,!0),new e.MeshBasicMaterial({map:D,color:16774360,transparent:!0,opacity:0.22,blending:e.AdditiveBlending,depthWrite:!1,side:e.DoubleSide,toneMapped:!1}));M.position.set(0.7,-13,0),M.rotation.z=Math.PI,o.add(M);let y=document.createElement("canvas");y.width=128,y.height=128;let l=y.getContext("2d"),d=l.createRadialGradient(64,64,4,64,64,62);d.addColorStop(0,"rgba(255,247,219,.5)"),d.addColorStop(0.35,"rgba(255,239,194,.25)"),d.addColorStop(1,"rgba(255,239,194,0)"),l.fillStyle=d,l.fillRect(0,0,128,128);let R=new e.CanvasTexture(y);R.colorSpace=e.SRGBColorSpace;let w=new e.Mesh(new e.CircleGeometry(5.3,32),new e.MeshBasicMaterial({map:R,transparent:!0,opacity:0.95,blending:e.AdditiveBlending,depthWrite:!1}));w.rotation.x=-Math.PI/2,w.position.set(0.7,-26,0),o.add(w);let S=new e.SpotLight(16774100,95,150,Math.PI/9,0.5,1.1),b=new e.Object3D;return S.position.set(0.6,-0.5,0),b.position.set(0.7,-28,0),o.add(S,b),S.target=b,o.userData={mainRotor:m,tailRotor:T,cone:M,groundPool:w,search:S,target:b,beacon:u,whiteStrobe:x,redLamp:C,whiteLamp:G,callsign:k,disc:h},o}export{W as VEHICLE_TYPES,L as createGlowSprite,_ as createHelicopter,j as createVehicle,F as updateVehicle};
+import * as THREE from '../../vendor/three.module.min.js';
+
+/** Vehicle catalog used by traffic, the player and the SBPD fleet. */
+export const VEHICLE_TYPES = [
+  { name: 'SOLARIS GT', color: 0xd84b35, kind: 'sports' },
+  { name: 'V8 TORCH', color: 0x29323b, kind: 'muscle' },
+  { name: 'APEX R', color: 0xd7d5cf, kind: 'super' },
+  { name: 'COASTAL X', color: 0x596b62, kind: 'suv' },
+  { name: 'CITY SEDAN', color: 0x647583, kind: 'sedan' },
+  { name: 'SBPD INTERCEPTOR', color: 0xd8d9d4, kind: 'police', police: true },
+  { name: 'SBPD RESPONSE', color: 0x222d37, kind: 'swat', police: true },
+  { name: 'STREET MOTO', color: 0x2e8586, kind: 'motorcycle' },
+];
+
+const standard = (color, options = {}) => new THREE.MeshStandardMaterial({ color, roughness: 0.35, metalness: 0.42, ...options });
+const carPaint = (color) => new THREE.MeshPhysicalMaterial({ color, roughness: 0.22, metalness: 0.52, clearcoat: 0.9, clearcoatRoughness: 0.12 });
+const glowMaps = new Map();
+let contactMap;
+function addContactShadow(root, width = 4.8, depth = 2.5) {
+  if (!contactMap) {
+    const canvas = document.createElement('canvas'); canvas.width = canvas.height = 128;
+    const ctx = canvas.getContext('2d'); const g = ctx.createRadialGradient(64,64,8,64,64,63);
+    g.addColorStop(0,'rgba(10,13,17,.72)'); g.addColorStop(.42,'rgba(10,13,17,.38)'); g.addColorStop(1,'rgba(10,13,17,0)');
+    ctx.fillStyle=g;ctx.fillRect(0,0,128,128); contactMap=new THREE.CanvasTexture(canvas);
+  }
+  const shadow = new THREE.Mesh(new THREE.PlaneGeometry(width, depth), new THREE.MeshBasicMaterial({ map:contactMap, transparent:true, opacity:.62, depthWrite:false, toneMapped:false }));
+  shadow.rotation.x=-Math.PI/2; shadow.position.y=.045; shadow.renderOrder=1; root.add(shadow); return shadow;
+}
+function glowMap(color) {
+  if (glowMaps.has(color)) return glowMaps.get(color);
+  const canvas = document.createElement('canvas'); canvas.width = 96; canvas.height = 96;
+  const ctx = canvas.getContext('2d'); const gradient = ctx.createRadialGradient(48,48,2,48,48,47);
+  gradient.addColorStop(0, '#ffffff'); gradient.addColorStop(.14, `#${color.toString(16).padStart(6,'0')}`); gradient.addColorStop(.48, `rgba(${(color>>16)&255},${(color>>8)&255},${color&255},.32)`); gradient.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle=gradient;ctx.fillRect(0,0,96,96);const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;glowMaps.set(color,texture);return texture;
+}
+export function createGlowSprite(color, opacity = 0.62) {
+  return new THREE.Sprite(new THREE.SpriteMaterial({ map: glowMap(color), color: 0xffffff, transparent: true, opacity, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
+}
+const box = (parent, material, position, size) => {
+  const mesh = new THREE.Mesh(new THREE.BoxGeometry(...size), material);
+  mesh.position.set(...position);
+  parent.add(mesh);
+  return mesh;
+};
+
+function makeWheel(parent, x, z, materials, front) {
+  const pivot = new THREE.Group();
+  pivot.position.set(x, 0.43, z);
+  parent.add(pivot);
+  const wheel = new THREE.Group();
+  const tire = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 0.28, 24), materials.tire);
+  tire.rotation.x = Math.PI / 2;
+  wheel.add(tire);
+  const rim = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.25, 0.292, 16), materials.rim);
+  rim.rotation.x = Math.PI / 2;
+  wheel.add(rim);
+  const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.075, 0.31, 12), materials.chrome);
+  hub.rotation.x = Math.PI / 2;
+  wheel.add(hub);
+  for (let spoke = 0; spoke < 5; spoke++) {
+    const angle = spoke * Math.PI * 2 / 5;
+    const bar = box(wheel, materials.chrome, [Math.cos(angle) * 0.12, Math.sin(angle) * 0.12, 0], [0.045, 0.25, 0.035]);
+    bar.rotation.z = angle;
+  }
+  pivot.add(wheel);
+  return { pivot, wheel, front };
+}
+
+function createMotorcycle(spec, paint = null) {
+  const root = new THREE.Group(); const body = standard(paint ?? spec.color, { roughness: 0.28, metalness: 0.58 });
+  const dark = standard(0x172129, { roughness: 0.62, metalness: 0.2 }); const metal = standard(0xb4c2c0, { roughness: 0.24, metalness: 0.85 });
+  root.userData = { spec, speed: 0, steer: 0, health: 100, wheels: [], lights: [], rearLights: [], policeLights: [], policePoints: [], smoke: [] };
+  root.userData.paintMaterial = body;
+  addContactShadow(root, 3.6, 1.5);
+  box(root, dark, [-0.05, 0.66, 0], [1.8, 0.18, 0.28]);
+  box(root, body, [0.05, 0.96, 0], [0.86, 0.38, 0.58]);
+  box(root, dark, [-0.52, 1.11, 0], [0.88, 0.16, 0.45]);
+  box(root, body, [0.77, 1.04, 0], [0.5, 0.22, 0.4]);
+  for (const side of [-1, 1]) {
+    const fork = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.075, 0.92, 8), metal); fork.position.set(1.02, 0.79, side * 0.13); fork.rotation.z = -0.28; root.add(fork);
+    const rear = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.065, 0.92, 8), metal); rear.position.set(-0.72, 0.69, side * 0.13); rear.rotation.z = 0.68; root.add(rear);
+  }
+  const bar = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.72, 8), metal); bar.rotation.x = Math.PI / 2; bar.position.set(0.88, 1.42, 0); root.add(bar);
+  for (const side of [-1, 1]) { const grip = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.24, 8), dark); grip.rotation.x = Math.PI / 2; grip.position.set(0.88, 1.42, side * 0.43); root.add(grip); }
+  const wheelMats = { tire: standard(0x101316, { roughness: 0.95 }), rim: standard(0x81908f, { metalness: 0.88, roughness: 0.25 }), chrome: metal };
+  root.userData.wheels.push(makeWheel(root, 1.22, 0, wheelMats, true), makeWheel(root, -1.12, 0, wheelMats, false));
+  const lamp = new THREE.Mesh(new THREE.SphereGeometry(0.18, 12, 8), standard(0xffefcc, { emissive: 0xffd080, emissiveIntensity: 2.4 })); lamp.position.set(1.34, 1.13, 0); root.add(lamp);
+  const halo = createGlowSprite(0xffd88d, 0.48); halo.position.set(1.52, 1.13, 0); halo.scale.set(1.65, 1.25, 1); root.add(halo);
+  const tail = box(root, standard(0xff3445, { emissive: 0xff1428, emissiveIntensity: 2.6 }), [-1.03, 1.01, 0], [0.08, 0.12, 0.36]); root.userData.rearLights.push(tail);
+  return root;
+}
+
+/** Build a low, layered road car with a raked greenhouse and four steerable wheels. */
+export function createVehicle(type = 0, paint = null) {
+  const spec = typeof type === 'number' ? VEHICLE_TYPES[type % VEHICLE_TYPES.length] : type;
+  if (spec.kind === 'motorcycle') return createMotorcycle(spec, paint);
+  const root = new THREE.Group();
+  const isLarge = ['suv', 'swat'].includes(spec.kind);
+  const length = isLarge ? 4.8 : 4.35;
+  const width = isLarge ? 2.02 : 1.94;
+  const body = carPaint(paint ?? spec.color);
+  const materials = {
+    body, dark: standard(0x101820), glass: new THREE.MeshPhysicalMaterial({ color: 0x142b3a, roughness: 0.12, metalness: 0.55, transparent: true, opacity: 0.91 }),
+    chrome: standard(0xc0c8c5, { roughness: 0.2, metalness: 0.92 }), rim: standard(0x6e7b83, { roughness: 0.24, metalness: 0.94 }), tire: standard(0x101216, { roughness: 0.9 }),
+  };
+  const plateCanvas=document.createElement('canvas'); plateCanvas.width=256; plateCanvas.height=80; const pc=plateCanvas.getContext('2d');
+  pc.fillStyle='#e9e3ca';pc.fillRect(0,0,256,80);pc.strokeStyle='#22333b';pc.lineWidth=8;pc.strokeRect(4,4,248,72);pc.fillStyle='#172833';pc.font='bold 42px Chakra, Arial';pc.textAlign='center';pc.textBaseline='middle';pc.fillText(spec.police?'SBPD 05':'SOLARIS',128,40);
+  const plateMat=new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(plateCanvas),toneMapped:false});
+  const headMaterial = standard(0xffeac4, { emissive: 0xffc46b, emissiveIntensity: 2.6 });
+  const tailMaterial = standard(0xff2436, { emissive: 0xf0142a, emissiveIntensity: 3.0 });
+  root.userData = { spec, speed: 0, steer: 0, health: 100, wheels: [], lights: [], rearLights: [], policeLights: [], policePoints: [], smoke: [] };
+  root.userData.paintMaterial = body;
+  addContactShadow(root, length + 1.4, width + 1.25);
+
+  // Broad lower chassis, splitter, diffuser and side skirts establish the stance.
+  box(root, body, [0, 0.48, 0], [length * 0.82, 0.18, width * 0.82]);
+  const shellProfile = new THREE.Shape();
+  const profile = spec.kind === 'suv' || spec.kind === 'swat' || spec.kind === 'van'
+    ? [[-2.4,.43],[2.4,.43],[2.28,.92],[1.8,1.12],[1.58,1.92],[.95,2.08],[-1.5,2.04],[-2.05,1.5],[-2.34,.93]]
+    : spec.kind === 'sedan' || spec.kind === 'police'
+      ? [[-2.22,.43],[2.18,.43],[2.08,.76],[1.43,.98],[.92,1.36],[.42,1.43],[-1.18,1.38],[-1.75,.98],[-2.14,.77]]
+      : spec.kind === 'muscle'
+        ? [[-2.22,.43],[2.18,.43],[2.08,.79],[1.48,1.02],[.92,1.25],[-1.17,1.25],[-1.72,1.04],[-2.15,.75]]
+        : [[-2.19,.43],[2.12,.43],[2.03,.69],[1.44,.85],[.96,.94],[-1.32,.94],[-1.88,.83],[-2.13,.68]];
+  shellProfile.moveTo(profile[0][0], profile[0][1]); for (const [x,y] of profile.slice(1)) shellProfile.lineTo(x,y); shellProfile.closePath();
+  const shell = new THREE.Mesh(new THREE.ExtrudeGeometry(shellProfile, { depth: width * 0.92, bevelEnabled: true, bevelThickness: 0.08, bevelSize: 0.06, bevelSegments: 2, steps: 1 }), body);
+  shell.position.z = -width * 0.46; root.add(shell);
+  box(root, materials.dark, [2.17, 0.42, 0], [0.24, 0.16, width * 1.04]);
+  box(root, materials.dark, [-2.17, 0.45, 0], [0.25, 0.2, width * 1.02]);
+  box(root, materials.chrome, [-2.3, 0.5, -0.39], [0.12, 0.1, 0.2]);
+  box(root, materials.chrome, [-2.3, 0.5, 0.39], [0.12, 0.1, 0.2]);
+  for (const side of [-1, 1]) box(root, materials.dark, [0, 0.43, side * (width * 0.51)], [2.75, 0.16, 0.13]);
+
+  // Sloped hood and separate cabin planes: no cone primitive is used in the car.
+  const hood = box(root, body, [1.05, 0.89, 0], [1.78, 0.2, width * 0.93]);
+  hood.rotation.z = -0.055;
+  box(root, body, [-1.63, 0.84, 0], [0.92, 0.28, width * 0.95]);
+  const roof = box(root, body, [-0.34, 1.52, 0], [1.45, 0.12, width * 0.63]);
+  roof.rotation.z = -0.04;
+  const windshield = box(root, materials.glass, [0.52, 1.25, 0], [0.09, 0.67, width * 0.69]);
+  windshield.rotation.z = -0.46;
+  const rearGlass = box(root, materials.glass, [-1.08, 1.25, 0], [0.09, 0.58, width * 0.67]);
+  rearGlass.rotation.z = 0.48;
+  for (const side of [-1, 1]) {
+    const window = box(root, materials.glass, [-0.28, 1.27, side * width * 0.365], [1.12, 0.47, 0.055]);
+    window.rotation.z = -0.04;
+    box(root, materials.dark, [0.2, 1.06, side * width * 0.51], [0.78, 0.08, 0.08]);
+    const mirror = box(root, body, [0.5, 1.07, side * width * 0.61], [0.22, 0.13, 0.18]);
+    mirror.rotation.z = -0.12;
+  }
+
+  // Wide LEDs and a single continuous crimson rear light bar.
+  box(root, materials.dark, [2.12, 0.69, 0], [0.13, 0.27, width * 0.92]);
+  for (const side of [-1, 1]) {
+    const lamp = box(root, headMaterial, [2.2, 0.83, side * 0.61], [0.075, 0.16, 0.58]);
+    root.userData.lights.push(lamp);
+    const halo = createGlowSprite(0xffd88d, 0.4); halo.position.set(2.34, 0.84, side * 0.61); halo.scale.set(1.8, 1.1, 1); root.add(halo);
+  }
+  const tailBar = box(root, tailMaterial, [-2.19, 0.83, 0], [0.075, 0.19, width * 0.79]);
+  root.userData.rearLights.push(tailBar);
+  const plate = new THREE.Mesh(new THREE.PlaneGeometry(.86,.27),plateMat); plate.rotation.y=-Math.PI/2;plate.position.set(-2.28,.55,0);root.add(plate);
+  for(const side of [-1,1]) { const exhaust=new THREE.Mesh(new THREE.CylinderGeometry(.095,.12,.2,12),materials.chrome);exhaust.rotation.z=Math.PI/2;exhaust.position.set(-2.32,.43,side*.48);root.add(exhaust); }
+  const tailHalo = createGlowSprite(0xff243f, 0.36); tailHalo.position.set(-2.28, 0.85, 0); tailHalo.scale.set(1.7, 0.9, 1); root.add(tailHalo);
+
+  // Flush body-colored fender lips follow the wheel silhouette; no raised arch pipes.
+  for (const x of [-1.34, 1.34]) {
+    for (const side of [-1, 1]) {
+      const z = side * (width * 0.53);
+      const flare = new THREE.Mesh(new THREE.CylinderGeometry(.56,.56,.07,24,1,true,0,Math.PI), body);
+      flare.rotation.x=Math.PI/2; flare.position.set(x,.64,z*.94); root.add(flare);
+      root.userData.wheels.push(makeWheel(root, x, z, materials, x > 0));
+    }
+  }
+
+  if (spec.kind === 'sports' || spec.kind === 'super') {
+    for (const side of [-1, 1]) {
+      const riser = box(root, materials.dark, [-1.69, 1.05, side * 0.61], [0.12, 0.45, 0.1]);
+      riser.rotation.z = -0.08;
+    }
+    box(root, body, [-1.7, 1.29, 0], [0.19, 0.09, 1.58]);
+  }
+  if (spec.kind === 'muscle') {
+    box(root, body, [1.12, 1.02, 0], [1.18, 0.13, 0.8]);
+    box(root, body, [-1.63, 1.12, 0], [0.18, 0.27, 1.35]);
+  }
+
+  if (spec.police) {
+    // Black-white SBPD paint blocks and unmistakable push bar.
+    box(root, materials.dark, [0, 0.77, 0], [2.05, 0.25, width * 0.99]);
+    box(root, standard(0xf3f1e8), [0, 0.88, 0], [0.8, 0.22, width * 0.98]);
+    box(root, materials.dark, [2.3, 0.57, 0], [0.27, 0.35, width * 1.12]);
+    for (const side of [-1, 1]) box(root, materials.chrome, [2.34, 0.56, side * 0.78], [0.08, 0.46, 0.08]);
+    const barBase = box(root, materials.dark, [-0.1, 1.64, 0], [0.93, 0.14, 0.38]);
+    barBase.userData.lightbar = true;
+    for (const side of [-1, 1]) {
+      const red = side < 0;
+      const lamp = box(root, standard(red ? 0xff263c : 0x287dff, { emissive: red ? 0xff102b : 0x145dff, emissiveIntensity: 4.5 }), [-0.1, 1.77, side * 0.12], [0.4, 0.13, 0.18]);
+      root.userData.policeLights.push(lamp);
+      const halo = createGlowSprite(red ? 0xff1735 : 0x176aff, 0.68); halo.position.set(-0.1, 1.9, side * 0.24); halo.scale.set(2.2, 1.7, 1); root.add(halo);
+      const point = new THREE.PointLight(red ? 0xff1735 : 0x176aff, 0, 16, 2);
+      point.position.set(-0.1, 1.85, side * 0.3);
+      root.add(point);
+      root.userData.policePoints.push(point);
+    }
+  }
+  return root;
+}
+
+export function updateVehicle(vehicle, dt, speed, steer, braking) {
+  vehicle.userData.speed = speed;
+  for (const item of vehicle.userData.wheels) {
+    item.wheel.rotation.x -= speed * dt / 0.4;
+    if (item.front) item.pivot.rotation.y = steer * 0.62;
+  }
+  for (const light of vehicle.userData.rearLights) light.material.emissiveIntensity = braking ? 3.8 : 3.0;
+  const phase = Math.sin(performance.now() * 0.018);
+  vehicle.userData.policeLights.forEach((light, index) => { light.material.emissiveIntensity = phase * (index % 2 ? 1.7 : 0.6) + 3.1; });
+  vehicle.userData.policePoints.forEach((light, index) => { light.intensity = vehicle.visible ? Math.max(0, phase * (index ? -1 : 1)) * 28 : 0; });
+}
+
+/** Tactical helicopter with rotors, nav lamps, volumetric search beam and ground pool. */
+export function createHelicopter() {
+  const group = new THREE.Group();
+  const fuselage = carPaint(0xf0eee5); const navy = carPaint(0x132b3c);
+  const metal = standard(0x9ba8a7, { metalness: 0.78 });
+  const hull = new THREE.Mesh(new THREE.SphereGeometry(1,32,20),fuselage); hull.scale.set(2.0,.68,.78); group.add(hull);
+  const canopy = new THREE.Mesh(new THREE.SphereGeometry(1,24,16),new THREE.MeshPhysicalMaterial({color:0x17445a,roughness:.1,metalness:.46,clearcoat:1,transparent:true,opacity:.9})); canopy.scale.set(.92,.57,.72); canopy.position.set(1.2,.18,0); group.add(canopy);
+  const tailCurve=new THREE.CatmullRomCurve3([new THREE.Vector3(-1.3,.05,0),new THREE.Vector3(-2.4,.2,0),new THREE.Vector3(-3.5,.42,0),new THREE.Vector3(-4.4,.5,0)]);
+  group.add(new THREE.Mesh(new THREE.TubeGeometry(tailCurve,24,.16,10,false),navy));
+  const fin = new THREE.Mesh(new THREE.BoxGeometry(.72,.12,.76),navy); fin.position.set(-4.1,.83,0); fin.rotation.z=-.5; group.add(fin);
+  const stripe = new THREE.Mesh(new THREE.BoxGeometry(2.7,.15,1.54),navy); stripe.position.set(-.15,-.12,0); group.add(stripe);
+  const mainRotor = new THREE.Group();
+  for (let i = 0; i < 4; i++) { const blade = box(mainRotor, metal, [0, 0, 0], [0.24, 0.045, 8]); blade.rotation.y = i * Math.PI / 2; }
+  mainRotor.position.y = 1.02; group.add(mainRotor);
+  const disc = new THREE.Mesh(new THREE.CircleGeometry(7.3,48),new THREE.MeshBasicMaterial({color:0xe9f5f7,transparent:true,opacity:.075,depthWrite:false,side:THREE.DoubleSide})); disc.rotation.x=-Math.PI/2;disc.position.y=.99;group.add(disc);
+  const tailRotor = new THREE.Group();
+  for (let i = 0; i < 4; i++) { const blade = box(tailRotor, metal, [0, 0, 0], [0.1, 1.9, 0.07]); blade.rotation.z = i * Math.PI / 2; }
+  tailRotor.position.set(-4.22, 0.38, 0.28); group.add(tailRotor);
+  const beacon = new THREE.PointLight(0xff273b, 9, 18); beacon.position.set(-0.7, 0.8, 0); group.add(beacon);
+  const green = new THREE.PointLight(0x35ff8a, 8, 15); green.position.set(0.2, 0.2, 0.8); group.add(green);
+  const whiteStrobe = new THREE.PointLight(0xf2f8ff, 0, 22); whiteStrobe.position.set(1.15, 0.9, 0); group.add(whiteStrobe);
+  const redLamp = new THREE.Mesh(new THREE.SphereGeometry(0.15, 10, 8), standard(0xff2439, { emissive: 0xff1028, emissiveIntensity: 4.5 })); redLamp.position.copy(beacon.position); group.add(redLamp);
+  const whiteLamp = new THREE.Mesh(new THREE.SphereGeometry(0.13, 10, 8), standard(0xf5fbff, { emissive: 0xe6f5ff, emissiveIntensity: 0.2 })); whiteLamp.position.copy(whiteStrobe.position); group.add(whiteLamp);
+  const callsign = new THREE.Group(); callsign.visible = false; group.add(callsign);
+  const beamCanvas = document.createElement('canvas'); beamCanvas.width = 128; beamCanvas.height = 8;
+  const beamContext = beamCanvas.getContext('2d'); const beamFade = beamContext.createLinearGradient(0,0,128,0); beamFade.addColorStop(0,'rgba(255,248,220,0)'); beamFade.addColorStop(.2,'rgba(255,248,220,.16)'); beamFade.addColorStop(.5,'rgba(255,248,220,.42)'); beamFade.addColorStop(.8,'rgba(255,248,220,.16)'); beamFade.addColorStop(1,'rgba(255,248,220,0)'); beamContext.fillStyle=beamFade;beamContext.fillRect(0,0,128,8);
+  const beamTexture = new THREE.CanvasTexture(beamCanvas); beamTexture.colorSpace = THREE.SRGBColorSpace;
+  const cone = new THREE.Mesh(new THREE.ConeGeometry(4.5, 26, 36, 1, true), new THREE.MeshBasicMaterial({ map: beamTexture, color: 0xfff4d8, transparent: true, opacity: 0.22, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, toneMapped: false }));
+  cone.position.set(0.7, -13, 0); cone.rotation.z = Math.PI; group.add(cone);
+  const poolCanvas = document.createElement('canvas'); poolCanvas.width = 128; poolCanvas.height = 128; const poolContext = poolCanvas.getContext('2d');
+  const poolGradient = poolContext.createRadialGradient(64,64,4,64,64,62); poolGradient.addColorStop(0,'rgba(255,247,219,.5)'); poolGradient.addColorStop(.35,'rgba(255,239,194,.25)'); poolGradient.addColorStop(1,'rgba(255,239,194,0)'); poolContext.fillStyle=poolGradient;poolContext.fillRect(0,0,128,128);
+  const poolTexture = new THREE.CanvasTexture(poolCanvas); poolTexture.colorSpace = THREE.SRGBColorSpace;
+  const groundPool = new THREE.Mesh(new THREE.CircleGeometry(5.3, 32), new THREE.MeshBasicMaterial({ map: poolTexture, transparent: true, opacity: 0.95, blending: THREE.AdditiveBlending, depthWrite: false }));
+  groundPool.rotation.x = -Math.PI / 2; groundPool.position.set(0.7, -26, 0); group.add(groundPool);
+  const search = new THREE.SpotLight(0xfff3d4, 95, 150, Math.PI / 9, 0.5, 1.1);
+  const target = new THREE.Object3D(); search.position.set(0.6, -0.5, 0); target.position.set(0.7, -28, 0); group.add(search, target); search.target = target;
+  group.userData = { mainRotor, tailRotor, cone, groundPool, search, target, beacon, whiteStrobe, redLamp, whiteLamp, callsign, disc };
+  return group;
+}

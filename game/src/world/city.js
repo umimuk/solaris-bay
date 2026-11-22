@@ -1,1 +1,287 @@
-import*as t from"../../vendor/three.module.min.js";import{createPalm as k,createSign as D,createCrate as ne}from"../models/props.js";import{createVehicle as z,createHelicopter as ae}from"../models/vehicles.js";import{createRandom as ie}from"../random.js";import{makeTextures as ce}from"./textures.js";var n=(E,r={})=>new t.MeshStandardMaterial({color:E,roughness:0.7,...r});function a(E,r,i,c){let s=new t.Mesh(new t.BoxGeometry(...r),i);return s.position.set(...c),E.add(s),s}function C(E,r,i){let c=new t.Shape;c.moveTo(r[0][0],r[0][1]);for(let[m,f]of r.slice(1))c.lineTo(m,f);c.closePath();let s=new t.Mesh(new t.ShapeGeometry(c),n(i,{roughness:0.95,side:t.DoubleSide}));return s.rotation.x=Math.PI/2,s.position.y=-0.05,E.add(s),s}function q(E,r,i,c,s,m=null){let f=new t.CatmullRomCurve3(r.map(([d,x])=>new t.Vector3(d,0.045,x))),h=f.getPoints(100),w=[],u=[],H=[];for(let d=0;d<h.length;d++){let x=f.getTangent(d/(h.length-1)),g=new t.Vector3(-x.z,0,x.x).normalize(),b=h[d].clone().addScaledVector(g,i/2),S=h[d].clone().addScaledVector(g,-i/2);if(w.push(b.x,b.y,b.z,S.x,S.y,S.z),u.push(d/(h.length-1)*10,0,d/(h.length-1)*10,1),d<h.length-1){let R=d*2;H.push(R,R+1,R+2,R+1,R+3,R+2)}}let M=new t.BufferGeometry;M.setAttribute("position",new t.Float32BufferAttribute(w,3)),M.setAttribute("uv",new t.Float32BufferAttribute(u,2)),M.setIndex(H),M.computeVertexNormals();let v=new t.Mesh(M,c);v.material.side=t.DoubleSide,E.add(v);for(let d of[-1,1]){let x=i*0.47,g=h.map((b,S)=>{let R=f.getTangent(S/(h.length-1));return b.clone().add(new t.Vector3(-R.z,0,R.x).normalize().multiplyScalar(x*d))});E.add(new t.Mesh(new t.TubeGeometry(new t.CatmullRomCurve3(g),100,0.1,5,!1),s))}if(m){for(let x of[-0.24,0.24]){let g=h.map((b,S)=>{let R=f.getTangent(S/(h.length-1));return b.clone().add(new t.Vector3(-R.z,0,R.x).normalize().multiplyScalar(x))});E.add(new t.Mesh(new t.TubeGeometry(new t.CatmullRomCurve3(g),100,0.055,4,!1),m))}let d=new t.MeshBasicMaterial({color:16184297});for(let x of[-1,1])for(let g=0;g<h.length-5;g+=12){let b=h.slice(g,g+5).map((S,R)=>{let L=f.getTangent((g+R)/(h.length-1));return S.clone().add(new t.Vector3(-L.z,0,L.x).normalize().multiplyScalar(x*i*0.18))});E.add(new t.Mesh(new t.TubeGeometry(new t.CatmullRomCurve3(b),5,0.055,4,!1),d))}}return f}function V(E,r,i,c,s,m,f,h,w=""){let u=new t.Group;E.add(u);let H=Math.min(5.2,s*0.24);a(u,[c*1.08,H,m*1.08],n(15193272,{roughness:0.82}),[r,H/2,i]),a(u,[c,Math.max(4,s-H),m],f,[r,(s+H)/2,i]),a(u,[c+0.65,0.28,m+0.65],n(15918283,{roughness:0.74}),[r,s+0.12,i]);let M=n(16117472,{roughness:0.65}),v=n(11977405,{metalness:0.65,roughness:0.32});for(let d=7.2;d<s-2;d+=5.2){a(u,[c*0.88,0.16,0.95],M,[r,d,i-m*0.56]),a(u,[c*0.82,0.08,0.08],v,[r,d+0.55,i-m*0.94]);for(let x=-2;x<=2;x++)a(u,[0.055,0.48,0.055],v,[r+x*c*0.16,d+0.3,i-m*0.94])}if(s>34){a(u,[c*0.76,Math.min(8,s*0.16),m*0.78],f,[r,s+3.8,i]),a(u,[c*0.53,4.2,m*0.58],n(15326664,{roughness:0.72}),[r,s+9.7,i]);let d=a(u,[0.14,4.4,0.14],h,[r,s+14,i]);d.material=n(15123084,{emissive:6047277,emissiveIntensity:0.24,metalness:0.45})}if(a(u,[c*0.8,Math.min(2.6,H*0.58),0.1],n(4354683,{emissive:1521211,emissiveIntensity:0.24,metalness:0.28,roughness:0.25}),[r,1.5,i-m*0.54]),s<40){let d=n(15983823,{roughness:0.8}),x=n(14122088,{roughness:0.78});for(let g=0;g<8;g++)a(u,[c*0.1,0.12,0.72],g%2?d:x,[r-c*0.36+g*c*0.103,2.9,i-m*0.58]);a(u,[c*0.82,2.5,0.12],n(2377303,{roughness:0.18,metalness:0.35,emissive:1520706,emissiveIntensity:0.25}),[r,1.55,i-m*0.56])}if(w){let d=D(w,h.emissive?.getHex?.()||16035673);d.position.set(r,Math.min(s-2,4.3),i-m/2-0.3),d.scale.setScalar(0.72),u.add(d)}return u}function J(E,r,i,c=16760433){let s=n(2503740,{metalness:0.72,roughness:0.32}),m=n(c,{emissive:c,emissiveIntensity:2.2});a(E,[0.12,6,0.12],s,[r,3,i]),a(E,[1.25,0.12,0.18],s,[r+0.48,5.85,i]),a(E,[0.45,0.12,0.25],m,[r+0.98,5.8,i]);let f=new t.PointLight(c,3.8,24,2);f.userData.streetLamp=!0,f.userData.dayIntensity=1.8,f.position.set(r+0.98,5.45,i),E.add(f)}function K(E,r,i){let c=n(3425098,{metalness:0.68,roughness:0.34}),s=n(1516072,{metalness:0.25,roughness:0.55});a(E,[0.15,6.6,0.15],c,[r,3.3,i]),a(E,[0.95,0.15,0.15],c,[r-0.42,6.25,i]),a(E,[0.34,1.05,0.35],s,[r-0.8,5.58,i]);for(let[m,f]of[16730961,16108646,5493658].entries()){let h=new t.Mesh(new t.SphereGeometry(0.12,10,8),n(f,{emissive:f,emissiveIntensity:m===2?0.75:0.1}));h.position.set(r-0.8,5.9-m*0.3,i+0.19),E.add(h)}}function Q(E,r,i,c){let s=n(c.color,{emissive:7097352,emissiveIntensity:0.35,metalness:0.55});for(let f of[-1,1]){a(E,[1.2,18,1.2],s,[r+f*12,9,i]),a(E,[3.8,1.1,2],s,[r+f*12,2,i]);for(let h=0;h<3;h++)a(E,[0.12,1.7,0.12],n(3357502),[r+f*(10+h*2),14,i])}a(E,[27,1.5,1.6],s,[r,18,i]),a(E,[16,0.55,0.8],s,[r-7,19,i]);let m=new t.PointLight(16765322,19,42,1.5);m.position.set(r,16.8,i),E.add(m)}function re(E,r,i){let c=new t.Group;c.position.set(r,0,i),E.add(c);let s=n(15059872,{metalness:0.42,roughness:0.34,emissive:5981481,emissiveIntensity:0.2}),m=n(16766347,{emissive:16762986,emissiveIntensity:1.05}),f=new t.Vector3(0,24,0);c.add(new t.Mesh(new t.TorusGeometry(19,0.34,8,80),s)).position.copy(f);for(let w=0;w<20;w++){let u=w*Math.PI*2/20,H=new t.Vector3(Math.cos(u)*19,24+Math.sin(u)*19,0),M=new t.Mesh(new t.CylinderGeometry(0.1,0.16,f.distanceTo(H),6),s);M.position.copy(f).add(H).multiplyScalar(0.5),M.quaternion.setFromUnitVectors(new t.Vector3(0,1,0),H.clone().sub(f).normalize()),c.add(M);let v=new t.Mesh(new t.BoxGeometry(1.5,1.7,1.3),m);v.position.set(Math.cos(u)*19,24+Math.sin(u)*19-1.3,0),c.add(v)}for(let w of[-1,1]){let u=new t.Mesh(new t.CylinderGeometry(0.38,0.58,28,8),s);u.position.set(w*6.4,13,0),u.rotation.z=w*-0.43,c.add(u)}let h=new t.Mesh(new t.SphereGeometry(1.25,16,12),m);return h.position.copy(f),c.add(h),c}function me(E,r=1){let i=ie(r),c=ce(r),s=new t.Group;E.add(s);let m=new t.Mesh(new t.PlaneGeometry(2000,2000),new t.MeshBasicMaterial({map:c.water,color:16777215,toneMapped:!1}));m.rotation.x=-Math.PI/2,m.position.set(160,-0.5,0),s.add(m);let f=n(16777215,{map:c.asphalt,roughness:0.82,metalness:0.04}),h=n(12104874,{roughness:0.88}),w=n(12762803,{roughness:0.9}),u=new t.MeshBasicMaterial({color:16052192}),H=new t.MeshBasicMaterial({color:16768106}),M=n(12162151,{roughness:0.95}),v=n(5600605,{roughness:1}),d=[15964793,7916496,15054958,14151156].map((e)=>n(e,{emissive:e,emissiveIntensity:0.72}));c.windows.repeat.set(1,1.35);let x=[n(15193272,{map:c.windows,roughness:0.66,metalness:0.08}),n(13163220,{map:c.windows,roughness:0.58,metalness:0.12}),n(8560038,{map:c.windows,roughness:0.34,metalness:0.3}),n(14729381,{map:c.windows,roughness:0.66,metalness:0.08}),n(9875378,{map:c.windows,roughness:0.38,metalness:0.24})];C(s,[[-500,-460],[15,-460],[55,-330],[8,-210],[35,-105],[-15,30],[-90,140],[-190,190],[-310,100],[-430,20],[-500,-80]],13615528),a(s,[138,0.32,420],h,[-51,-0.06,-130]),a(s,[20,0.12,420],w,[8,0.06,-130]),a(s,[8,0.25,420],h,[-6,0.125,-130]),a(s,[1.2,0.55,420],h,[17.4,0.275,-130]),C(s,[[-85,-10],[335,-10],[390,90],[360,370],[210,450],[20,350],[-80,210]],14734784),C(s,[[300,210],[720,210],[760,470],[300,470]],14143419),C(s,[[425,-245],[760,-245],[780,85],[620,130],[450,60]],13288621),a(s,[14,0.18,485],M,[-452,0.03,-190]),a(s,[3,1.4,490],h,[-437,0.55,-190]),a(s,[1.2,1.15,490],n(12173497,{metalness:0.6}),[-433,1.2,-190]),a(s,[40,0.12,430],v,[-407,0.05,-180]);let g=q(s,[[-400,-390],[-290,-350],[-190,-365],[-120,-320],[-170,-265],[-285,-275],[-325,-220],[-250,-160],[-115,-180],[-10,-95],[45,20]],20,f,u,H);for(let e=0;e<11;e++){let o=0.12+e*0.078,l=g.getPoint(o),p=g.getTangent(o),I=new t.Vector3(-p.z,0,p.x).normalize();for(let y of[-1,1]){let G=l.clone().addScaledVector(I,y*(32+e%2*4)),X=16+e%3*3,te=18+e*13%23,j=15+e%2*4;a(s,[X+7,0.16,j+9],w,[G.x,0.08,G.z]);let se=x[(e+(y>0?2:0))%x.length],oe=d[(e+(y>0?1:0))%d.length];V(s,G.x,G.z,X,te,j,se,oe,["SOLARA","BAY MARINA","SUNSET CAFE","PALM HOTEL"][e%4]);let U=k();if(U.position.copy(l).addScaledVector(I,y*18),U.scale.setScalar(0.92+e%3*0.06),s.add(U),e%3===0)K(s,G.x,G.z+y*11)}}q(s,[[-430,-80],[-280,-40],[-110,-60],[35,-30],[155,45],[270,75],[430,15]],22,f,u,H);for(let e=0;e<22;e++){let o=0.29+e*0.004,l=g.getPoint(o),p=a(s,[1.2,0.12,2.2],n(e%2?16117472:14107200),[l.x+(e%2?9.2:-9.2),0.12,l.z]);p.rotation.y=0.6}for(let[e,o,l,p]of[[120,0,500,22],[120,155,500,19],[120,310,500,19],[160,160,21,380],[315,160,21,380],[0,155,19,360]])a(s,[l+9,0.13,p+9],w,[e,0.04,o]),a(s,[l,0.13,p],f,[e,0.12,o]);a(s,[3.8,0.28,355],v,[120,0.25,160]);for(let e=-5;e<=325;e+=47){let o=k();o.position.set(120,0.38,e),o.scale.setScalar(0.82),s.add(o);for(let l of[-1,1]){let p=new t.Mesh(new t.SphereGeometry(1.15,9,7),n(5016409,{roughness:0.92}));p.scale.set(1.25,0.5,0.75),p.position.set(120+l*1.8,0.72,e+7),s.add(p)}}for(let e of[70,235])for(let o=0;o<11;o++)a(s,[1.4,0.03,16],u,[80+o*8,0.21,e]);for(let[e,o]of[[120,70],[120,235],[160,155],[315,155]])K(s,e,o);for(let e=0;e<28;e++){let o=36+e%7*48+(i()-0.5)*5,l=-22+Math.floor(e/7)*92+(i()-0.5)*8;if(Math.hypot(o-610,l-145)<50)continue;if(Math.abs(l)<30||Math.abs(l-155)<28||Math.abs(l-310)<28||Math.abs(o-160)<28||Math.abs(o-315)<28)continue;let p=22+i()*52,I=22+i()*11,y=20+i()*12;V(s,o,l,I,p,y,x[Math.floor(i()*x.length)],d[e%d.length],e%9===0?["SOLARA","APEX CLUB","BAY MARINA","PALM HOTEL","SUNSET LOUNGE"][Math.floor(e/9)]:"")}let b=["NOVA","24HR","LUX","BAY","VOLT","MIRAGE"];for(let e=0;e<11;e++){let o=188+e*19;for(let[l,p]of[[-1,132],[1,179]]){let I=28+(e*17+(l>0?9:0))%38,y=d[(e+(l>0?1:0))%d.length];V(s,o+(l>0?5:0),p,15+e%3*2,I,17,x[(e+(l>0?2:0))%x.length],y,b[e%b.length]);let G=D(b[(e+2)%b.length],[3533567,16727733,16758098][e%3]);G.position.set(o+(l>0?5:0),9+e%3*3,p+(l>0?-9:9)),G.rotation.y=l>0?Math.PI:0,s.add(G)}}for(let e=0;e<5;e++){let o=-414+e*55,l=26+e%2*11;V(s,o,-365,27,l,20,x[(e+1)%x.length],d[e%3],["SOLARA","PALM CLUB","SUNSET LOUNGE"][e%3])}let S=re(s,-356,-122);for(let e=0;e<16;e++){let o=k();o.position.set(-432+e%4*15,0,-410+Math.floor(e/4)*59),o.scale.setScalar(0.75+i()*0.2),s.add(o)}for(let[e,o]of[-330,-247,-164].entries()){let l=n([15852752,15313549,10474190][e],{roughness:0.8}),p=n(15916989,{metalness:0.35,roughness:0.45});a(s,[0.12,1.65,0.12],p,[-452,0.9,o]);let I=new t.Mesh(new t.ConeGeometry(2,0.55,10),l);I.position.set(-452,2,o),s.add(I);let y=new t.Mesh(new t.CylinderGeometry(0.8,0.85,0.12,16),n(16050903,{roughness:0.6}));y.position.set(-452,0.82,o+2.3),s.add(y)}for(let e=0;e<14;e++)J(s,-385+e*55,-240+e%2*28,16760693);a(s,[405,0.42,200],h,[520,0.07,335]),a(s,[385,1.2,3],h,[520,0.52,232]);let R=[12141117,1478033,13871160,2308695];for(let e=0;e<3;e++)for(let o=0;o<6;o++){let l=ne(R[(e+o)%R.length]);l.position.set(360+o*15,e*2.8,275+o%2*15),s.add(l)}let L=n(15054129,{emissive:6702336,emissiveIntensity:0.3,metalness:0.4});Q(s,455,385,L),Q(s,625,385,L);let P=new t.Group;P.position.set(545,0,465),s.add(P),a(P,[160,13,30],n(2438980),[0,2,0]),a(P,[28,22,25],n(14803411),[-60,15,0]);for(let e=0;e<7;e++)a(P,[15,11,25],n(R[e%4]),[-36+e*17,14,0]);for(let e=0;e<5;e++)J(s,350+e*76,248,16764035);let Z=n(4608859,{metalness:0.6,roughness:0.4});a(s,[25,0.55,290],Z,[390,3.1,50]);for(let e of[377,403]){a(s,[1.8,32,2],d[1],[e,19,-60]),a(s,[1.8,32,2],d[1],[e,19,160]);for(let l of[-44,-20,15,50,85,120,154])a(s,[0.1,0.1,0.1],n(6610152,{emissive:5170943,emissiveIntensity:2}),[e,18-Math.abs(l-50)*0.06,l]);let o=new t.PointLight(4582143,12,45);o.position.set(e,33,50),s.add(o)}for(let e of[-52,160]){let o=new t.Mesh(new t.TubeGeometry(new t.CatmullRomCurve3([new t.Vector3(377,34,e),new t.Vector3(390,20,e),new t.Vector3(403,34,e)]),32,0.13,7,!1),d[1]);s.add(o)}let T=new t.Group;T.position.set(610,0,145),s.add(T);let B=n(7898506,{metalness:0.22,roughness:0.58});a(T,[2,9,26],B,[-17,4.5,0]),a(T,[2,9,26],B,[17,4.5,0]),a(T,[36,1.2,26],B,[0,9,0]),a(T,[32,0.24,22],n(2107953,{metalness:0.35}),[0,0.16,0]),a(T,[32,7.8,1.2],n(11976890,{roughness:0.72}),[0,4.25,-11.7]),a(T,[26,0.25,0.2],n(14791793,{emissive:10183464,emissiveIntensity:0.45}),[0,7.4,-10.9]),a(T,[13.5,0.55,1.1],n(3160638,{metalness:0.56,roughness:0.42}),[0,1.1,-9.8]),a(T,[12.8,0.18,1.35],n(11969932,{metalness:0.28,roughness:0.5}),[0,1.43,-9.8]),a(T,[14,3.3,0.24],n(3490377,{metalness:0.26,roughness:0.8}),[0,3.7,-10.88]);let _=n(12895675,{metalness:0.72,roughness:0.28});for(let e=0;e<7;e++){let o=a(T,[0.18,1.15+e%3*0.3,0.08],_,[-5.3+e*1.75,3.5,-10.68]);o.rotation.z=(e%2?1:-1)*0.16}let ee=n(11121066,{metalness:0.72,roughness:0.32});for(let e of[-1,1])for(let o=0;o<3;o++){let l=new t.Mesh(new t.TorusGeometry(0.67,0.22,10,24),n(1514268,{roughness:0.92}));l.rotation.x=Math.PI/2,l.position.set(e*13.5,0.66+o*1.42,-7.8),T.add(l),a(T,[2.1,0.09,1.7],ee,[e*13.5,1.42+o*1.42,-7.8])}a(T,[29,0.24,19],n(8885914,{emissive:2644840,emissiveIntensity:0.4,metalness:0.6}),[0,0.32,-0.2]);for(let e of[-10,0,10]){let o=new t.SpotLight(16772554,48,32,Math.PI/4,0.6);o.position.set(e,8.4,3);let l=new t.Object3D;l.position.set(e,0,0),T.add(o,l),o.target=l;let p=a(T,[4.4,0.1,0.55],n(16772559,{emissive:16768168,emissiveIntensity:1.1}),[e,8.35,3])}T.add(new t.PointLight(4646911,24,32)),T.children[T.children.length-1].position.set(4,5,0);let F=D("PAY N TUNE",4843775);F.position.set(610,7.7,133.8),s.add(F),a(s,[6,3.2,4],n(3226432),[582,1.7,140]),a(s,[5,3.6,4],n(3226432),[639,1.9,141]);for(let e=0;e<5;e++){let o=new t.Mesh(new t.TorusGeometry(0.55,0.18,8,18),n(1382169));o.position.set(587+e*1.2,1.4,143),s.add(o)}let A=new t.Group;A.position.set(0,0,0),s.add(A);for(let e=0;e<7;e++){let o=-18+e*6,l=a(A,[0.48,1,5],n(e%2?2387136:14238031,{emissive:e%2?1392519:8066851,emissiveIntensity:0.8}),[0,0.55,o]);l.rotation.y=0.08}a(A,[1.5,0.12,42],n(10923952,{metalness:0.85}),[2.2,0.18,0]);for(let e=0;e<17;e++){let o=new t.Mesh(new t.ConeGeometry(0.16,0.55,4),n(12699843,{metalness:0.8}));o.position.set(2.2,0.48,-20+e*2.5),o.rotation.z=Math.PI,A.add(o)}let Y=[];for(let e=0;e<13;e++){let o=z(e===12?7:e%5);o.position.set(-280+e*67%650,0.1,-80+e%4*74),o.rotation.y=e%2?Math.PI/2:0,s.add(o),Y.push(o)}let W=[];for(let e=0;e<4;e++){let o=z(5);o.position.set(90+e*11,0.12,15+e*5),s.add(o),W.push(o)}let N=z(6);N.visible=!1,s.add(N);let O=ae();return O.position.set(150,66,-28),s.add(O),{root:s,traffic:Y,police:W,swat:N,helicopter:O,ferrisWheel:S,garage:T,roadblock:A,asphalt:f,seed:r,coastCurve:g,roadGraph:{nodes:[[-400,-390],[-290,-350],[-120,-320],[-250,-160],[35,-30],[120,155],[315,310],[520,335],[610,145]],districts:[[-280,-280],[120,160],[520,335],[610,145]]}}}export{me as createCity};
+import * as THREE from '../../vendor/three.module.min.js';
+import { createPalm, createSign, createCrate } from '../models/props.js';
+import { createVehicle, createHelicopter } from '../models/vehicles.js';
+import { createRandom } from '../random.js';
+import { makeTextures } from './textures.js';
+
+const material = (color, options = {}) => new THREE.MeshStandardMaterial({ color, roughness: 0.7, ...options });
+function addBox(parent, size, mat, position) { const mesh = new THREE.Mesh(new THREE.BoxGeometry(...size), mat); mesh.position.set(...position); parent.add(mesh); return mesh; }
+
+function addLandmass(parent, points, color) {
+  const shape = new THREE.Shape(); shape.moveTo(points[0][0], points[0][1]);
+  for (const [x, z] of points.slice(1)) shape.lineTo(x, z);
+  shape.closePath();
+  const mesh = new THREE.Mesh(new THREE.ShapeGeometry(shape), material(color, { roughness: 0.95, side: THREE.DoubleSide }));
+  mesh.rotation.x = Math.PI / 2; mesh.position.y = -0.05; parent.add(mesh); return mesh;
+}
+
+function addRoad(parent, points, width, roadMaterial, edgeMaterial, centerMaterial = null) {
+  const curve = new THREE.CatmullRomCurve3(points.map(([x, z]) => new THREE.Vector3(x, 0.045, z)));
+  const samples = curve.getPoints(100); const vertices = []; const uvs = []; const indices = [];
+  for (let i = 0; i < samples.length; i++) {
+    const tangent = curve.getTangent(i / (samples.length - 1)); const side = new THREE.Vector3(-tangent.z, 0, tangent.x).normalize();
+    const left = samples[i].clone().addScaledVector(side, width / 2); const right = samples[i].clone().addScaledVector(side, -width / 2);
+    vertices.push(left.x, left.y, left.z, right.x, right.y, right.z);
+    uvs.push(i / (samples.length - 1) * 10, 0, i / (samples.length - 1) * 10, 1);
+    if (i < samples.length - 1) { const a = i * 2; indices.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); }
+  }
+  const geometry = new THREE.BufferGeometry(); geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3)); geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2)); geometry.setIndex(indices); geometry.computeVertexNormals();
+  const road = new THREE.Mesh(geometry, roadMaterial); road.material.side = THREE.DoubleSide; parent.add(road);
+  for (const sideSign of [-1, 1]) {
+    const offset = width * 0.47;
+    const edgePoints = samples.map((point, i) => { const tangent = curve.getTangent(i / (samples.length - 1)); return point.clone().add(new THREE.Vector3(-tangent.z, 0, tangent.x).normalize().multiplyScalar(offset * sideSign)); });
+    parent.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(edgePoints), 100, 0.1, 5, false), edgeMaterial));
+  }
+  if (centerMaterial) {
+    for (const offset of [-0.24, 0.24]) {
+      const points = samples.map((point, i) => { const tangent = curve.getTangent(i / (samples.length - 1)); return point.clone().add(new THREE.Vector3(-tangent.z, 0, tangent.x).normalize().multiplyScalar(offset)); });
+      parent.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points), 100, 0.055, 4, false), centerMaterial));
+    }
+    const lane = new THREE.MeshBasicMaterial({ color: 0xf6f3e9 });
+    for (const sign of [-1, 1]) for (let i = 0; i < samples.length - 5; i += 12) {
+      const marks = samples.slice(i, i + 5).map((point, j) => { const tangent = curve.getTangent((i + j) / (samples.length - 1)); return point.clone().add(new THREE.Vector3(-tangent.z, 0, tangent.x).normalize().multiplyScalar(sign * width * 0.18)); });
+      parent.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(marks), 5, 0.055, 4, false), lane));
+    }
+  }
+  return curve;
+}
+
+function addBuilding(parent, x, z, w, h, d, facade, accent, signText = '') {
+  const building = new THREE.Group(); parent.add(building);
+  const baseHeight = Math.min(5.2, h * 0.24);
+  addBox(building, [w * 1.08, baseHeight, d * 1.08], material(0xe7d4b8, { roughness: 0.82 }), [x, baseHeight / 2, z]);
+  addBox(building, [w, Math.max(4, h - baseHeight), d], facade, [x, (h + baseHeight) / 2, z]);
+  addBox(building, [w + 0.65, 0.28, d + 0.65], material(0xf2e4cb, { roughness: 0.74 }), [x, h + 0.12, z]);
+  const balconyMat=material(0xf5eee0,{roughness:.65});const railMat=material(0xb6c2bd,{metalness:.65,roughness:.32});
+  for(let y=7.2;y<h-2;y+=5.2){
+    addBox(building,[w*.88,.16,.95],balconyMat,[x,y,z-d*.56]);
+    addBox(building,[w*.82,.08,.08],railMat,[x,y+.55,z-d*.94]);
+    for(let r=-2;r<=2;r++)addBox(building,[.055,.48,.055],railMat,[x+r*w*.16,y+.3,z-d*.94]);
+  }
+  // Refined setbacks give the skyline a recognizable coastal Deco profile.
+  if (h > 34) {
+    addBox(building, [w * 0.76, Math.min(8, h * 0.16), d * 0.78], facade, [x, h + 3.8, z]);
+    addBox(building, [w * 0.53, 4.2, d * 0.58], material(0xe9ddc8, { roughness: 0.72 }), [x, h + 9.7, z]);
+    const mast = addBox(building, [0.14, 4.4, 0.14], accent, [x, h + 14, z]);
+    mast.material = material(0xe6c28c, { emissive: 0x5c462d, emissiveIntensity: 0.24, metalness: 0.45 });
+  }
+  // A glazed lobby and warm canopy make the sidewalk edge feel occupied.
+  addBox(building, [w * 0.8, Math.min(2.6, baseHeight * 0.58), 0.1], material(0x42727b, { emissive: 0x17363b, emissiveIntensity: 0.24, metalness: 0.28, roughness: 0.25 }), [x, 1.5, z - d * 0.54]);
+  if (h < 40) {
+    const canvas = material(0xf3e4cf, { roughness: 0.8 }); const coral = material(0xd77c68, { roughness: 0.78 });
+    for (let panel = 0; panel < 8; panel++) addBox(building, [w * 0.1, 0.12, 0.72], panel % 2 ? canvas : coral, [x - w * 0.36 + panel * w * 0.103, 2.9, z - d * 0.58]);
+    addBox(building,[w*.82,2.5,.12],material(0x244657,{roughness:.18,metalness:.35,emissive:0x173442,emissiveIntensity:.25}),[x,1.55,z-d*.56]);
+  }
+  if (signText) { const sign = createSign(signText, accent.emissive?.getHex?.() || 0xf4af59); sign.position.set(x, Math.min(h - 2, 4.3), z - d / 2 - 0.3); sign.scale.setScalar(0.72); building.add(sign); }
+  return building;
+}
+
+function addStreetLamp(parent, x, z, color = 0xffbe71) {
+  const pole = material(0x26343c, { metalness: 0.72, roughness: 0.32 }); const glow = material(color, { emissive: color, emissiveIntensity: 2.2 });
+  addBox(parent, [0.12, 6, 0.12], pole, [x, 3, z]); addBox(parent, [1.25, 0.12, 0.18], pole, [x + 0.48, 5.85, z]); addBox(parent, [0.45, 0.12, 0.25], glow, [x + 0.98, 5.8, z]);
+  const light = new THREE.PointLight(color, 3.8, 24, 2); light.userData.streetLamp = true; light.userData.dayIntensity = 1.8; light.position.set(x + 0.98, 5.45, z); parent.add(light);
+}
+
+function addTrafficSignal(parent, x, z) {
+  const pole = material(0x34434a, { metalness: 0.68, roughness: 0.34 }); const housing = material(0x172228, { metalness: 0.25, roughness: 0.55 });
+  addBox(parent, [0.15, 6.6, 0.15], pole, [x, 3.3, z]); addBox(parent, [0.95, 0.15, 0.15], pole, [x - 0.42, 6.25, z]);
+  addBox(parent, [0.34, 1.05, 0.35], housing, [x - 0.8, 5.58, z]);
+  for (const [index, color] of [0xff4b51, 0xf5cc66, 0x53d39a].entries()) {
+    const lens = new THREE.Mesh(new THREE.SphereGeometry(0.12, 10, 8), material(color, { emissive: color, emissiveIntensity: index === 2 ? 0.75 : 0.1 })); lens.position.set(x - 0.8, 5.9 - index * 0.3, z + 0.19); parent.add(lens);
+  }
+}
+
+function addGantry(parent, x, z, yellow) {
+  const leg = material(yellow.color, { emissive: 0x6c4c08, emissiveIntensity: 0.35, metalness: 0.55 });
+  for (const side of [-1, 1]) {
+    addBox(parent, [1.2, 18, 1.2], leg, [x + side * 12, 9, z]);
+    addBox(parent, [3.8, 1.1, 2], leg, [x + side * 12, 2, z]);
+    for (let i = 0; i < 3; i++) addBox(parent, [0.12, 1.7, 0.12], material(0x333b3e), [x + side * (10 + i * 2), 14, z]);
+  }
+  addBox(parent, [27, 1.5, 1.6], leg, [x, 18, z]); addBox(parent, [16, 0.55, 0.8], leg, [x - 7, 19, z]);
+  const flood = new THREE.PointLight(0xffd18a, 19, 42, 1.5); flood.position.set(x, 16.8, z); parent.add(flood);
+}
+
+function addFerrisWheel(parent, x, z) {
+  const wheel = new THREE.Group(); wheel.position.set(x, 0, z); parent.add(wheel);
+  const rim = material(0xe5cba0, { metalness: 0.42, roughness: 0.34, emissive: 0x5b4529, emissiveIntensity: 0.2 });
+  const glow = material(0xffd58b, { emissive: 0xffc86a, emissiveIntensity: 1.05 });
+  const center = new THREE.Vector3(0, 24, 0);
+  wheel.add(new THREE.Mesh(new THREE.TorusGeometry(19, 0.34, 8, 80), rim)).position.copy(center);
+  for (let i = 0; i < 20; i++) {
+    const a = i * Math.PI * 2 / 20; const end = new THREE.Vector3(Math.cos(a) * 19, 24 + Math.sin(a) * 19, 0);
+    const spoke = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.16, center.distanceTo(end), 6), rim);
+    spoke.position.copy(center).add(end).multiplyScalar(0.5); spoke.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), end.clone().sub(center).normalize()); wheel.add(spoke);
+    const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.5, 1.7, 1.3), glow); cabin.position.set(Math.cos(a) * 19, 24 + Math.sin(a) * 19 - 1.3, 0); wheel.add(cabin);
+  }
+  for (const side of [-1, 1]) {
+    const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.58, 28, 8), rim); leg.position.set(side * 6.4, 13, 0); leg.rotation.z = side * -0.43; wheel.add(leg);
+  }
+  const hub = new THREE.Mesh(new THREE.SphereGeometry(1.25, 16, 12), glow); hub.position.copy(center); wheel.add(hub);
+  return wheel;
+}
+
+/** Construct four elevated districts around the bay, with a connected road ribbon. */
+export function createCity(scene, seed = 1) {
+  const random = createRandom(seed); const textures = makeTextures(seed); const root = new THREE.Group(); scene.add(root);
+  const ocean = new THREE.Mesh(new THREE.PlaneGeometry(2000, 2000), new THREE.MeshBasicMaterial({ map: textures.water, color: 0xffffff, toneMapped: false }));
+  ocean.rotation.x = -Math.PI / 2; ocean.position.set(160, -0.5, 0); root.add(ocean);
+  const asphalt = material(0xffffff, { map: textures.asphalt, roughness: 0.82, metalness: 0.04 });
+  const concrete = material(0xb8b4aa, { roughness: 0.88 }); const sidewalk = material(0xc2beb3, { roughness: 0.9 });
+  const whiteLine = new THREE.MeshBasicMaterial({ color: 0xf4efe0 }); const yellowLine = new THREE.MeshBasicMaterial({ color: 0xffdc6a });
+  const sand = material(0xb99467, { roughness: 0.95 }); const grass = material(0x55755d, { roughness: 1 });
+  const neon = [0xf39a79, 0x78cbd0, 0xe5b86e, 0xd7edf4].map((c) => material(c, { emissive: c, emissiveIntensity: 0.72 }));
+  textures.windows.repeat.set(1, 1.35);
+  const buildingMats = [
+    material(0xe7d4b8, { map: textures.windows, roughness: 0.66, metalness: 0.08 }),
+    material(0xc8dad4, { map: textures.windows, roughness: 0.58, metalness: 0.12 }),
+    material(0x829da6, { map: textures.windows, roughness: 0.34, metalness: 0.3 }),
+    material(0xe0c0a5, { map: textures.windows, roughness: 0.66, metalness: 0.08 }),
+    material(0x96afb2, { map: textures.windows, roughness: 0.38, metalness: 0.24 }),
+  ];
+
+  // Broad platforms sit at -0.05 m, visibly above the -0.5 m bay water plane.
+  addLandmass(root, [[-500,-460],[15,-460],[55,-330],[8,-210],[35,-105],[-15,30],[-90,140],[-190,190],[-310,100],[-430,20],[-500,-80]], 0xcfc1a8);
+  addLandmass(root, [[-85,-10],[335,-10],[390,90],[360,370],[210,450],[20,350],[-80,210]], 0xe0d5c0);
+  addLandmass(root, [[300,210],[720,210],[760,470],[300,470]], 0xd7cfbb);
+  addLandmass(root, [[425,-245],[760,-245],[780,85],[620,130],[450,60]], 0xcac4ad);
+  // Sandy coast, seawall and promenade line the western island edge.
+  addBox(root, [14, 0.18, 485], sand, [-452, 0.03, -190]);
+  addBox(root, [3, 1.4, 490], concrete, [-437, 0.55, -190]);
+  addBox(root, [1.2, 1.15, 490], material(0xb9c0b9, { metalness: 0.6 }), [-433, 1.2, -190]);
+  addBox(root, [40, 0.12, 430], grass, [-407, 0.05, -180]);
+
+  // Coast highway hairpin plus approach; fine edge stripes and double center lines.
+  const coastCurve = addRoad(root, [[-400,-390],[-290,-350],[-190,-365],[-120,-320],[-170,-265],[-285,-275],[-325,-220],[-250,-160],[-115,-180],[-10,-95],[45,20]], 20, asphalt, whiteLine, yellowLine);
+  // A continuous coastal neighborhood follows the bend so every approach view meets a street wall.
+  for(let i=0;i<11;i++){
+    const t=.12+i*.078;const p=coastCurve.getPoint(t);const tangent=coastCurve.getTangent(t);const side=new THREE.Vector3(-tangent.z,0,tangent.x).normalize();
+    for(const sign of [-1,1]){
+      const pos=p.clone().addScaledVector(side,sign*(32+(i%2)*4));const width=16+(i%3)*3;const height=18+(i*13%23);const depth=15+(i%2)*4;
+      addBox(root,[width+7,.16,depth+9],sidewalk,[pos.x,.08,pos.z]);
+      const facade=buildingMats[(i+(sign>0?2:0))%buildingMats.length];const accent=neon[(i+(sign>0?1:0))%neon.length];
+      addBuilding(root,pos.x,pos.z,width,height,depth,facade,accent,['SOLARA','BAY MARINA','SUNSET CAFE','PALM HOTEL'][i%4]);
+      const palm=createPalm();palm.position.copy(p).addScaledVector(side,sign*18);palm.scale.setScalar(.92+(i%3)*.06);root.add(palm);
+      if(i%3===0)addTrafficSignal(root,pos.x,pos.z+sign*11);
+    }
+  }
+  addRoad(root, [[-430,-80],[-280,-40],[-110,-60],[35,-30],[155,45],[270,75],[430,15]], 22, asphalt, whiteLine, yellowLine);
+  for (let i = 0; i < 22; i++) { const t = 0.29 + i * 0.004; const point = coastCurve.getPoint(t); const curb = addBox(root, [1.2, 0.12, 2.2], material(i % 2 ? 0xf5eee0 : 0xd74240), [point.x + (i % 2 ? 9.2 : -9.2), 0.12, point.z]); curb.rotation.y = 0.6; }
+  // Downtown elevated sidewalks, crosswalks and gridded boulevards.
+  for (const [x, z, w, d] of [[120,0,500,22],[120,155,500,19],[120,310,500,19],[160,160,21,380],[315,160,21,380],[0,155,19,360]]) {
+    addBox(root, [w + 9, 0.13, d + 9], sidewalk, [x, 0.04, z]); addBox(root, [w, 0.13, d], asphalt, [x, 0.12, z]);
+  }
+  for (const z of [70, 235]) for (let i = 0; i < 11; i++) addBox(root, [1.4, 0.03, 16], whiteLine, [80 + i * 8, 0.21, z]);
+  for (const [x,z] of [[120,70],[120,235],[160,155],[315,155]]) addTrafficSignal(root,x,z);
+
+  // Neon Downtown Art Deco and glass towers with illuminated window grids.
+  for (let i = 0; i < 28; i++) {
+    const x = 36 + (i % 7) * 48 + (random() - 0.5) * 5; const z = -22 + Math.floor(i / 7) * 92 + (random() - 0.5) * 8;
+    if (Math.hypot(x - 610, z - 145) < 50) continue;
+    if (Math.abs(z) < 30 || Math.abs(z - 155) < 28 || Math.abs(z - 310) < 28 || Math.abs(x - 160) < 28 || Math.abs(x - 315) < 28) continue;
+    const h = 22 + random() * 52; const w = 22 + random() * 11; const d = 20 + random() * 12;
+    addBuilding(root, x, z, w, h, d, buildingMats[Math.floor(random() * buildingMats.length)], neon[i % neon.length], i % 9 === 0 ? ['SOLARA','APEX CLUB','BAY MARINA','PALM HOTEL','SUNSET LOUNGE'][Math.floor(i / 9)] : '');
+  }
+
+  // Dense neon frontage flanks the pursuit boulevard on both sidewalks.
+  const neonNames = ['NOVA', '24HR', 'LUX', 'BAY', 'VOLT', 'MIRAGE'];
+  for (let i = 0; i < 11; i++) {
+    const x = 188 + i * 19;
+    for (const [side, z] of [[-1, 132], [1, 179]]) {
+      const h = 28 + ((i * 17 + (side > 0 ? 9 : 0)) % 38);
+      const accent = neon[(i + (side > 0 ? 1 : 0)) % neon.length];
+      addBuilding(root, x + (side > 0 ? 5 : 0), z, 15 + (i % 3) * 2, h, 17, buildingMats[(i + (side > 0 ? 2 : 0)) % buildingMats.length], accent, neonNames[i % neonNames.length]);
+      const sign = createSign(neonNames[(i + 2) % neonNames.length], [0x35eaff, 0xff3eb5, 0xffb552][i % 3]);
+      sign.position.set(x + (side > 0 ? 5 : 0), 9 + (i % 3) * 3, z + (side > 0 ? -9 : 9));
+      sign.rotation.y = side > 0 ? Math.PI : 0;
+      root.add(sign);
+    }
+  }
+
+  // Sunset hotel row, softly lit gardens, palms, and beach promenade visitors.
+  for (let i = 0; i < 5; i++) {
+    const x = -414 + i * 55; const h = 26 + (i % 2) * 11;
+    addBuilding(root, x, -365, 27, h, 20, buildingMats[(i + 1) % buildingMats.length], neon[i % 3], ['SOLARA','PALM CLUB','SUNSET LOUNGE'][i % 3]);
+  }
+  const ferrisWheel = addFerrisWheel(root, -356, -122);
+  for (let i = 0; i < 16; i++) {
+    const palm = createPalm(); palm.position.set(-432 + (i % 4) * 15, 0, -410 + Math.floor(i / 4) * 59); palm.scale.setScalar(0.75 + random() * 0.2); root.add(palm);
+  }
+  for (const [index, z] of [-330,-247,-164].entries()) {
+    const canopy = material([0xf1e4d0,0xe9aa8d,0x9fd2ce][index], { roughness: 0.8 });
+    const pole = material(0xf2dfbd, { metalness: 0.35, roughness: 0.45 });
+    addBox(root,[0.12,1.65,0.12],pole,[-452,0.9,z]);
+    const shade = new THREE.Mesh(new THREE.ConeGeometry(2.0,0.55,10),canopy); shade.position.set(-452,2.0,z); root.add(shade);
+    const table = new THREE.Mesh(new THREE.CylinderGeometry(0.8,0.85,0.12,16),material(0xf4ead7,{roughness:0.6}));table.position.set(-452,0.82,z+2.3);root.add(table);
+  }
+  // Keep a clear framing strip close to the staged drift camera and road.
+  for (let i = 0; i < 14; i++) addStreetLamp(root, -385 + i * 55, -240 + (i % 2) * 28, 0xffbf75);
+
+  // Harbor quay, colorful container stacks, two gantry cranes and cargo ship silhouette.
+  addBox(root, [405, 0.42, 200], concrete, [520, 0.07, 335]);
+  addBox(root, [385, 1.2, 3], concrete, [520, 0.52, 232]);
+  const containerColors = [0xb9423d, 0x168d91, 0xd3a838, 0x233a57];
+  for (let row = 0; row < 3; row++) for (let col = 0; col < 6; col++) {
+    const crate = createCrate(containerColors[(row + col) % containerColors.length]); crate.position.set(360 + col * 15, row * 2.8, 275 + (col % 2) * 15); root.add(crate);
+  }
+  const craneYellow = material(0xe5b531, { emissive: 0x664500, emissiveIntensity: 0.3, metalness: 0.4 });
+  addGantry(root, 455, 385, craneYellow); addGantry(root, 625, 385, craneYellow);
+  const ship = new THREE.Group(); ship.position.set(545, 0, 465); root.add(ship);
+  addBox(ship, [160, 13, 30], material(0x253744), [0, 2, 0]); addBox(ship, [28, 22, 25], material(0xe1e1d3), [-60, 15, 0]);
+  for (let i = 0; i < 7; i++) addBox(ship, [15, 11, 25], material(containerColors[i % 4]), [-36 + i * 17, 14, 0]);
+  for (let i = 0; i < 5; i++) addStreetLamp(root, 350 + i * 76, 248, 0xffcc83);
+
+  // Coral Island green space and illuminated suspension bridge.
+  const bridgeDeck = material(0x46535b, { metalness: 0.6, roughness: 0.4 });
+  addBox(root, [25, 0.55, 290], bridgeDeck, [390, 3.1, 50]);
+  for (const x of [377, 403]) {
+    addBox(root, [1.8, 32, 2], neon[1], [x, 19, -60]); addBox(root, [1.8, 32, 2], neon[1], [x, 19, 160]);
+    for (const z of [-44, -20, 15, 50, 85, 120, 154]) addBox(root, [0.1, 0.1, 0.1], material(0x64dce8, { emissive: 0x4ee6ff, emissiveIntensity: 2 }), [x, 18 - Math.abs(z - 50) * 0.06, z]);
+    const beacon = new THREE.PointLight(0x45eaff, 12, 45); beacon.position.set(x, 33, 50); root.add(beacon);
+  }
+  for (const z of [-52, 160]) {
+    const cable = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new THREE.Vector3(377,34,z),new THREE.Vector3(390,20,z),new THREE.Vector3(403,34,z)]),32,0.13,7,false), neon[1]); root.add(cable);
+  }
+
+  // PAY N TUNE garage has an explicit 50 m building exclusion zone around the bay.
+  const garage = new THREE.Group(); garage.position.set(610, 0, 145); root.add(garage);
+  const garageMat = material(0x78858a, { metalness: 0.22, roughness: 0.58 });
+  addBox(garage, [2, 9, 26], garageMat, [-17, 4.5, 0]); addBox(garage, [2, 9, 26], garageMat, [17, 4.5, 0]);
+  addBox(garage, [36, 1.2, 26], garageMat, [0, 9, 0]); addBox(garage, [32, 0.24, 22], material(0x202a31, { metalness: 0.35 }), [0, 0.16, 0]);
+  addBox(garage, [32, 7.8, 1.2], material(0xb6c0ba, { roughness: 0.72 }), [0, 4.25, -11.7]);
+  addBox(garage, [26, 0.25, 0.2], material(0xe1b471, { emissive: 0x9b6328, emissiveIntensity: 0.45 }), [0, 7.4, -10.9]);
+  addBox(garage, [13.5, 0.55, 1.1], material(0x303a3e, { metalness: 0.56, roughness: 0.42 }), [0, 1.1, -9.8]);
+  addBox(garage, [12.8, 0.18, 1.35], material(0xb6a58c, { metalness: 0.28, roughness: 0.5 }), [0, 1.43, -9.8]);
+  addBox(garage, [14, 3.3, 0.24], material(0x354249, { metalness: 0.26, roughness: 0.8 }), [0, 3.7, -10.88]);
+  const toolMetal = material(0xc4c5bb, { metalness: 0.72, roughness: 0.28 });
+  for (let i = 0; i < 7; i++) { const tool = addBox(garage, [0.18, 1.15 + (i % 3) * 0.3, 0.08], toolMetal, [-5.3 + i * 1.75, 3.5, -10.68]); tool.rotation.z = (i % 2 ? 1 : -1) * 0.16; }
+  const rackMaterial = material(0xa9b1aa, { metalness: 0.72, roughness: 0.32 });
+  for (const side of [-1, 1]) for (let layer = 0; layer < 3; layer++) {
+    const tire = new THREE.Mesh(new THREE.TorusGeometry(0.67, 0.22, 10, 24), material(0x171b1c, { roughness: 0.92 }));
+    tire.rotation.x = Math.PI / 2; tire.position.set(side * 13.5, 0.66 + layer * 1.42, -7.8); garage.add(tire);
+    addBox(garage, [2.1, 0.09, 1.7], rackMaterial, [side * 13.5, 1.42 + layer * 1.42, -7.8]);
+  }
+  addBox(garage, [29, 0.24, 19], material(0x87969a, { emissive: 0x285b68, emissiveIntensity: 0.4, metalness: 0.6 }), [0, 0.32, -0.2]);
+  for (const x of [-10, 0, 10]) { const spot = new THREE.SpotLight(0xffedca, 48, 32, Math.PI / 4, 0.6); spot.position.set(x, 8.4, 3); const target = new THREE.Object3D(); target.position.set(x, 0, 0); garage.add(spot, target); spot.target = target; const strip = addBox(garage, [4.4, 0.1, 0.55], material(0xffedcf, { emissive: 0xffdca8, emissiveIntensity: 1.1 }), [x, 8.35, 3]); }
+  garage.add(new THREE.PointLight(0x46e7ff, 24, 32)); garage.children[garage.children.length - 1].position.set(4, 5, 0);
+  const sign = createSign('PAY N TUNE', 0x49e8ff); sign.position.set(610, 7.7, 133.8); root.add(sign);
+  addBox(root, [6, 3.2, 4], material(0x313b40), [582, 1.7, 140]); addBox(root, [5, 3.6, 4], material(0x313b40), [639, 1.9, 141]);
+  for (let i = 0; i < 5; i++) { const tire = new THREE.Mesh(new THREE.TorusGeometry(0.55, 0.18, 8, 18), material(0x151719)); tire.position.set(587 + i * 1.2, 1.4, 143); root.add(tire); }
+
+  // Pursuit roadblock, reflective red-blue striped barricades and spike strip.
+  const roadblock = new THREE.Group(); roadblock.position.set(0, 0, 0); root.add(roadblock);
+  for (let i = 0; i < 7; i++) {
+    const z = -18 + i * 6; const barrier = addBox(roadblock, [0.48, 1, 5], material(i % 2 ? 0x246cc0 : 0xd9414f, { emissive: i % 2 ? 0x153f87 : 0x7b1723, emissiveIntensity: 0.8 }), [0, 0.55, z]); barrier.rotation.y = 0.08;
+  }
+  addBox(roadblock, [1.5, 0.12, 42], material(0xa6afb0, { metalness: 0.85 }), [2.2, 0.18, 0]);
+  for (let i = 0; i < 17; i++) { const spike = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.55, 4), material(0xc1c8c3, { metalness: 0.8 })); spike.position.set(2.2, 0.48, -20 + i * 2.5); spike.rotation.z = Math.PI; roadblock.add(spike); }
+
+  const traffic = [];
+  for (let i = 0; i < 13; i++) { const car = createVehicle(i === 12 ? 7 : i % 5); car.position.set(-280 + (i * 67) % 650, 0.1, -80 + (i % 4) * 74); car.rotation.y = i % 2 ? Math.PI / 2 : 0; root.add(car); traffic.push(car); }
+  const police = [];
+  for (let i = 0; i < 4; i++) { const car = createVehicle(5); car.position.set(90 + i * 11, 0.12, 15 + i * 5); root.add(car); police.push(car); }
+  const swat = createVehicle(6); swat.visible = false; root.add(swat);
+  const helicopter = createHelicopter(); helicopter.position.set(150, 66, -28); root.add(helicopter);
+  return { root, traffic, police, swat, helicopter, ferrisWheel, garage, roadblock, asphalt, seed, coastCurve,
+    roadGraph: { nodes: [[-400,-390],[-290,-350],[-120,-320],[-250,-160],[35,-30],[120,155],[315,310],[520,335],[610,145]], districts: [[-280,-280],[120,160],[520,335],[610,145]] } };
+}
