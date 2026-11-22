@@ -18,6 +18,7 @@ import { createHud } from './ui/hud.js';
 import { renderWeaponWheel } from './ui/weaponWheel.js';
 import { showPanel } from './ui/menu.js';
 import { stageShot } from './shots.js';
+import { createReflectionEnvironments } from './world/textures.js';
 
 const params = new URLSearchParams(location.search);
 const seed = Number(params.get('seed') || 1);
@@ -33,9 +34,11 @@ renderer.setPixelRatio(Math.min(devicePixelRatio, 1.75));
 renderer.setSize(innerWidth, innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.13;
+renderer.toneMappingExposure = 1.12;
+const reflectionEnvironments = createReflectionEnvironments(renderer);
 
 const scene = new THREE.Scene();
+scene.environment = reflectionEnvironments.coast;
 scene.background = new THREE.Color(0xeaa271);
 scene.fog = new THREE.FogExp2(0x9b7682, 0.0015);
 const camera = new THREE.PerspectiveCamera(58, innerWidth / innerHeight, 0.1, 2400);
@@ -191,6 +194,16 @@ const game = {
   },
   setWeather(mode) {
     weather = mode;
+    scene.environment = mode === 'garage'
+      ? reflectionEnvironments.studio
+      : mode === 'midnight' || mode === 'wet-night'
+        ? reflectionEnvironments.neon
+        : reflectionEnvironments.coast;
+    if (city.asphalt) {
+      const wetRoad = mode === 'midnight' || mode === 'wet-night';
+      city.asphalt.roughness = wetRoad ? 0.24 : 0.48;
+      city.asphalt.metalness = wetRoad ? 0.32 : 0.16;
+    }
     updateSky(sky, 0, weather);
     scene.background.set(mode === 'wet-night' || mode === 'midnight' ? 0x090e1b : mode === 'harbor' ? 0x24243c : 0x8c586c);
     scene.fog.color.set(mode === 'wet-night' ? 0x101a2c : mode === 'midnight' ? 0x090e1b : mode === 'harbor' ? 0x4a4055 : 0x9b7682);

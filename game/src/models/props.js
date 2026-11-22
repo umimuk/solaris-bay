@@ -5,7 +5,7 @@ const solid = (color, emissive = 0) => new THREE.MeshStandardMaterial({ color, r
 const addBox = (group, geometry, material, position) => { const mesh = new THREE.Mesh(geometry, material); mesh.position.set(...position); group.add(mesh); return mesh; };
 
 let frondTexture;
-/** Segmented tropical trunk and ten feathered, arching palm crowns. */
+/** Segmented tropical trunk and sixteen layered, emerald arching palm fronds. */
 export function createPalm() {
   const group = new THREE.Group();
   const bark = solid(0x79563a); let previous=new THREE.Vector3(0,0,0);
@@ -16,10 +16,10 @@ export function createPalm() {
   if(!frondTexture)frondTexture=makePalmFrondTexture();
   const crown=new THREE.Vector3(.22*Math.sin(1.1),6.55,0);
   const frondMat=new THREE.MeshStandardMaterial({map:frondTexture,transparent:true,alphaTest:.25,side:THREE.DoubleSide,roughness:.78,metalness:.02});
-  for(let i=0;i<10;i++){
-    const angle=i*Math.PI*2/10;const dir=new THREE.Vector3(Math.cos(angle),0,Math.sin(angle));const side=new THREE.Vector3(-dir.z,0,dir.x);
-    const verts=[],uv=[],idx=[];const rows=12;
-    for(let j=0;j<=rows;j++){const t=j/rows;const center=crown.clone().addScaledVector(dir,3.85*t).add(new THREE.Vector3(0,1.15*Math.sin(Math.PI*t)-1.45*t,0));const width=(.24+.55*Math.sin(Math.PI*t))*(1-t*.42);
+  for(let i=0;i<16;i++){
+    const angle=i*Math.PI*2/16;const dir=new THREE.Vector3(Math.cos(angle),0,Math.sin(angle));const side=new THREE.Vector3(-dir.z,0,dir.x);
+    const verts=[],uv=[],idx=[];const rows=16;
+    for(let j=0;j<=rows;j++){const t=j/rows;const center=crown.clone().addScaledVector(dir,4.3*t).add(new THREE.Vector3(0,1.3*Math.sin(Math.PI*t)-1.6*t,0));const width=(.28+.72*Math.sin(Math.PI*t))*(1-t*.38);
       const a=center.clone().addScaledVector(side,-width);const b=center.clone().addScaledVector(side,width);verts.push(a.x,a.y,a.z,b.x,b.y,b.z);uv.push(t,0,t,1);if(j<rows){const k=j*2;idx.push(k,k+1,k+2,k+1,k+3,k+2);}}
     const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(verts,3));geo.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));geo.setIndex(idx);geo.computeVertexNormals();group.add(new THREE.Mesh(geo,frondMat));
   }

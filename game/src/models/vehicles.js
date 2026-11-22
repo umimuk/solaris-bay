@@ -122,8 +122,11 @@ export function createVehicle(type = 0, paint = null) {
       : spec.kind === 'muscle'
         ? [[-2.22,.43],[2.18,.43],[2.08,.79],[1.48,1.02],[.92,1.25],[-1.17,1.25],[-1.72,1.04],[-2.15,.75]]
         : [[-2.19,.43],[2.12,.43],[2.03,.69],[1.44,.85],[.96,.94],[-1.32,.94],[-1.88,.83],[-2.13,.68]];
-  shellProfile.moveTo(profile[0][0], profile[0][1]); for (const [x,y] of profile.slice(1)) shellProfile.lineTo(x,y); shellProfile.closePath();
-  const shell = new THREE.Mesh(new THREE.ExtrudeGeometry(shellProfile, { depth: width * 0.92, bevelEnabled: true, bevelThickness: 0.08, bevelSize: 0.06, bevelSegments: 2, steps: 1 }), body);
+  const mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+  shellProfile.moveTo(...mid(profile[0], profile[1]));
+  for (let i = 1; i < profile.length; i++) shellProfile.quadraticCurveTo(...profile[i], ...mid(profile[i], profile[(i + 1) % profile.length]));
+  shellProfile.quadraticCurveTo(...profile[0], ...mid(profile[0], profile[1])); shellProfile.closePath();
+  const shell = new THREE.Mesh(new THREE.ExtrudeGeometry(shellProfile, { depth: width * 0.92, bevelEnabled: true, bevelThickness: 0.12, bevelSize: 0.085, bevelSegments: 4, curveSegments: 10, steps: 1 }), body);
   shell.position.z = -width * 0.46; root.add(shell);
   box(root, materials.dark, [2.17, 0.42, 0], [0.24, 0.16, width * 1.04]);
   box(root, materials.dark, [-2.17, 0.45, 0], [0.25, 0.2, width * 1.02]);
@@ -132,11 +135,13 @@ export function createVehicle(type = 0, paint = null) {
   for (const side of [-1, 1]) box(root, materials.dark, [0, 0.43, side * (width * 0.51)], [2.75, 0.16, 0.13]);
 
   // Sloped hood and separate cabin planes: no cone primitive is used in the car.
-  const hood = box(root, body, [1.05, 0.89, 0], [1.78, 0.2, width * 0.93]);
-  hood.rotation.z = -0.055;
+  const hoodShape = new THREE.Shape(); hoodShape.moveTo(0.12, 0.83); hoodShape.quadraticCurveTo(0.36, 0.93, 0.72, 0.96); hoodShape.lineTo(1.92, 0.82); hoodShape.quadraticCurveTo(2.03, 0.79, 2.08, 0.68); hoodShape.lineTo(1.98, 0.62); hoodShape.lineTo(0.13, 0.68); hoodShape.closePath();
+  const hood = new THREE.Mesh(new THREE.ExtrudeGeometry(hoodShape, { depth: width * 0.91, bevelEnabled: true, bevelThickness: 0.055, bevelSize: 0.045, bevelSegments: 3, curveSegments: 8 }), body);
+  hood.position.z = -width * 0.455; root.add(hood);
   box(root, body, [-1.63, 0.84, 0], [0.92, 0.28, width * 0.95]);
-  const roof = box(root, body, [-0.34, 1.52, 0], [1.45, 0.12, width * 0.63]);
-  roof.rotation.z = -0.04;
+  const cabinShape = new THREE.Shape(); cabinShape.moveTo(-1.28, 0.93); cabinShape.quadraticCurveTo(-1.1, 1.04, -0.91, 1.24); cabinShape.quadraticCurveTo(-0.76, 1.43, -0.53, 1.45); cabinShape.lineTo(0.14, 1.45); cabinShape.quadraticCurveTo(0.47, 1.4, 0.68, 1.08); cabinShape.quadraticCurveTo(0.78, 0.99, 0.91, 0.94); cabinShape.closePath();
+  const roof = new THREE.Mesh(new THREE.ExtrudeGeometry(cabinShape, { depth: width * 0.72, bevelEnabled: true, bevelThickness: 0.065, bevelSize: 0.05, bevelSegments: 4, curveSegments: 8 }), body);
+  roof.position.z = -width * 0.36; root.add(roof);
   const windshield = box(root, materials.glass, [0.52, 1.25, 0], [0.09, 0.67, width * 0.69]);
   windshield.rotation.z = -0.46;
   const rearGlass = box(root, materials.glass, [-1.08, 1.25, 0], [0.09, 0.58, width * 0.67]);
@@ -159,7 +164,10 @@ export function createVehicle(type = 0, paint = null) {
   const tailBar = box(root, tailMaterial, [-2.19, 0.83, 0], [0.075, 0.19, width * 0.79]);
   root.userData.rearLights.push(tailBar);
   const plate = new THREE.Mesh(new THREE.PlaneGeometry(.86,.27),plateMat); plate.rotation.y=-Math.PI/2;plate.position.set(-2.28,.55,0);root.add(plate);
-  for(const side of [-1,1]) { const exhaust=new THREE.Mesh(new THREE.CylinderGeometry(.095,.12,.2,12),materials.chrome);exhaust.rotation.z=Math.PI/2;exhaust.position.set(-2.32,.43,side*.48);root.add(exhaust); }
+  for(const side of [-1,1]) {
+    const exhaust=new THREE.Mesh(new THREE.CylinderGeometry(.095,.12,.2,16),materials.chrome);exhaust.rotation.z=Math.PI/2;exhaust.position.set(-2.32,.43,side*.48);root.add(exhaust);
+    const core=new THREE.Mesh(new THREE.CylinderGeometry(.052,.068,.08,12),standard(0xff7448,{emissive:0xff3b20,emissiveIntensity:1.25,metalness:.48,roughness:.24}));core.rotation.z=Math.PI/2;core.position.set(-2.43,.43,side*.48);root.add(core);
+  }
   const tailHalo = createGlowSprite(0xff243f, 0.36); tailHalo.position.set(-2.28, 0.85, 0); tailHalo.scale.set(1.7, 0.9, 1); root.add(tailHalo);
 
   // Flush body-colored fender lips follow the wheel silhouette; no raised arch pipes.
@@ -188,6 +196,22 @@ export function createVehicle(type = 0, paint = null) {
     // Black-white SBPD paint blocks and unmistakable push bar.
     box(root, materials.dark, [0, 0.77, 0], [2.05, 0.25, width * 0.99]);
     box(root, standard(0xf3f1e8), [0, 0.88, 0], [0.8, 0.22, width * 0.98]);
+    const livery = document.createElement('canvas'); livery.width = 768; livery.height = 224;
+    const liveryContext = livery.getContext('2d');
+    liveryContext.fillStyle = '#eeeae0'; liveryContext.fillRect(0, 0, livery.width, livery.height);
+    liveryContext.fillStyle = '#172431'; liveryContext.fillRect(0, 0, livery.width, 36); liveryContext.fillRect(0, 188, livery.width, 36);
+    liveryContext.fillStyle = '#c7a65d'; liveryContext.fillRect(0, 36, livery.width, 8); liveryContext.fillRect(0, 180, livery.width, 8);
+    liveryContext.fillStyle = '#14212d'; liveryContext.font = '900 87px Arial, sans-serif'; liveryContext.textAlign = 'center'; liveryContext.textBaseline = 'middle';
+    liveryContext.fillText('POLICE', 384, 104);
+    liveryContext.font = '700 38px Arial, sans-serif'; liveryContext.fillText('SBPD  •  EMERGENCY 911', 384, 154);
+    const liveryMap = new THREE.CanvasTexture(livery); liveryMap.colorSpace = THREE.SRGBColorSpace;
+    const liveryMaterial = new THREE.MeshBasicMaterial({ map: liveryMap, toneMapped: false, side: THREE.DoubleSide });
+    for (const side of [-1, 1]) {
+      const graphic = new THREE.Mesh(new THREE.PlaneGeometry(1.42, 0.42), liveryMaterial);
+      graphic.position.set(-0.18, 0.93, side * (width * 0.512)); graphic.rotation.y = side < 0 ? Math.PI : 0; root.add(graphic);
+      const quarterPanel = box(root, materials.dark, [-1.46, 0.82, side * (width * 0.505)], [0.47, 0.18, 0.04]);
+      quarterPanel.rotation.y = side < 0 ? Math.PI : 0;
+    }
     box(root, materials.dark, [2.3, 0.57, 0], [0.27, 0.35, width * 1.12]);
     for (const side of [-1, 1]) box(root, materials.chrome, [2.34, 0.56, side * 0.78], [0.08, 0.46, 0.08]);
     const barBase = box(root, materials.dark, [-0.1, 1.64, 0], [0.93, 0.14, 0.38]);

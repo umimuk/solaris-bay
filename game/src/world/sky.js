@@ -3,7 +3,7 @@ import { createRandom } from '../random.js';
 
 const SKY_MODES = {
   sunset: { upper: '#2f8ed4', middle: '#85cef5', horizon: '#ffe6b8', sun: '#fff4d6' },
-  golden: { upper: '#674e52', middle: '#d48767', horizon: '#f4b66f', sun: '#ffe3a1' },
+  golden: { upper: '#2d1a3e', middle: '#b84b39', horizon: '#f59b4c', sun: '#ffe39e' },
   'wet-night': { upper: '#080d24', middle: '#171a3d', horizon: '#303451', sun: '#f05d68' },
   midnight: { upper: '#050916', middle: '#101a32', horizon: '#263049', sun: '#9ab8e8' },
   harbor: { upper: '#19213d', middle: '#696076', horizon: '#efa16a', sun: '#ffd28b' },
@@ -45,7 +45,9 @@ export function createSky(scene, seed = 1) {
         float sunAngle = acos(clamp(dot(normalize(vWorldDirection), normalize(sunDirection)), -1.0, 1.0));
         float disc = 1.0 - smoothstep(0.018, 0.026, sunAngle);
         float halo = exp(-sunAngle * 34.0) * 0.52;
-        sky += sunColor * (disc * 2.8 + halo * horizon);
+        float rayAngle = atan(vWorldDirection.z, vWorldDirection.x);
+        float rays = pow(max(0.0, cos(rayAngle * 18.0)), 28.0) * exp(-sunAngle * 3.6) * horizon;
+        sky += sunColor * (disc * 2.8 + halo * horizon + rays * 0.22);
         gl_FragColor = vec4(sky, 1.0);
       }
     `,

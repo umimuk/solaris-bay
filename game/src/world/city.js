@@ -64,6 +64,22 @@ function addBuilding(parent, x, z, w, h, d, facade, accent, signText = '') {
     addBox(building, [w * 0.53, 4.2, d * 0.58], material(0xe9ddc8, { roughness: 0.72 }), [x, h + 9.7, z]);
     const mast = addBox(building, [0.14, 4.4, 0.14], accent, [x, h + 14, z]);
     mast.material = material(0xe6c28c, { emissive: 0x5c462d, emissiveIntensity: 0.24, metalness: 0.45 });
+    const pad = new THREE.Mesh(new THREE.CircleGeometry(3.1, 32), material(0x63756e, { roughness: 0.72, metalness: 0.22 }));
+    pad.rotation.x = -Math.PI / 2; pad.position.set(x + w * 0.22, h + 8.15, z); building.add(pad);
+    const padRing = new THREE.Mesh(new THREE.TorusGeometry(2.8, 0.08, 6, 40), material(0xe5dcc3, { roughness: 0.42, metalness: 0.36 }));
+    padRing.rotation.x = Math.PI / 2; padRing.position.copy(pad.position).add(new THREE.Vector3(0, 0.05, 0)); building.add(padRing);
+    for (const legX of [-1, 1]) for (const legZ of [-1, 1]) addBox(building, [0.12, 2.3, 0.12], material(0x657078, { metalness: 0.65, roughness: 0.38 }), [x - w * 0.24 + legX * 1.4, h + 1.45, z + legZ * 1.2]);
+    const waterTank = new THREE.Mesh(new THREE.CylinderGeometry(1.45, 1.45, 2.2, 16), material(0x79888a, { metalness: 0.56, roughness: 0.34 }));
+    waterTank.position.set(x - w * 0.24, h + 3.7, z); building.add(waterTank);
+    const tankCap = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.5, 0.16, 16), material(0xc2b69f, { metalness: 0.48, roughness: 0.4 }));
+    tankCap.position.set(x - w * 0.24, h + 4.85, z); building.add(tankCap);
+  }
+  const acMetal = material(0x68747a, { metalness: 0.62, roughness: 0.42 });
+  const ventMaterial = material(0x313d42, { metalness: 0.5, roughness: 0.55 });
+  for (const side of [-1, 1]) {
+    const ac = addBox(building, [2.4, 0.92, 1.8], acMetal, [x + side * w * 0.26, h + 0.58, z]);
+    for (let vent = 0; vent < 5; vent++) addBox(building, [0.08, 0.58, 1.32], ventMaterial, [ac.position.x - 0.72 + vent * 0.36, h + 0.58, z + 0.94]);
+    const fan = new THREE.Mesh(new THREE.TorusGeometry(0.42, 0.055, 6, 16), ventMaterial); fan.position.set(ac.position.x, h + 0.58, z - 0.94); building.add(fan);
   }
   // A glazed lobby and warm canopy make the sidewalk edge feel occupied.
   addBox(building, [w * 0.8, Math.min(2.6, baseHeight * 0.58), 0.1], material(0x42727b, { emissive: 0x17363b, emissiveIntensity: 0.24, metalness: 0.28, roughness: 0.25 }), [x, 1.5, z - d * 0.54]);
@@ -126,18 +142,18 @@ export function createCity(scene, seed = 1) {
   const random = createRandom(seed); const textures = makeTextures(seed); const root = new THREE.Group(); scene.add(root);
   const ocean = new THREE.Mesh(new THREE.PlaneGeometry(2000, 2000), new THREE.MeshBasicMaterial({ map: textures.water, color: 0xffffff, toneMapped: false }));
   ocean.rotation.x = -Math.PI / 2; ocean.position.set(160, -0.5, 0); root.add(ocean);
-  const asphalt = material(0xffffff, { map: textures.asphalt, roughness: 0.82, metalness: 0.04 });
+  const asphalt = material(0xffffff, { map: textures.asphalt, roughness: 0.48, metalness: 0.16 });
   const concrete = material(0xb8b4aa, { roughness: 0.88 }); const sidewalk = material(0xc2beb3, { roughness: 0.9 });
   const whiteLine = new THREE.MeshBasicMaterial({ color: 0xf4efe0 }); const yellowLine = new THREE.MeshBasicMaterial({ color: 0xffdc6a });
   const sand = material(0xb99467, { roughness: 0.95 }); const grass = material(0x55755d, { roughness: 1 });
   const neon = [0xf39a79, 0x78cbd0, 0xe5b86e, 0xd7edf4].map((c) => material(c, { emissive: c, emissiveIntensity: 0.72 }));
   textures.windows.repeat.set(1, 1.35);
   const buildingMats = [
-    material(0xe7d4b8, { map: textures.windows, roughness: 0.66, metalness: 0.08 }),
-    material(0xc8dad4, { map: textures.windows, roughness: 0.58, metalness: 0.12 }),
-    material(0x829da6, { map: textures.windows, roughness: 0.34, metalness: 0.3 }),
-    material(0xe0c0a5, { map: textures.windows, roughness: 0.66, metalness: 0.08 }),
-    material(0x96afb2, { map: textures.windows, roughness: 0.38, metalness: 0.24 }),
+    material(0xe7d4b8, { map: textures.facade, roughness: 0.62, metalness: 0.08 }),
+    material(0xc8dad4, { map: textures.facade, roughness: 0.56, metalness: 0.12 }),
+    material(0x829da6, { map: textures.windows, roughness: 0.28, metalness: 0.34 }),
+    material(0xe0c0a5, { map: textures.facade, roughness: 0.62, metalness: 0.08 }),
+    material(0x96afb2, { map: textures.windows, roughness: 0.34, metalness: 0.26 }),
   ];
 
   // Broad platforms sit at -0.05 m, visibly above the -0.5 m bay water plane.
