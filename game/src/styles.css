@@ -1,0 +1,10 @@
+/* High contrast metallic title treatment for the title scene. */
+body.title-shot .title-panel .title-logo{
+  color:#fff;
+  background:linear-gradient(180deg,#ffffff 0%,#ffe39f 48%,#ff9b4e 100%);
+  background-clip:text;
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 4px 14px rgba(8,16,28,.75)) drop-shadow(0 0 12px rgba(255,194,91,.62));
+  text-shadow:0 0 1px rgba(255,243,203,.95);
+}
