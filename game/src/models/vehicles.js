@@ -103,8 +103,9 @@ export function createVehicle(type = 0, paint = null) {
     body, dark: standard(0x101820), glass: new THREE.MeshPhysicalMaterial({ color: 0x142b3a, roughness: 0.12, metalness: 0.55, transparent: true, opacity: 0.91 }),
     chrome: standard(0xc0c8c5, { roughness: 0.2, metalness: 0.92 }), rim: standard(0x6e7b83, { roughness: 0.24, metalness: 0.94 }), tire: standard(0x101216, { roughness: 0.9 }),
   };
+  if (spec.police) { materials.glass.color.setHex(0x07131d); materials.glass.opacity = 0.97; materials.glass.roughness = 0.2; }
   const plateCanvas=document.createElement('canvas'); plateCanvas.width=256; plateCanvas.height=80; const pc=plateCanvas.getContext('2d');
-  pc.fillStyle='#e9e3ca';pc.fillRect(0,0,256,80);pc.strokeStyle='#22333b';pc.lineWidth=8;pc.strokeRect(4,4,248,72);pc.fillStyle='#172833';pc.font='bold 42px Chakra, Arial';pc.textAlign='center';pc.textBaseline='middle';pc.fillText(spec.police?'SBPD 05':'SOLARIS',128,40);
+  pc.fillStyle='#e9e3ca';pc.fillRect(0,0,256,80);pc.strokeStyle='#22333b';pc.lineWidth=8;pc.strokeRect(4,4,248,72);pc.fillStyle='#172833';pc.font='bold 42px Chakra, Arial';pc.textAlign='center';pc.textBaseline='middle';pc.fillText(spec.police?'SB-714':'SOLARIS',128,40);
   const plateMat=new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(plateCanvas),toneMapped:false});
   const headMaterial = standard(0xffeac4, { emissive: 0xffc46b, emissiveIntensity: 2.6 });
   const tailMaterial = standard(0xff2436, { emissive: 0xf0142a, emissiveIntensity: 3.0 });
@@ -213,6 +214,14 @@ export function createVehicle(type = 0, paint = null) {
       quarterPanel.rotation.y = side < 0 ? Math.PI : 0;
     }
     box(root, materials.dark, [2.3, 0.57, 0], [0.27, 0.35, width * 1.12]);
+    for (const side of [-1, 1]) {
+      box(root, standard(0x101820, { metalness: 0.28, roughness: 0.46 }), [-0.28, 0.66, side * (width * 0.532)], [2.55, 0.1, 0.08]);
+      box(root, standard(0x101820, { metalness: 0.18, roughness: 0.24 }), [0.48, 1.28, side * (width * 0.378)], [0.12, 0.45, 0.08]);
+    }
+    const rearLightWhite = standard(0xfff2d6, { emissive: 0xffffff, emissiveIntensity: 1.25 });
+    const rearLightAmber = standard(0xffa52e, { emissive: 0xff741f, emissiveIntensity: 2.1 });
+    for (const [z, material, span] of [[-0.62, tailMaterial, 0.35], [0, rearLightWhite, 0.38], [0.62, rearLightAmber, 0.35]]) box(root, material, [-2.215, 0.84, z], [0.08, 0.16, span]);
+    for (let slat = 0; slat < 6; slat++) box(root, materials.chrome, [2.215, 0.68, -0.43 + slat * 0.17], [0.035, 0.035, 0.09]);
     for (const side of [-1, 1]) box(root, materials.chrome, [2.34, 0.56, side * 0.78], [0.08, 0.46, 0.08]);
     const barBase = box(root, materials.dark, [-0.1, 1.64, 0], [0.93, 0.14, 0.38]);
     barBase.userData.lightbar = true;

@@ -15,13 +15,13 @@ export function createCharacter(role = 'protagonist', seed = 1) {
   const head = new THREE.Mesh(new THREE.SphereGeometry(0.22, 14, 11), skin); head.position.set(0.06, 1.72, 0); group.add(head);
   const hair = new THREE.Mesh(new THREE.SphereGeometry(0.235, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.55), fabric(role === 'officer' ? 0x19222b : 0x17191e)); hair.position.set(0.05, 1.8, 0); group.add(hair);
   if (role === 'officer') { const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.12, 12), fabric(0x152130)); cap.position.y = 1.96; group.add(cap); }
-  if (role === 'syndicate' || role === 'officer') {
-    const vestColor = role === 'officer' ? 0x283f51 : 0x171c22;
+  if (role === 'syndicate' || role === 'officer' || role === 'protagonist') {
+    const vestColor = role === 'officer' ? 0x283f51 : role === 'protagonist' ? 0x762a35 : 0x171c22;
     const vest = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.6, 0.42), fabric(vestColor, 0.62)); vest.position.set(0, 1.18, 0); group.add(vest);
     const plate = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.3, 0.035), fabric(role === 'officer' ? 0x496171 : 0x30383c, 0.72)); plate.position.set(0.03, 1.25, 0.224); group.add(plate);
     for (const x of [-0.19, 0.19]) {
-      const shoulder = new THREE.Mesh(new THREE.SphereGeometry(0.19, 10, 8), fabric(role === 'officer' ? 0x38536a : 0x252d33, 0.72));
-      shoulder.scale.set(1.18, 0.74, 1.08); shoulder.position.set(x, 1.39, 0); group.add(shoulder);
+      const shoulder = new THREE.Mesh(new THREE.SphereGeometry(0.19, 10, 8), fabric(role === 'officer' ? 0x38536a : role === 'protagonist' ? 0x55232e : 0x252d33, 0.72));
+      shoulder.scale.set(role === 'protagonist' ? 1.34 : 1.18, 0.82, 1.12); shoulder.position.set(x, 1.39, 0); group.add(shoulder);
     }
     for (const x of [-0.18, 0.18]) { const pouch = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.17, 0.1), fabric(0x424139, 0.86)); pouch.position.set(x, 1.02, 0.23); group.add(pouch); }
     const radio = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.23, 0.09), fabric(0x12191d, 0.48)); radio.position.set(-0.23, 1.43, 0.11); group.add(radio);

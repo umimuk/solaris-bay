@@ -140,8 +140,8 @@ function addBoulevardBackdrop(game) {
   }
   const beach = new THREE.Mesh(new THREE.PlaneGeometry(44, 390), new THREE.MeshStandardMaterial({ color: 0xf1d49e, roughness: 0.94 }));
   beach.rotation.x = -Math.PI / 2; beach.position.set(40, -4.98, -150); avenue.add(beach);
-  const ocean = new THREE.Mesh(new THREE.PlaneGeometry(190, 410), new THREE.MeshStandardMaterial({ color: 0x16b7c1, roughness: 0.22, metalness: 0.25, emissive: 0x087080, emissiveIntensity: 0.22 }));
-  ocean.rotation.x = -Math.PI / 2; ocean.position.set(151, -5.08, -150); avenue.add(ocean);
+  const ocean = new THREE.Mesh(new THREE.PlaneGeometry(190, 410), new THREE.MeshStandardMaterial({ color: 0x35cbd3, roughness: 0.22, metalness: 0.25, emissive: 0x0b8991, emissiveIntensity: 0.3 }));
+  ocean.rotation.x = -Math.PI / 2; ocean.position.set(132, -5.08, -150); avenue.add(ocean);
   const surfFoam = new THREE.MeshBasicMaterial({ color: 0xf7ffff, transparent: true, opacity: 0.77, toneMapped: false });
   for (let index = 0; index < 32; index++) {
     const wave = new THREE.Mesh(new THREE.BoxGeometry(1.8 + (index % 6) * 0.72, 0.035, 0.13), surfFoam);
@@ -154,14 +154,14 @@ function addBoulevardBackdrop(game) {
     const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.06, 2.25, 6), balcony); pole.position.set(x, -3.9, z); avenue.add(pole);
   }
   for (const z of [-52, -122, -192, -262]) {
-    const beachPalm = createPalm(); beachPalm.position.set(19.8, -4.9, z); beachPalm.scale.setScalar(1.58); avenue.add(beachPalm);
+    const beachPalm = createPalm(); beachPalm.position.set(21.5, -4.9, z); beachPalm.scale.setScalar(1.68); avenue.add(beachPalm);
   }
   // The 65 mints of traffic read as small, bright moving cars on the distant lanes.
   const trafficPaint = [0xecebe2, 0xc76455, 0x4b8a9a, 0xe2b75b, 0x364b5f];
   for (let index = 0; index < 5; index++) {
     const car = createVehicle(index % 3 === 0 ? 0 : index % 5);
     car.userData.paintMaterial?.color.setHex(trafficPaint[index]);
-    car.position.set([-18, -10, 10, 18, 4][index], -5.13, -37 - index * 40);
+    car.position.set([-11, -6, 2, 10, 5][index], -5.13, -37 - index * 40);
     car.rotation.y = index % 2 ? Math.PI / 2 : -Math.PI / 2;
     car.scale.setScalar(index < 2 ? 0.72 : 0.52);
     avenue.add(car);
@@ -287,18 +287,21 @@ function addTitleCoast(game) {
   addShotSkyline(game);
   addCameraClouds(camera, game.scene);
   const landCanvas = document.createElement('canvas'); landCanvas.width = 512; landCanvas.height = 512;
-  const landContext = landCanvas.getContext('2d'); landContext.fillStyle = '#bcae96'; landContext.fillRect(0, 0, 512, 512);
-  for (let y = 0; y < 512; y += 32) for (let x = 0; x < 512; x += 64) {
-    landContext.fillStyle = (x / 64 + y / 32) % 2 ? 'rgba(244,229,200,.16)' : 'rgba(67,62,54,.1)'; landContext.fillRect(x + 2, y + 2, 60, 28);
-    landContext.strokeStyle = 'rgba(83,73,60,.25)'; landContext.strokeRect(x + 2, y + 2, 60, 28);
+  const landContext = landCanvas.getContext('2d');
+  const landWash = landContext.createLinearGradient(0, 0, 0, 512); landWash.addColorStop(0, '#488356'); landWash.addColorStop(.52, '#719b59'); landWash.addColorStop(1, '#d5b77f');
+  landContext.fillStyle = landWash; landContext.fillRect(0, 0, 512, 512);
+  for (let i = 0; i < 9000; i++) {
+    const x = (i * 173 + (i % 17) * 29) % 512; const y = (i * 293 + (i % 23) * 11) % 512;
+    landContext.strokeStyle = i % 5 === 0 ? 'rgba(225,241,173,.14)' : 'rgba(25,84,49,.10)';
+    landContext.lineWidth = 0.6 + (i % 3) * 0.35; landContext.beginPath(); landContext.moveTo(x, y); landContext.lineTo(x + 1 + i % 4, y - 2 - i % 3); landContext.stroke();
   }
-  for (let i = 0; i < 4200; i++) { landContext.fillStyle = `rgba(71,66,57,${(i % 7 + 1) / 100})`; landContext.fillRect((i * 71) % 512, (i * 137) % 512, 1 + i % 3, 1 + i % 2); }
+  for (let i = 0; i < 3500; i++) { landContext.fillStyle = `rgba(255,244,213,${(i % 7 + 1) / 125})`; landContext.fillRect((i * 71) % 512, (i * 137) % 512, 1 + i % 3, 1 + i % 2); }
   const landTexture = new THREE.CanvasTexture(landCanvas); landTexture.colorSpace = THREE.SRGBColorSpace; landTexture.wrapS = landTexture.wrapT = THREE.RepeatWrapping; landTexture.repeat.set(3, 4);
   const land = new THREE.Mesh(new THREE.PlaneGeometry(150, 235), new THREE.MeshStandardMaterial({ map: landTexture, roughness: 0.92 }));
   land.rotation.x = -Math.PI / 2;
   land.position.set(-4, -11.6, -130);
   coast.add(land);
-  const beach = new THREE.Mesh(new THREE.PlaneGeometry(16, 220), new THREE.MeshStandardMaterial({ color: 0xe6c58f, roughness: 0.96 }));
+  const beach = new THREE.Mesh(new THREE.PlaneGeometry(43, 220), new THREE.MeshStandardMaterial({ color: 0xf1d49d, roughness: 0.96 }));
   beach.rotation.x = -Math.PI / 2;
   beach.position.set(18, -11.35, -130);
   coast.add(beach);
@@ -312,38 +315,8 @@ function addTitleCoast(game) {
     const length = 3 + (index * 13 % 17); const streak = new THREE.Mesh(new THREE.BoxGeometry(length, 0.025, 0.08 + (index % 3) * 0.04), index % 4 ? reflectionGold : reflectionCream);
     streak.position.set(46 + (index * 23 % 94), -11.46, -20 - (index * 37 % 222)); coast.add(streak);
   }
-  const titleTextures = makeTextures(31);
-  titleTextures.asphalt.repeat.set(1.6, 8);
-  const road = new THREE.Mesh(new THREE.PlaneGeometry(50, 250), new THREE.MeshStandardMaterial({ color: 0x9da7ad, map: titleTextures.asphalt, roughness: 0.34, metalness: 0.2, envMapIntensity: 1.5 }));
-  road.rotation.x = -Math.PI / 2;
-  road.position.set(-15, -11.2, -130);
-  coast.add(road);
-  const curbMat = new THREE.MeshStandardMaterial({ color: 0xf1d8ae, roughness: 0.64 });
-  const medianMat = new THREE.MeshStandardMaterial({ color: 0x315f3d, roughness: 0.96 });
-  for (const x of [-40.2, 10.2]) {
-    const curb = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.24, 250), curbMat); curb.position.set(x, -11.06, -130); coast.add(curb);
-  }
-  const median = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.24, 245), medianMat); median.position.set(-15, -11.04, -130); coast.add(median);
-  const laneWhite = new THREE.MeshBasicMaterial({ color: 0xf4ead0, toneMapped: false });
-  const laneGold = new THREE.MeshBasicMaterial({ color: 0xf7c85d, toneMapped: false });
-  for (const x of [-36, -29, -1, 6]) {
-    for (let z = -15; z > -250; z -= 17) {
-      const dash = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.045, 7), laneWhite); dash.position.set(x, -11.16, z); coast.add(dash);
-    }
-  }
-  for (const x of [-16.45, -15.55]) {
-    const line = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.05, 250), laneGold); line.position.set(x, -11.16, -130); coast.add(line);
-  }
-  const outerWalk = new THREE.Mesh(new THREE.BoxGeometry(5.5, 0.16, 250), new THREE.MeshStandardMaterial({ color: 0xbfb09a, roughness: 0.88 }));
-  outerWalk.position.set(-44, -11.12, -130); coast.add(outerWalk);
-  const palmMedian = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.42, 245), new THREE.MeshStandardMaterial({ color: 0x547b4b, roughness: 0.96 }));
-  palmMedian.position.set(-15, -10.82, -130); coast.add(palmMedian);
-  for (let index = 0; index < 9; index++) {
-    const palm = createPalm(); palm.position.set(-15, -10.62, -23 - index * 27); palm.scale.setScalar(0.55); coast.add(palm);
-  }
   const promenade = new THREE.Mesh(new THREE.BoxGeometry(3.5, 0.28, 225), new THREE.MeshStandardMaterial({ color: 0xc8b99e, roughness: 0.86 }));
-  promenade.position.set(16, -11.04, -130);
-  coast.add(promenade);
+  promenade.position.set(16, -11.04, -130); coast.add(promenade);
   const seawall = new THREE.Mesh(new THREE.BoxGeometry(0.75, 2.1, 225), new THREE.MeshStandardMaterial({ color: 0xe1d7c6, roughness: 0.7 }));
   seawall.position.set(18.3, -10.4, -130);
   coast.add(seawall);
@@ -392,8 +365,8 @@ function addTitleCoast(game) {
   }
   for (const z of [-40, -90, -140, -190]) {
     const palm = createPalm();
-    palm.position.set(20, -11.2, z);
-    palm.scale.setScalar(1.72);
+    palm.position.set(-70, -11.2, z);
+    palm.scale.setScalar(z === -40 ? 1.0 : 0.82);
     coast.add(palm);
   }
   for (let index = 0; index < 8; index++) {
@@ -503,12 +476,19 @@ function addTitleCoast(game) {
     lamp.position.set(22 + index * 10, 0, -25 - index * 35);
     coast.add(lamp);
   }
-  for (let index = 0; index < 10; index++) {
+  for (let index = 0; index < 18; index++) {
     const palm = createPalm();
-    palm.position.set(25 + (index % 5) * 12, -11.02, -15 - Math.floor(index / 5) * 38);
-    palm.scale.setScalar(index < 5 ? 1.55 : 1.32);
+    palm.position.set(5 + (index % 6) * 12, -11.02, -15 - Math.floor(index / 6) * 45);
+    palm.scale.setScalar(index % 6 === 0 ? 1.4 : 0.94);
     coast.add(palm);
   }
+  const sandCanvas = document.createElement('canvas'); sandCanvas.width = 512; sandCanvas.height = 512;
+  const sandContext = sandCanvas.getContext('2d'); sandContext.fillStyle = '#e6cf9f'; sandContext.fillRect(0,0,512,512);
+  for (let i=0;i<7600;i++) { sandContext.fillStyle=`rgba(${i%2?255:126},${i%2?245:108},${i%2?218:78},${.025+(i%7)*.012})`; sandContext.fillRect((i*73)%512,(i*137)%512,1+i%3,1+i%2); }
+  for (let i=0;i<70;i++) { const x=(i*67)%512,y=(i*113)%512; sandContext.fillStyle='rgba(255,248,224,.34)';sandContext.beginPath();sandContext.ellipse(x,y,4,2.3,(i%6)*.3,0,Math.PI*2);sandContext.fill(); }
+  const sandTexture = new THREE.CanvasTexture(sandCanvas); sandTexture.colorSpace = THREE.SRGBColorSpace;
+  const sunlitBeach = new THREE.Mesh(new THREE.PlaneGeometry(46, 210), new THREE.MeshStandardMaterial({ color: 0xffffff, map:sandTexture, roughness: 0.94 }));
+  sunlitBeach.rotation.x = -Math.PI / 2; sunlitBeach.position.set(49, -11.39, -130); coast.add(sunlitBeach);
   const titleCar = createVehicle(0);
   titleCar.userData.paintMaterial.roughness = 0.16; titleCar.userData.paintMaterial.metalness = 0.66; titleCar.userData.paintMaterial.clearcoat = 1; titleCar.userData.paintMaterial.clearcoatRoughness = 0.06; titleCar.userData.paintMaterial.envMapIntensity = 2;
   titleCar.position.set(-6, -11.38, -28);
@@ -516,8 +496,8 @@ function addTitleCoast(game) {
   titleCar.scale.setScalar(1.5);
   coast.add(titleCar);
   const umbrellaColors = [0xf45d58,0xffd052,0x2cb6ad,0xf1f4e8].map((color) => new THREE.MeshStandardMaterial({ color, roughness: 0.8 }));
-  for (let index = 0; index < 24; index++) {
-    const x = 23 + (index % 4) * 6.5; const z = -24 - Math.floor(index / 4) * 29;
+  for (let index = 0; index < 40; index++) {
+    const x = 15 + (index % 4) * 6; const z = -32 - Math.floor(index / 4) * 22;
     const canopy = new THREE.Mesh(new THREE.ConeGeometry(2.4, 0.55, 12), umbrellaColors[index % umbrellaColors.length]); canopy.position.set(x, -10.62, z); coast.add(canopy);
     const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 1.55, 6), new THREE.MeshStandardMaterial({ color: 0xf7e5c2 })); stem.position.set(x, -11.45, z); coast.add(stem);
   }
@@ -541,16 +521,23 @@ function addTitleCoast(game) {
     hanger.position.set(x, height / 2, 0);
     bridge.add(hanger);
   }
+  const coralBridge = new THREE.Group(); coralBridge.position.set(68, -5.5, -218); coast.add(coralBridge);
+  const coralSteel = new THREE.MeshStandardMaterial({ color:0xe15e45, emissive:0x852d21, emissiveIntensity:.58, metalness:.62, roughness:.32 });
+  const coralDeck = new THREE.Mesh(new THREE.BoxGeometry(96,.72,4.2),new THREE.MeshStandardMaterial({color:0x715c55,metalness:.42,roughness:.43}));coralDeck.position.set(48,0,0);coralBridge.add(coralDeck);
+  for(const x of [13,83]){const tower=new THREE.Mesh(new THREE.BoxGeometry(1.5,30,2),coralSteel);tower.position.set(x,15,0);coralBridge.add(tower);}
+  const suspension=new THREE.CatmullRomCurve3([new THREE.Vector3(13,29,0),new THREE.Vector3(31,13,0),new THREE.Vector3(48,11,0),new THREE.Vector3(65,13,0),new THREE.Vector3(83,29,0)]);
+  coralBridge.add(new THREE.Mesh(new THREE.TubeGeometry(suspension,48,.25,9,false),coralSteel));
+  for(let x=17;x<=79;x+=4){const y=11+Math.abs(x-48)*.58;const hanger=new THREE.Mesh(new THREE.CylinderGeometry(.045,.045,y,6),coralSteel);hanger.position.set(x,y/2,0);coralBridge.add(hanger);}
   const farShore = new THREE.Mesh(new THREE.BoxGeometry(40, 2, 35), new THREE.MeshStandardMaterial({ color: 0x597b60, roughness: 1 }));
   farShore.position.set(126, -10, -182);
   coast.add(farShore);
   const skylineMaterials = [0xd89587, 0x83bdb3, 0xe5b975, 0xc39db9].map((color) => new THREE.MeshPhysicalMaterial({ color, roughness: 0.48, metalness: 0.14, clearcoat: 0.24 }));
   const skylineWindow = new THREE.MeshBasicMaterial({ color: 0xffd98b, toneMapped: false });
-  for (let index = 0; index < 7; index++) {
-    const x = 146 + index * 10;
-    const z = -222 - (index % 3) * 9;
-    const height = 20 + (index * 9) % 20;
-    const width = 8 + (index % 2) * 3;
+  for (let index = 0; index < 35; index++) {
+    const x = 118 + (index % 9) * 9 + Math.floor(index / 9) * 3;
+    const z = -207 - (Math.floor(index / 9) * 13) - (index % 3) * 4;
+    const height = 15 + (index * 13) % 30;
+    const width = 6 + (index % 4) * 1.4;
     const facade = skylineMaterials[index % skylineMaterials.length];
     const building = new THREE.Mesh(new THREE.BoxGeometry(width, height, 9), facade);
     building.position.set(x, -11 + height / 2, z);
@@ -606,18 +593,27 @@ function stageDrift(game) {
   game.scene.attach(city.ferrisWheel);
   city.traffic.forEach((vehicle) => { vehicle.visible = false; });
   addBoulevardBackdrop(game);
+  city.police.slice(0, 4).forEach((unit, index) => {
+    game.shotAvenue.add(unit);
+    unit.position.set([-9, 9, -9, 9][index], -5.12, [-24, -47, -83, -122][index]);
+    unit.rotation.set(0, Math.PI / 2, 0); unit.scale.setScalar(index < 2 ? 1.08 : 0.83); unit.visible = true; unit.userData.stagedShot = true;
+    unit.userData.policePoints.forEach((light) => { light.intensity = 24; });
+  });
   game.scene.fog = new THREE.FogExp2(0xf2e4cc, 0.0024);
   game.sky.dome.material.uniforms.zenithColor.value.set('#2f8ed4');
   game.sky.dome.material.uniforms.middleColor.value.set('#85cef5');
   game.sky.dome.material.uniforms.horizonColor.value.set('#ffe6b8');
   for(let i=0;i<5;i++)for(const sign of [-1,1]){const palm=createPalm();palm.position.copy(car.position).addScaledVector(forward,(i-2)*17).addScaledVector(side,sign*22);palm.scale.setScalar(.95);game.scene.add(palm);}
   pedestrians.list.forEach((person) => { person.visible = false; });
-  pedestrians.list.slice(0, 26).forEach((person, index) => {
-    const row = index % 13;
-    const side = -1;
+  pedestrians.list.slice(0, 20).forEach((person, index) => {
+    const cluster = Math.floor(index / 3);
+    const member = index % 3;
+    const xSpread = [-1.25, 0.35, 1.18][member];
+    const zSpread = [0, -1.4, 1.2][member];
     game.shotAvenue.add(person);
-    person.position.set(index < 13 ? -22.5 : -18.1, -4.78, -22 - row * 10.5);
-    person.rotation.y = index < 13 ? Math.PI / 2 : -Math.PI / 2;
+    person.position.set(-20.5 + xSpread + (cluster % 2 ? 0.25 : -0.2), -4.78, -18 - cluster * 21 + zSpread);
+    person.rotation.y = [0, Math.PI, Math.PI / 2, -Math.PI / 2, Math.PI * 0.78, -Math.PI * 0.72][(index + cluster) % 6];
+    person.scale.set(0.98 + (index % 4) * 0.055, 1.02 + (index % 5) * 0.045, 0.98 + (index % 3) * 0.04);
     person.visible = true;
   });
   const foregroundTraffic = [[-9,-30],[9,-61],[-11,-94],[11,-129],[3,-169]];
@@ -847,6 +843,8 @@ function stageCombat(game) {
   const { drive, world, combat, player, city } = game; const car = drive.state.car;
   game.setWeather('midnight'); world.district = 'NEON DOWNTOWN'; world.shotMissionId = 'MISSION 06 / DOCKSIDE SYNDICATE'; world.shotObjective = 'CLEAR THE NEON AVENUE. KEEP THE BAY CLUB IN SIGHT.';
   game.scene.fog = new THREE.FogExp2(0x11172f, 0.00125);
+  game.scene.add(new THREE.HemisphereLight(0xffd09b, 0x202943, 1.15));
+  const neonStreetFill = new THREE.DirectionalLight(0xffb879, 1.05); neonStreetFill.position.set(242, 15, 171); game.scene.add(neonStreetFill);
   game.sky.dome.material.uniforms.zenithColor.value.set('#050a1e');
   game.sky.dome.material.uniforms.middleColor.value.set('#121c44');
   game.sky.dome.material.uniforms.horizonColor.value.set('#2a1e48');
@@ -857,16 +855,21 @@ function stageCombat(game) {
   combat.wheel = true; combat.weapon = 4; combat.ammo = 24; combat.ammoByWeapon[3] = 24;
   combat.reserve[3] = 120;
   const healthBars = [];
-  combat.flash = 0.08; combat.enemies.slice(0, 4).forEach((enemy, i) => {
-    enemy.visible = true; enemy.userData.alive = true; enemy.userData.health = 55 + i * 10;
-    enemy.position.set(259 + i * 2.2, 0, 145 + (i % 2) * 9); enemy.rotation.y = Math.PI;
+  combat.flash = 0.08; combat.enemies.slice(0, 6).forEach((enemy, i) => {
+    enemy.visible = true; enemy.userData.alive = true; enemy.userData.health = 55 + i * 7;
+    enemy.position.set(252 + i * 2.05, 0, 140 + (i % 3) * 8); enemy.rotation.y = Math.PI;
     const bar = new THREE.Group();
-    const back = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.17), new THREE.MeshBasicMaterial({ color: 0x15191c, side: THREE.DoubleSide })); back.position.y = 2.28; bar.add(back);
-    const fill = new THREE.Mesh(new THREE.PlaneGeometry(1.28, 0.1), new THREE.MeshBasicMaterial({ color: 0xff384e, side: THREE.DoubleSide })); fill.position.set(-0.05, 2.28, 0.012); bar.add(fill);
+    const back = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.17), new THREE.MeshBasicMaterial({ color: 0x15191c, side: THREE.DoubleSide })); back.position.y = 2.58; bar.add(back);
+    const fill = new THREE.Mesh(new THREE.PlaneGeometry(1.28, 0.1), new THREE.MeshBasicMaterial({ color: i === 5 ? 0xffbd55 : 0xff384e, side: THREE.DoubleSide })); fill.position.set(-0.05, 2.58, 0.012); bar.add(fill);
+    const tagCanvas = document.createElement('canvas'); tagCanvas.width = 384; tagCanvas.height = 68;
+    const tagContext = tagCanvas.getContext('2d'); tagContext.fillStyle = i === 5 ? '#ffd16e' : '#f3d9d0'; tagContext.font = '900 34px Chakra,Arial'; tagContext.textAlign = 'center'; tagContext.fillText(i === 5 ? 'CHROME VIPER · BOSS' : `VIPER ${String(i + 1).padStart(2, '0')}`, 192, 46);
+    const tag = new THREE.Mesh(new THREE.PlaneGeometry(2.45, 0.42), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(tagCanvas), transparent: true, side: THREE.DoubleSide, depthWrite: false })); tag.position.y = 2.96; bar.add(tag);
     bar.position.copy(enemy.position); game.scene.add(bar); healthBars.push(bar);
   });
   game.healthBars = healthBars;
-  for (const enemy of combat.enemies.slice(4)) enemy.visible = false;
+  for (const enemy of combat.enemies.slice(6)) enemy.visible = false;
+  player.traverse((part) => { if (part.isMesh && part.material?.color && part.material.color.getHex() === 0x294c50) { part.material.color.setHex(0xc73340); part.material.emissive?.setHex(0x28090e); } });
+  const playerStripe = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.52, 0.44), new THREE.MeshBasicMaterial({ color: 0xf3ead5 })); playerStripe.position.set(0.05, 1.19, 0.225); player.add(playerStripe);
   const hitCanvas=document.createElement('canvas');hitCanvas.width=320;hitCanvas.height=100;const hitCtx=hitCanvas.getContext('2d');hitCtx.font='900 54px Chakra,Arial';hitCtx.textAlign='center';hitCtx.fillStyle='#ffe193';hitCtx.shadowColor='#ff9b32';hitCtx.shadowBlur=18;hitCtx.fillText('HEAD 85',160,64);
   const hitSprite=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(hitCanvas),transparent:true,depthWrite:false,toneMapped:false}));hitSprite.position.set(260.2,3.25,145);hitSprite.scale.set(3.3,1.05,1);game.scene.add(hitSprite);
   for (const [label, x, z, color] of [['42!', 264, 3.7, '#ff8b55'], ['38', 257.2, 4.05, '#ffe17b']]) {
@@ -878,17 +881,19 @@ function stageCombat(game) {
     popup.position.set(x, z, 143 + (label === '42!' ? 7 : -4)); popup.scale.set(2.2, 0.9, 1); game.scene.add(popup);
   }
   const damageLayer = document.createElement('div'); damageLayer.className = 'combat-damage-layer'; damageLayer.setAttribute('aria-hidden', 'true');
-  damageLayer.innerHTML = '<b class="damage-pop damage-mid">42!</b><b class="damage-pop damage-right">38</b>'; document.body.append(damageLayer);
+  damageLayer.innerHTML = '<b class="damage-pop damage-mid">42!</b><b class="damage-pop damage-right">38</b><b class="damage-pop damage-head">HEAD 85</b><b class="combat-crosshair"><i></i><i></i><i></i><i></i><em></em></b><b class="carjack-prompt">[F] <strong>STEAL SOLARIS GT</strong><small>CARJACK / QUICK EXIT</small></b>'; document.body.append(damageLayer);
   for (const marker of game.missionMarkers) marker.visible = false;
   game.missions.cash = 14800; game.missions.respect = 420; game.police.wanted = 3;
   game.police.heat = 58;
   // Muzzle starburst, barrel light and tracers cross the downtown avenue.
-  const muzzle = new THREE.Group(); muzzle.position.set(239, 1.4, 158); game.scene.add(muzzle);
-  for (let i = 0; i < 8; i++) { const ray = new THREE.Mesh(new THREE.ConeGeometry(i % 2 ? 0.12 : 0.2, i % 2 ? 0.8 : 0.48, 4), new THREE.MeshBasicMaterial({ color: i % 2 ? 0xffb33b : 0xffefad, blending: THREE.AdditiveBlending, depthWrite: false })); ray.rotation.z = i * Math.PI / 4; ray.rotation.x = Math.PI / 2; ray.position.z = -0.28; muzzle.add(ray); }
-  const muzzleLight = new THREE.PointLight(0xffa637, 32, 14); muzzle.add(muzzleLight);
-  addTracer(game.scene, [239,1.45,158], [260,1.8,143], 0xffd36d, 0.05);
-  addTracer(game.scene, [239,1.55,158], [265,1.55,153], 0xfff0b3, 0.045);
-  addTracer(game.scene, [239,1.35,158], [261,1.2,163], 0xff9b37, 0.055);
+  const muzzle = new THREE.Group(); player.userData.weapon.add(muzzle); muzzle.position.set(0.94, 0, 0);
+  for (let i = 0; i < 6; i++) { const ray = new THREE.Mesh(new THREE.ConeGeometry(i % 2 ? 0.07 : 0.11, i % 2 ? 0.34 : 0.22, 4), new THREE.MeshBasicMaterial({ color: i % 2 ? 0xffa42e : 0xfff4c3, blending: THREE.AdditiveBlending, depthWrite: false })); ray.rotation.z = -Math.PI / 2 + (i - 2.5) * 0.16; ray.position.x = 0.1; muzzle.add(ray); }
+  const muzzleCore = new THREE.Mesh(new THREE.SphereGeometry(0.075, 10, 8), new THREE.MeshBasicMaterial({ color: 0xfff9e2, blending: THREE.AdditiveBlending, toneMapped: false })); muzzle.add(muzzleCore);
+  const muzzleLight = new THREE.PointLight(0xffc45f, 11, 6); muzzle.add(muzzleLight);
+  player.updateMatrixWorld(true);
+  const barrelTip = player.localToWorld(new THREE.Vector3(0.34 + 0.94, 1.04, 0.04));
+  const reticleRay = new THREE.Vector3(0.04, 0.1, 0.5).unproject(game.camera).sub(barrelTip).normalize();
+  addTracer(game.scene, barrelTip.toArray(), barrelTip.clone().addScaledVector(reticleRay, 28).toArray(), 0xffc66e, 0.025);
   const impact = new THREE.PointLight(0xff832d, 18, 9); impact.position.set(261, 2.6, 153); game.scene.add(impact);
   const impactSpark = new THREE.Mesh(new THREE.IcosahedronGeometry(0.5, 1), new THREE.MeshBasicMaterial({ color: 0xffb052, wireframe: true })); impactSpark.position.copy(impact.position); game.scene.add(impactSpark);
   // A layered fireball gives the blockade impact a readable focal point at screenshot scale.
@@ -931,7 +936,7 @@ function stageCombat(game) {
   game.scene.add(fireGlow);
   impact.intensity = 34;
   document.body.classList.add('combat-shot');
-  setCamera(game, [230, 3.6, 164], [259, 1.75, 153], 48);
+  setCamera(game, [233, 2.72, 161], [258, 1.78, 151], 53);
   addCombatStorefronts(game);
   city.roadblock.visible = true;
   city.roadblock.position.set(269, 0, 154);
@@ -947,6 +952,8 @@ function stageCombat(game) {
   city.swat.userData.stagedShot = true;
   city.swat.position.set(273, 0.12, 157);
   city.swat.rotation.y = -0.25;
+  const coverCar = city.traffic[7];
+  if (coverCar) { coverCar.visible = true; coverCar.position.set(245, 0.1, 158); coverCar.rotation.y = -0.15; coverCar.scale.setScalar(1.12); }
   const billboardMaterial = new THREE.SpriteMaterial({ transparent: true, toneMapped: false, depthWrite: false });
   for (const [label, color, x, y, z] of [['CLUB SOLARA', '#ff4ca1', -7, 7, -27], ['HOTEL CORAL', '#57eff0', 17, 7, -56]]) {
     const signCanvas = document.createElement('canvas'); signCanvas.width = 512; signCanvas.height = 128;
@@ -981,7 +988,7 @@ function stageGarage(game) {
   const rimLight = new THREE.PointLight(0x28ddf1, 86, 35, 1.4); rimLight.position.set(603, 3, 150); game.scene.add(rimLight);
   for (const marker of game.missionMarkers) marker.visible = false;
   game.cameraMode = 'garage'; document.body.classList.add('garage-shot'); game.showPanel('garage');
-  setCamera(game, [617, 7.2, 150], [607, 3.9, 143], 39);
+  setCamera(game, [617, 7.8, 150], [590, -2.1, 143], 60);
 }
 
 function stageTitle(game) {

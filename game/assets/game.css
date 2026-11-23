@@ -21,6 +21,17 @@
     .damage-pop { position:absolute; color:#ffe176; font:900 24px Chakra,Arial,sans-serif; -webkit-text-stroke:2px #211921; paint-order:stroke; text-shadow:0 0 10px #ff7a3a,0 2px 2px #111; transform:rotate(-7deg); }
     .damage-mid { left:39.2%; top:38.2%; color:#ff9660; font-size:27px; }
     .damage-right { left:47.2%; top:34.5%; color:#ffe58a; }
+    .damage-head { position:absolute; left:42.4%; top:29.5%; color:#fff0ba; font-size:18px; }
+    .combat-crosshair { position:absolute; left:49.6%; top:46.3%; width:30px; height:30px; transform:translate(-50%,-50%); filter:drop-shadow(0 1px 3px #08111b); }
+    .combat-crosshair i { position:absolute; width:7px; height:2px; background:#fff; }
+    .combat-crosshair i:nth-child(1) { left:1px; top:3px; transform:rotate(42deg); background:#ff735e; }
+    .combat-crosshair i:nth-child(2) { right:1px; top:3px; transform:rotate(-42deg); background:#ff735e; }
+    .combat-crosshair i:nth-child(3) { left:1px; bottom:3px; transform:rotate(-42deg); background:#ff735e; }
+    .combat-crosshair i:nth-child(4) { right:1px; bottom:3px; transform:rotate(42deg); background:#ff735e; }
+    .combat-crosshair em { position:absolute; left:13px; top:13px; width:4px; height:4px; border:1px solid #fff; border-radius:50%; }
+    .carjack-prompt { position:absolute; left:50%; bottom:132px; transform:translateX(-50%); display:grid; grid-template-columns:auto auto; align-items:center; gap:2px 10px; padding:9px 15px; border:1px solid #eac77e; border-radius:5px; background:linear-gradient(100deg,#101a25ed,#26303bd9); box-shadow:0 0 18px #f2b64b55; color:#ffd16e; font-size:13px; }
+    .carjack-prompt strong { color:#fff5dc; letter-spacing:.09em; font-size:11px; }
+    .carjack-prompt small { grid-column:2; color:#8de6e6; font-size:7px; letter-spacing:.15em; }
     .hidden { display: none !important; }
     .hud-top { position: absolute; top: 20px; left: 26px; right: 26px; display: flex; justify-content: space-between; align-items: flex-start; }
     .brand { font: 30px Faster; letter-spacing: .02em; color: #f4eee0; }
@@ -171,13 +182,14 @@
     body.drift-shot #hud .objective::after { content:''; position:absolute; left:14px; bottom:9px; width:104px; height:4px; background:repeating-linear-gradient(90deg,#f2bd5d 0 23px,#594a38 23px 27px); }
     body.drift-shot #hud .objective .eyebrow { margin-top:8px; }
     body.drift-shot #hud .objective b::after { content:'   ◇ SUNSET RUN'; color:#62e6e9; font-size:9px; }
-    body.drift-shot #hud .loadout { top:165px; right:16px; width:266px; justify-content:space-between; padding:6px; border:1px solid #dce7e322; border-radius:8px; background:rgba(8,16,28,.7); }
+    body.drift-shot #hud .loadout { top:181px; right:16px; width:266px; justify-content:space-between; padding:6px; border:1px solid #dce7e322; border-radius:8px; background:rgba(8,16,28,.7); }
     body.drift-shot #hud .loadout span { min-width:45px; padding:5px 2px; font-size:7px; }
-    body.drift-shot #hud .perks { top:211px; right:16px; width:266px; padding:7px; border:1px solid #dce7e322; border-radius:8px; background:rgba(8,16,28,.7); text-align:center; }
+    body.drift-shot #hud .perks { top:239px; right:16px; width:266px; padding:7px; border:1px solid #dce7e322; border-radius:8px; background:rgba(8,16,28,.7); text-align:center; }
     body.drift-shot #hud .perks::after { content:'  •  MARA [READY]  /  NIKO [READY]'; color:#84e5d5; }
-    body.drift-shot #hud .dispatch, body.combat-shot #hud .dispatch { top:298px; right:16px; width:266px; padding:12px 14px; background:rgba(8,16,28,.82); }
+    body.drift-shot #hud .dispatch, body.combat-shot #hud .dispatch { top:326px; right:16px; width:266px; padding:12px 14px; background:rgba(8,16,28,.82); }
     body.combat-shot #hud .dispatch { top:142px; }
     body.drift-shot #hud .bottom-left { bottom:20px; left:17px; gap:12px; }
+    body.drift-shot #hud .controls, body.combat-shot #hud .controls { display:none; }
     body.drift-shot #hud .radar-column { width:176px; height:203px; padding-top:23px; }
     body.drift-shot #hud .radar-frame { width:180px; height:180px; padding:2px; border:2px solid #cbe3e2; }
     body.drift-shot #hud #radar { width:172px; height:172px; }
@@ -199,8 +211,13 @@
     body.combat-shot #hud .radar-label b { content:'NEON DOWNTOWN'; }
     body.combat-shot #hud .wanted { height:92px; }
     body.combat-shot #hud .bottom-left { bottom:18px; left:17px; }
+    body.combat-shot .carjack-prompt { left:36%; bottom:170px; }
+    body.combat-shot .combat-crosshair { left:52%; top:45%; }
+    body.combat-shot .damage-head { left:46%; top:33%; }
+    body.combat-shot .damage-mid { left:54%; top:38%; }
+    body.combat-shot .damage-right { left:58%; top:31%; }
 
-    body.garage-shot #view { z-index:0; }
+    body.garage-shot #view { z-index:0; clip-path:inset(374px 0 156px 735px); }
     body.garage-shot #panel-layer { background:none; }
     body.garage-shot .garage-screen { position:absolute; inset:0; width:100%; height:100%; padding:14px 18px; overflow:hidden; background:transparent; }
     .dossier-header { height:68px; display:flex; justify-content:space-between; align-items:center; gap:18px; padding:0 14px; border:1px solid #708b9c44; border-radius:10px; background:rgba(7,15,27,.96); }
@@ -211,12 +228,28 @@
     body.garage-shot .garage-stats { height:66px; margin:8px 0; padding:8px 15px; border:1px solid #708b9c44; border-radius:10px; background:rgba(7,15,27,.96); }
     body.garage-shot .garage-stats b { padding-left:14px; border-left:2px solid #e7b657; font-size:23px; }
     body.garage-shot .garage-stats small { font-size:9px; }
-    .dossier-layout { display:grid; grid-template-columns: minmax(0,1.48fr) minmax(335px,.88fr); gap:10px; height:calc(100% - 158px); }
-    .dossier-left { display:grid; grid-template-rows: 1fr .94fr; gap:10px; min-height:0; }
+    .dossier-layout { display:grid; grid-template-columns: minmax(0,1.34fr) minmax(370px,1fr); gap:10px; height:calc(100% - 158px); }
+    .dossier-left { display:grid; grid-template-rows: minmax(0,1fr) 112px; gap:8px; min-height:0; }
     .dossier-card { min-width:0; padding:11px 13px; overflow:hidden; border:1px solid #7890a044; border-radius:9px; background:rgba(8,17,30,.96); box-shadow:0 8px 25px #02070b55; }
     .card-heading { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; color:#e8c071; font-size:10px; letter-spacing:.13em; }
     .card-heading span { color:#8ca6b1; font-size:8px; }
     body.garage-shot .garage-screen .city-map { width:100%; height:calc(100% - 20px); border:0; border-radius:4px; }
+    body.garage-shot .district-map-card { display:grid; grid-template-rows:20px minmax(0,1fr); }
+    body.garage-shot .district-map-card .card-heading { margin:0; }
+    body.garage-shot .mission-track { padding:8px 12px; }
+    .mission-numbers { display:flex; align-items:center; justify-content:space-between; gap:7px; margin:6px 4px; }
+    .mission-numbers b { display:grid; place-items:center; width:23px; height:23px; border:1px solid #768795; border-radius:50%; color:#d7e1e2; background:#132433; font-size:9px; }
+    .mission-numbers b.complete { border-color:#47d6a2; color:#a7f5d5; background:#164e43; }
+    .mission-numbers b.current { border:2px solid #ffd16e; color:#fff0bd; background:#805d22; box-shadow:0 0 11px #ffc65a77; }
+    .pin-legend { display:flex; justify-content:space-between; gap:5px; color:#a8bbc5; font-size:6px; }
+    .pin-legend span { display:flex; align-items:center; gap:3px; white-space:nowrap; }
+    .pin-legend i { display:grid; place-items:center; width:13px; height:13px; border:1px solid #63dce5; border-radius:50%; color:#f3db98; font-size:8px; font-style:normal; }
+    body.garage-shot .dossier-left > .showroom-card { display:none; }
+    body.garage-shot .showroom-card { position:absolute; right:calc(18px + 25%); bottom:18px; width:210px; height:112px; padding:0; pointer-events:none; border:1px solid #59dce4aa; background:linear-gradient(140deg,#0a1a29cc,#07152265); box-shadow:0 0 18px #19ddeb30; }
+    body.garage-shot .showroom-card .card-heading, body.garage-shot .showroom-card .garage-tools { display:none; }
+    body.garage-shot .showroom-overlay { right:7px; bottom:6px; }
+    body.garage-shot .showroom-overlay strong { font-size:10px; }
+    body.garage-shot .showroom-overlay span, body.garage-shot .showroom-overlay i { font-size:6px; }
     .showroom-card { position:relative; background:linear-gradient(120deg,rgba(8,17,30,.56),rgba(8,17,30,.18) 72%,rgba(8,17,30,.84)); }
     .showroom-overlay { position:absolute; left:14px; bottom:12px; z-index:1; display:grid; gap:3px; text-shadow:0 2px 8px #000; }
     .showroom-overlay strong { color:#fff; font-size:16px; letter-spacing:.16em; }
@@ -227,8 +260,24 @@
     .showroom-card .garage-grid button { min-width:0; padding:5px 4px; font-size:7px; }
     .showroom-card .garage-tools > p,.showroom-card #upgrade,.showroom-card #turbo,.showroom-card #repair { display:none; }
     .showroom-overlay { left:auto; right:8px; bottom:0; text-align:right; }
-    .dossier-right { display:grid; grid-template-rows:1.03fr 1.12fr 1fr .9fr auto; gap:8px; min-height:0; }
+    .dossier-right { display:grid; grid-template-rows:62px minmax(100px,.72fr) minmax(175px,1fr) auto 37px; gap:6px; min-height:0; }
     .dossier-right .dossier-card { padding:9px 12px; }
+    .completion-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:4px; margin-top:7px; color:#9eafb7; font-size:7px; }
+    .completion-grid b { display:block; margin-top:3px; color:#f6d27f; font-size:11px; }
+    .shop-grid { display:grid; grid-template-columns:1fr 1fr; gap:5px 9px; margin-top:7px; color:#bdcbd0; font-size:8px; }
+    .shop-grid span { display:flex; justify-content:space-between; padding-bottom:3px; border-bottom:1px solid #ffffff19; }
+    .shop-grid b { color:#f4c976; }
+    .crew-favours { display:grid; grid-template-columns:1fr 1fr; gap:3px 7px; margin-top:8px; color:#88b6b8; font-size:7px; }
+    .crew-favours > span { color:#d5e2dc; }
+    .crew-favours b { color:#72e4bc; }
+    .compact-showroom { position:relative; overflow:hidden; min-height:175px; background:transparent; }
+    body.garage-shot .compact-showroom { background:transparent; border:1px solid #59dce466; }
+    .compact-showroom .card-heading { position:relative; z-index:1; }
+    body.garage-shot .compact-showroom .card-heading { display:none; }
+    .compact-showroom .showroom-overlay { right:9px; bottom:7px; text-align:right; }
+    body.garage-shot .compact-showroom .showroom-overlay { display:grid; left:10px; top:8px; right:auto; bottom:auto; z-index:2; padding:4px 6px; border-radius:4px; background:linear-gradient(100deg,rgba(7,17,28,.78),rgba(7,17,28,.28)); text-align:left; text-shadow:0 1px 3px #000,0 0 7px #000; }
+    .compact-showroom .showroom-overlay strong { font-size:10px; }
+    .compact-showroom .showroom-overlay span,.compact-showroom .showroom-overlay i { font-size:6px; }
     .progress-row { display:grid; grid-template-columns:1fr auto; gap:4px 8px; margin:7px 0; color:#b4c5cd; font-size:8px; }
     .progress-row b { color:#f2cb75; }
     .progress-row > i,.dual-bars i { grid-column:1/-1; display:block; height:5px; background:#243441; border-radius:5px; overflow:hidden; }
