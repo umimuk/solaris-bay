@@ -12,7 +12,7 @@ const CONTRACTS = [
 ];
 
 /** Story contract progression with independent objective rules and rewards. */
-export function createMissions() {
+export function createMissionCampaign() {
   return {
     index: 0,
     progress: 0,
@@ -34,7 +34,7 @@ export function createMissions() {
       this.complete = false;
       return true;
     },
-    step(dt, drift, district, context = {}) {
+    runMissionStage(dt, drift, district, context = {}) {
       this.sideDrift = drift;
       if (this.complete || !this.current) return false;
       const contract = this.contract;

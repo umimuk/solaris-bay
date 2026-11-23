@@ -138,7 +138,7 @@ function addFerrisWheel(parent, x, z) {
 }
 
 /** Construct four elevated districts around the bay, with a connected road ribbon. */
-export function createCity(scene, seed = 1) {
+export function createOpenWorldCity(scene, seed = 1) {
   const random = createRandom(seed); const textures = makeTextures(seed); const root = new THREE.Group(); scene.add(root);
   const ocean = new THREE.Mesh(new THREE.PlaneGeometry(2000, 2000), new THREE.MeshBasicMaterial({ map: textures.water, color: 0xffffff, toneMapped: false }));
   ocean.rotation.x = -Math.PI / 2; ocean.position.set(160, -0.5, 0); root.add(ocean);

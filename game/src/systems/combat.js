@@ -11,7 +11,7 @@ const STATS = [
 ];
 
 /** Hitscan combat, weapon cadence, reactive enemies and short-lived tracers. */
-export function createCombat(scene, random) {
+export function createBallisticCombat(scene, random) {
   const enemies = [];
   for (let i = 0; i < 11; i++) {
     const enemy = createCharacter('syndicate', i);
@@ -46,7 +46,7 @@ export function createCombat(scene, random) {
     return { object: line, life: 0.13 };
   }
 
-  function fire(player, camera, tracers) {
+  function fireWeaponWithBallistics(player, camera, tracers) {
     const index = this.weapon - 1;
     const stats = STATS[index];
     if (!stats || ammoByWeapon[index] <= 0) return;
@@ -129,7 +129,7 @@ export function createCombat(scene, random) {
       this.ammo = ammoByWeapon[this.weapon - 1] || 0;
 
       if (enabled && input.down('Mouse0') && shotCooldown <= 0 && reloadTime <= 0) {
-        fire.call(this, player, camera, this.tracers);
+        fireWeaponWithBallistics.call(this, player, camera, this.tracers);
       }
       this.flash = Math.max(0, this.flash - dt);
       muzzleLight.intensity = this.flash > 0 ? 13 : 0;

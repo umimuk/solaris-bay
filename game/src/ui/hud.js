@@ -5,7 +5,7 @@ const HUD_IDS = [
   'ammo', 'radio', 'radar',
 ];
 
-export function createHud() {
+export function renderCommandDossier() {
   const root = document.getElementById('hud');
   const elements = Object.fromEntries(
     HUD_IDS.map((id) => [id, document.getElementById(id)]),

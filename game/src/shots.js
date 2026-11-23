@@ -1,6 +1,5 @@
 import * as THREE from '../vendor/three.module.min.js';
 import { createGlowSprite, createVehicle } from './models/vehicles.js';
-import { createSign } from './models/props.js';
 import { createPalm } from './models/props.js';
 import { makeTextures } from './world/textures.js';
 
@@ -12,9 +11,13 @@ function addBoulevardBackdrop(game) {
   avenue.rotation.set(0, camera.rotation.y, 0);
   game.scene.add(avenue);
   game.shotAvenue = avenue;
+  game.scene.add(new THREE.HemisphereLight(0xffefd1, 0x536274, 1.05));
+  const boulevardSun = new THREE.DirectionalLight(0xffe1ad, 2.2);
+  boulevardSun.position.set(25, 42, 30);
+  game.scene.add(boulevardSun);
   const avenueTextures = makeTextures(41);
   avenueTextures.asphalt.repeat.set(1.8, 14);
-  const asphalt = new THREE.MeshPhysicalMaterial({ color: 0x99a4ab, map: avenueTextures.asphalt, roughness: 0.42, metalness: 0.16, envMapIntensity: 1.35, clearcoat: 0.28 });
+  const asphalt = new THREE.MeshPhysicalMaterial({ color: 0xb4babb, map: avenueTextures.asphalt, roughness: 0.72, metalness: 0.06, envMapIntensity: 0.8, clearcoat: 0.08 });
   const sidewalk = new THREE.MeshStandardMaterial({ color: 0xd9cbb1, roughness: 0.85 });
   const cream = new THREE.MeshStandardMaterial({ color: 0xf2e6d1, map: avenueTextures.facade, roughness: 0.66 });
   const coral = new THREE.MeshStandardMaterial({ color: 0xe6c5ae, map: avenueTextures.facade, roughness: 0.64 });
@@ -145,13 +148,13 @@ function addBoulevardBackdrop(game) {
     wave.position.set(59 + (index % 4) * 0.58, -4.99, -20 - index * 10.5); wave.rotation.y = (index % 2 ? -0.18 : 0.18); avenue.add(wave);
   }
   const umbrellaMats = [0xf15c5c, 0xffd34f, 0x39b8b1, 0xf3f2e9].map((color) => new THREE.MeshStandardMaterial({ color, roughness: 0.82 }));
-  for (let index = 0; index < 10; index++) {
-    const x = 28 + (index % 2) * 15; const z = -30 - Math.floor(index / 2) * 42;
+  for (let index = 0; index < 24; index++) {
+    const x = 25 + (index % 4) * 8; const z = -24 - Math.floor(index / 4) * 39;
     const umbrella = new THREE.Mesh(new THREE.ConeGeometry(1.8, 0.45, 12), umbrellaMats[index % umbrellaMats.length]); umbrella.position.set(x, -2.7, z); avenue.add(umbrella);
     const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.06, 2.25, 6), balcony); pole.position.set(x, -3.9, z); avenue.add(pole);
   }
   for (const z of [-52, -122, -192, -262]) {
-    const beachPalm = createPalm(); beachPalm.position.set(19.8, -4.9, z); beachPalm.scale.setScalar(1.22); avenue.add(beachPalm);
+    const beachPalm = createPalm(); beachPalm.position.set(19.8, -4.9, z); beachPalm.scale.setScalar(1.58); avenue.add(beachPalm);
   }
   // The 65 mints of traffic read as small, bright moving cars on the distant lanes.
   const trafficPaint = [0xecebe2, 0xc76455, 0x4b8a9a, 0xe2b75b, 0x364b5f];
@@ -188,11 +191,10 @@ function addShotSkyline(game) {
   set.quaternion.copy(game.camera.quaternion);
   game.scene.add(set);
   const facades = [0xe6af9d, 0xb9d8cc, 0xeec6a4, 0xc4d7e4, 0xe7d8ba];
-  for (const originalX of [-67, -49, -31, -16, 16, 31, 49, 67]) {
-    const isWheelSideBuilding = originalX === 31;
-    const x = isWheelSideBuilding ? 19 : originalX;
-    const width = isWheelSideBuilding ? 8 : 15;
-    const height = isWheelSideBuilding ? 6 : 19 + (Math.abs(originalX) * 7 % 18);
+  for (const originalX of [-67, -49, -31, -16]) {
+    const x = originalX;
+    const width = 15;
+    const height = 19 + (Math.abs(originalX) * 7 % 18);
     const facade = new THREE.MeshStandardMaterial({ color: facades[Math.abs(originalX) % facades.length], roughness: 0.62, metalness: 0.12 });
     const body = new THREE.Mesh(new THREE.BoxGeometry(width, height, 13), facade);
     body.position.set(x, -8 + height / 2, -112);
@@ -204,11 +206,11 @@ function addShotSkyline(game) {
     for (let floor = 0; floor < Math.floor(height / 4); floor++) {
       for (const column of [-1, 0, 1]) {
         const window = new THREE.Mesh(new THREE.BoxGeometry(2.8, 1.6, 0.12), glass);
-        window.position.set(x + column * (isWheelSideBuilding ? 3 : 4), -7 + floor * 3.5, -105.35);
+        window.position.set(x + column * 4, -7 + floor * 3.5, -105.35);
         set.add(window);
         if (floor % 2 === 0) {
           const balcony = new THREE.Mesh(new THREE.BoxGeometry(3.4, 0.12, 0.85), new THREE.MeshStandardMaterial({ color: 0xf8f0e1, roughness: 0.68 }));
-          balcony.position.set(x + column * (isWheelSideBuilding ? 3 : 4), -5.9 + floor * 3.5, -104.9);
+          balcony.position.set(x + column * 4, -5.9 + floor * 3.5, -104.9);
           set.add(balcony);
         }
       }
@@ -296,13 +298,13 @@ function addTitleCoast(game) {
   land.rotation.x = -Math.PI / 2;
   land.position.set(-4, -11.6, -130);
   coast.add(land);
-  const beach = new THREE.Mesh(new THREE.PlaneGeometry(31, 220), new THREE.MeshStandardMaterial({ color: 0xe6c58f, roughness: 0.96 }));
+  const beach = new THREE.Mesh(new THREE.PlaneGeometry(16, 220), new THREE.MeshStandardMaterial({ color: 0xe6c58f, roughness: 0.96 }));
   beach.rotation.x = -Math.PI / 2;
-  beach.position.set(32, -11.35, -130);
+  beach.position.set(18, -11.35, -130);
   coast.add(beach);
-  const ocean = new THREE.Mesh(new THREE.PlaneGeometry(120, 260), new THREE.MeshStandardMaterial({ color: 0x1598a8, metalness: 0.62, roughness: 0.14, envMapIntensity: 2, emissive: 0x075365, emissiveIntensity: 0.22 }));
+  const ocean = new THREE.Mesh(new THREE.PlaneGeometry(190, 260), new THREE.MeshStandardMaterial({ color: 0x1598a8, metalness: 0.42, roughness: 0.2, envMapIntensity: 1.4, emissive: 0x075365, emissiveIntensity: 0.24 }));
   ocean.rotation.x = -Math.PI / 2;
-  ocean.position.set(100, -11.5, -133);
+  ocean.position.set(95, -11.5, -133);
   coast.add(ocean);
   const reflectionGold = new THREE.MeshBasicMaterial({ color: 0xffcc70, transparent: true, opacity: 0.36, toneMapped: false });
   const reflectionCream = new THREE.MeshBasicMaterial({ color: 0xffefc3, transparent: true, opacity: 0.24, toneMapped: false });
@@ -405,6 +407,13 @@ function addTitleCoast(game) {
     const surf = new THREE.CatmullRomCurve3([new THREE.Vector3(22, -11.08, z - 18), new THREE.Vector3(30, -11.02, z - 8), new THREE.Vector3(33, -11.02, z), new THREE.Vector3(29, -11.02, z + 10), new THREE.Vector3(21, -11.08, z + 18)]);
     coast.add(new THREE.Mesh(new THREE.TubeGeometry(surf, 30, 0.2, 6, false), new THREE.MeshBasicMaterial({ color: 0xeafff8, transparent: true, opacity: 0.76, toneMapped: false })));
   }
+  const waveFoam = new THREE.MeshBasicMaterial({ color: 0xe8ffff, transparent: true, opacity: 0.58, toneMapped: false });
+  for (let index = 0; index < 34; index++) {
+    const streak = new THREE.Mesh(new THREE.BoxGeometry(2.4 + index % 5, 0.03, 0.12), waveFoam);
+    streak.position.set(42 + (index * 17 % 68), -11.43, -18 - (index * 29 % 210));
+    streak.rotation.y = index % 2 ? -0.16 : 0.16;
+    coast.add(streak);
+  }
   const wheel = game.city.ferrisWheel;
   game.scene.attach(wheel);
   coast.add(wheel);
@@ -413,22 +422,47 @@ function addTitleCoast(game) {
   wheel.quaternion.identity();
   wheel.scale.setScalar(0.96);
   const pier = new THREE.Group();
-  pier.position.set(48, -7, -102);
+  pier.position.set(36, -7, -84);
   coast.add(pier);
   const wood = new THREE.MeshStandardMaterial({ color: 0x936640, roughness: 0.78, emissive: 0x4f260f, emissiveIntensity: 0.2 });
-  const deck = new THREE.Mesh(new THREE.BoxGeometry(38, 0.48, 12), wood);
-  deck.position.set(19, 0.3, -5);
+  const deck = new THREE.Mesh(new THREE.BoxGeometry(56, 0.48, 14), wood);
+  deck.position.set(28, 0.3, -5);
   pier.add(deck);
-  for (const x of [5, 15, 25, 35]) for (const z of [-9, -1]) {
+  for (const x of [5, 20, 35, 50]) for (const z of [-10, 0]) {
     const piling = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.32, 8, 8), wood);
     piling.position.set(x, -3.8, z - 5);
     pier.add(piling);
   }
+  for (const [x, color] of [[10, 0xf18d74], [28, 0x69c6bd], [46, 0xf1cf79]]) {
+    const kiosk = new THREE.Group();
+    const counter = new THREE.Mesh(new THREE.BoxGeometry(4.4, 1.6, 3.1), new THREE.MeshStandardMaterial({ color: 0xf4e4c6, roughness: 0.72 }));
+    counter.position.set(x, 1.18, -5); kiosk.add(counter);
+    const awning = new THREE.Mesh(new THREE.BoxGeometry(5.2, 0.2, 4), new THREE.MeshStandardMaterial({ color, roughness: 0.7 }));
+    awning.position.set(x, 2.15, -5); kiosk.add(awning);
+    for (let stripe = 0; stripe < 5; stripe++) {
+      const panel = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.22, 3.95), new THREE.MeshBasicMaterial({ color: stripe % 2 ? 0xfff1d8 : color }));
+      panel.position.set(x - 2.08 + stripe * 1.04, 2.13, -5); kiosk.add(panel);
+    }
+    const bulb = new THREE.PointLight(0xffd08b, 5, 12);
+    bulb.position.set(x, 1.8, -3); kiosk.add(bulb);
+    pier.add(kiosk);
+  }
   const pierEdge = new THREE.MeshBasicMaterial({ color: 0xffc86d, toneMapped: false });
-  for (const z of [-10.8, 0.8]) {
-    const rail = new THREE.Mesh(new THREE.BoxGeometry(37, 0.12, 0.14), pierEdge);
-    rail.position.set(19, 0.66, z - 5);
+  for (const z of [-12.8, 2.8]) {
+    const rail = new THREE.Mesh(new THREE.BoxGeometry(55, 0.12, 0.14), pierEdge);
+    rail.position.set(28, 0.66, z - 5);
     pier.add(rail);
+  }
+  for (const x of [8, 24, 40, 54]) {
+    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.12, 4.6, 8), wood);
+    post.position.set(x, 2.6, -5);
+    pier.add(post);
+    const lamp = new THREE.Mesh(new THREE.SphereGeometry(0.32, 10, 8), pierEdge);
+    lamp.position.set(x, 4.9, -5);
+    pier.add(lamp);
+    const glow = new THREE.PointLight(0xffc76c, 9, 18);
+    glow.position.copy(lamp.position);
+    pier.add(glow);
   }
   const boardwalk = new THREE.Mesh(new THREE.BoxGeometry(16, 0.22, 205), new THREE.MeshStandardMaterial({ color: 0x987044, roughness: 0.82, emissive: 0x28190d, emissiveIntensity: 0.22 }));
   boardwalk.position.set(31, -11.18, -118);
@@ -477,13 +511,13 @@ function addTitleCoast(game) {
   }
   const titleCar = createVehicle(0);
   titleCar.userData.paintMaterial.roughness = 0.16; titleCar.userData.paintMaterial.metalness = 0.66; titleCar.userData.paintMaterial.clearcoat = 1; titleCar.userData.paintMaterial.clearcoatRoughness = 0.06; titleCar.userData.paintMaterial.envMapIntensity = 2;
-  titleCar.position.set(16, -11.38, -28);
+  titleCar.position.set(-6, -11.38, -28);
   titleCar.rotation.y = 0.38;
   titleCar.scale.setScalar(1.5);
   coast.add(titleCar);
   const umbrellaColors = [0xf45d58,0xffd052,0x2cb6ad,0xf1f4e8].map((color) => new THREE.MeshStandardMaterial({ color, roughness: 0.8 }));
-  for (let index = 0; index < 12; index++) {
-    const x = 23 + (index % 3) * 8; const z = -28 - Math.floor(index / 3) * 35;
+  for (let index = 0; index < 24; index++) {
+    const x = 23 + (index % 4) * 6.5; const z = -24 - Math.floor(index / 4) * 29;
     const canopy = new THREE.Mesh(new THREE.ConeGeometry(2.4, 0.55, 12), umbrellaColors[index % umbrellaColors.length]); canopy.position.set(x, -10.62, z); coast.add(canopy);
     const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 1.55, 6), new THREE.MeshStandardMaterial({ color: 0xf7e5c2 })); stem.position.set(x, -11.45, z); coast.add(stem);
   }
@@ -510,22 +544,31 @@ function addTitleCoast(game) {
   const farShore = new THREE.Mesh(new THREE.BoxGeometry(40, 2, 35), new THREE.MeshStandardMaterial({ color: 0x597b60, roughness: 1 }));
   farShore.position.set(126, -10, -182);
   coast.add(farShore);
-  const farTown = new THREE.Mesh(new THREE.BoxGeometry(7, 18, 9), new THREE.MeshStandardMaterial({ color: 0xe7d5ba, roughness: 0.75 }));
-  farTown.position.set(126, 0, -182);
-  coast.add(farTown);
-  const skylineMaterials = [0xded8c8, 0xc9d7d4, 0xe7cda7].map((color) => new THREE.MeshStandardMaterial({ color, roughness: 0.68, metalness: 0.12 }));
+  const skylineMaterials = [0xd89587, 0x83bdb3, 0xe5b975, 0xc39db9].map((color) => new THREE.MeshPhysicalMaterial({ color, roughness: 0.48, metalness: 0.14, clearcoat: 0.24 }));
   const skylineWindow = new THREE.MeshBasicMaterial({ color: 0xffd98b, toneMapped: false });
-  for (let index = 0; index < 6; index++) {
-    const x = 128 + index * 8;
-    const z = -198 - (index % 3) * 6;
-    const height = 14 + (index * 7) % 15;
-    const width = 7 + (index % 2) * 2;
-    const building = new THREE.Mesh(new THREE.BoxGeometry(width, height, 8), skylineMaterials[index % skylineMaterials.length]);
+  for (let index = 0; index < 7; index++) {
+    const x = 146 + index * 10;
+    const z = -222 - (index % 3) * 9;
+    const height = 20 + (index * 9) % 20;
+    const width = 8 + (index % 2) * 3;
+    const facade = skylineMaterials[index % skylineMaterials.length];
+    const building = new THREE.Mesh(new THREE.BoxGeometry(width, height, 9), facade);
     building.position.set(x, -11 + height / 2, z);
     coast.add(building);
+    const crown = new THREE.Mesh(new THREE.BoxGeometry(width * 0.72, 2.4, 9.6), new THREE.MeshStandardMaterial({ color: [0xf0d5b2, 0xf3d2c1, 0xb9d7d1][index % 3], roughness: 0.62 }));
+    crown.position.set(x, -11 + height + 1.2, z);
+    coast.add(crown);
+    const cornice = new THREE.Mesh(new THREE.BoxGeometry(width * 1.12, 0.45, 9.8), new THREE.MeshStandardMaterial({ color: 0xffe6c9, roughness: 0.54 }));
+    cornice.position.set(x, -10.7, z);
+    coast.add(cornice);
+    for (const side of [-1, 1]) {
+      const fin = new THREE.Mesh(new THREE.BoxGeometry(0.34, height - 2, 0.28), new THREE.MeshStandardMaterial({ color: 0xffe4ca, roughness: 0.52 }));
+      fin.position.set(x + side * width * 0.34, -10 + (height - 2) / 2, z + 4.72);
+      coast.add(fin);
+    }
     for (let floor = 0; floor < Math.floor(height / 4); floor++) {
       const window = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.8, 0.08), skylineWindow);
-      window.position.set(x - width * 0.24 + (floor % 3) * width * 0.24, -9.5 + floor * 3.4, z + 4.08);
+      window.position.set(x - width * 0.24 + (floor % 3) * width * 0.24, -9.5 + floor * 3.4, z + 4.58);
       coast.add(window);
     }
   }
@@ -555,7 +598,7 @@ function stageDrift(game) {
   for (const wheel of car.userData.wheels) if (wheel.front) wheel.pivot.rotation.y = -0.62;
   world.district = 'SUNSET COAST';
   const forward=new THREE.Vector3(Math.cos(state.yaw),0,-Math.sin(state.yaw)); const side=new THREE.Vector3(Math.sin(state.yaw),0,Math.cos(state.yaw));
-  setCamera(game, [car.position.x - Math.cos(state.yaw) * 9.8 - Math.sin(state.yaw) * 3.3, 5.0, car.position.z + Math.sin(state.yaw) * 9.8 - Math.cos(state.yaw) * 3.3], [car.position.x + forward.x * 4.5, 1.1, car.position.z + forward.z * 4.5], 68);
+  setCamera(game, [car.position.x - Math.cos(state.yaw) * 7.6 - Math.sin(state.yaw) * 2.5, 3.8, car.position.z + Math.sin(state.yaw) * 7.6 - Math.cos(state.yaw) * 2.5], [car.position.x + forward.x * 3.4, 1.0, car.position.z + forward.z * 3.4], 60);
   addCameraClouds(game.camera, game.scene);
   city.root.visible = false;
   for (const vehicle of [...city.traffic, ...city.police]) game.scene.attach(vehicle);
@@ -668,7 +711,7 @@ function stageDrift(game) {
     });
   });
   city.helicopter.visible = true; city.helicopter.position.copy(game.camera.localToWorld(new THREE.Vector3(-3.5, 8.6, -34)));
-  city.helicopter.scale.setScalar(1.22); city.helicopter.userData.stagedShot = true; city.helicopter.userData.callsign.visible = false;
+  city.helicopter.scale.setScalar(1.55); city.helicopter.userData.stagedShot = true; city.helicopter.userData.callsign.visible = false;
   city.helicopter.userData.mainRotor.rotation.y = 1.1; city.helicopter.userData.tailRotor.rotation.x = 1.2;
   city.helicopter.userData.search.intensity = 82;
   city.helicopter.userData.cone.material.opacity = 0.32;

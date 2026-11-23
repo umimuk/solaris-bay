@@ -1,22 +1,22 @@
 import * as THREE from '../vendor/three.module.min.js';
 import { createRandom } from './random.js';
 import { createInput } from './input.js';
-import { createSky, updateSky } from './world/sky.js';
-import { createCity } from './world/city.js';
-import { createVehicle, updateVehicle } from './models/vehicles.js';
-import { createCharacter, animateCharacter } from './models/characters.js';
-import { createDriving } from './systems/driving.js';
+import { createWantedDispatch } from './systems/police.js';
+import { createMissionCampaign } from './systems/missions.js';
+import { createGarage } from './systems/garage.js';
+import { loadSave, saveGameSlot } from './systems/save.js';
+import { createAudio } from './systems/audio.js';
 import { updateTraffic } from './systems/traffic.js';
 import { createPedestrians } from './systems/pedestrians.js';
-import { createPolice } from './systems/police.js';
-import { createCombat } from './systems/combat.js';
-import { createMissions } from './systems/missions.js';
-import { createGarage } from './systems/garage.js';
-import { loadSave, saveGame } from './systems/save.js';
-import { createAudio } from './systems/audio.js';
-import { createHud } from './ui/hud.js';
+import { createBallisticCombat } from './systems/combat.js';
+import { renderCommandDossier } from './ui/hud.js';
 import { renderWeaponWheel } from './ui/weaponWheel.js';
 import { showPanel } from './ui/menu.js';
+import { createDriving } from './systems/driving.js';
+import { createSky, updateSky } from './world/sky.js';
+import { createOpenWorldCity } from './world/city.js';
+import { createVehicle } from './models/vehicles.js';
+import { createCharacter, animateCharacter } from './models/characters.js';
 import { stageShot } from './shots.js';
 import { createReflectionEnvironments } from './world/textures.js';
 
@@ -43,7 +43,7 @@ scene.background = new THREE.Color(0xeaa271);
 scene.fog = new THREE.FogExp2(0x9b7682, 0.0015);
 const camera = new THREE.PerspectiveCamera(58, innerWidth / innerHeight, 0.1, 2400);
 const sky = createSky(scene, seed);
-const city = createCity(scene, seed);
+const city = createOpenWorldCity(scene, seed);
 let hero = createVehicle(0);
 hero.position.set(-180, 0.1, -325);
 hero.rotation.y = 0.32;
@@ -60,12 +60,12 @@ player.position.copy(hero.position);
 player.visible = false;
 scene.add(player);
 const pedestrians = createPedestrians(scene, random, 34, city.coastCurve);
-const police = createPolice(city);
-const combat = createCombat(scene, random);
-const missions = createMissions();
+const police = createWantedDispatch(city);
+const combat = createBallisticCombat(scene, random);
+const missions = createMissionCampaign();
 const audio = createAudio();
 const input = createInput();
-const hud = createHud();
+const hud = renderCommandDossier();
 const stored = loadSave();
 
 if (stored) {
@@ -172,7 +172,7 @@ const game = {
       position: drive.state.car.position.toArray(),
       time: elapsed,
     };
-    return saveGame(data);
+    return saveGameSlot(data);
   },
   load() {
     const data = loadSave();
@@ -223,7 +223,7 @@ game.missionMarkers = missionMarkers;
 window.__SOLARIS_GAME = game;
 window.__SOLARIS_INPUT = input;
 Object.defineProperty(game, 'mode', { get: () => mode });
-game.garage = createGarage(missions, saveGame);
+game.garage = createGarage(missions, saveGameSlot);
 game.showPanel = (type) => showPanel(type, game);
 game.camera = camera;
 Object.defineProperty(game, 'cameraMode', {
@@ -295,28 +295,26 @@ function cameraStep(dt) {
   headTarget.position.set(front.x + forward.x * 30, front.y, front.z + forward.z * 30);
 }
 
-function interact() {
-  if (drive.state.active) {
+function enterVehicleOrCarjack(action = 'interact') {
+  if (action === 'interact' && drive.state.active) {
     drive.enterExit();
     player.position.copy(hero.position).add(new THREE.Vector3(0, 0, 3.7));
     player.visible = true;
     cameraMode = 'foot';
     return;
   }
-  if (player.position.distanceTo(hero.position) < 5) {
+  if (action === 'interact' && player.position.distanceTo(hero.position) < 5) {
     drive.enterExit();
     player.visible = false;
     cameraMode = 'drive';
     return;
   }
-  if (hero.position.distanceTo(new THREE.Vector3(610, 0, 145)) < 28) {
+  if (action === 'interact' && hero.position.distanceTo(new THREE.Vector3(610, 0, 145)) < 28) {
     mode = 'menu';
     game.garage.open = true;
     showPanel('garage', game);
+    return;
   }
-}
-
-function carjack() {
   if (drive.state.active) return;
   let nearest = null;
   let range = 6;
@@ -359,8 +357,8 @@ function step(dt) {
     world.fixCooldown = 24;
   }
 
-  if (input.hit('KeyE') && world.interactCooldown === 0) { interact(); world.interactCooldown = 0.4; }
-  if (input.hit('KeyF')) carjack();
+  if (input.hit('KeyE') && world.interactCooldown === 0) { enterVehicleOrCarjack(); world.interactCooldown = 0.4; }
+  if (input.hit('KeyF')) enterVehicleOrCarjack('carjack');
   if (input.hit('KeyM')) {
     mode = 'menu';
     showPanel('map', game);
@@ -397,7 +395,7 @@ function step(dt) {
   pedestrians.step(dt, elapsed, crime || police.wanted > 0, drive.state.car.position);
   combat.step(dt, input, camera, player.position, !drive.state.active);
   const missionPosition = drive.state.active ? drive.state.car.position : player.position;
-  const missionCompleted = missions.step(dt, drive.state.drift, world.district, {
+  const missionCompleted = missions.runMissionStage(dt, drive.state.drift, world.district, {
     position: missionPosition,
     speed: drive.state.speed,
     wanted: police.wanted,

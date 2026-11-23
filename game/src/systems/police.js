@@ -1,7 +1,7 @@
 import * as THREE from '../../vendor/three.module.min.js';
 
 /** Five-level pursuit director with sight decay and escalating response units. */
-export function createPolice(city) {
+export function createWantedDispatch(city) {
   return {
     wanted: 0,
     heat: 0,

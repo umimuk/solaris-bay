@@ -13,7 +13,7 @@ export function loadSave() {
 }
 
 /** Persist only serializable game state; localStorage failures stay non-fatal. */
-export function saveGame(data) {
+export function saveGameSlot(data) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...data, savedAt: Date.now() }));
     return true;
