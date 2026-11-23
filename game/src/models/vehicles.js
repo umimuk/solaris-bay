@@ -23,8 +23,8 @@ function addContactShadow(root, width = 4.8, depth = 2.5) {
     g.addColorStop(0,'rgba(10,13,17,.72)'); g.addColorStop(.42,'rgba(10,13,17,.38)'); g.addColorStop(1,'rgba(10,13,17,0)');
     ctx.fillStyle=g;ctx.fillRect(0,0,128,128); contactMap=new THREE.CanvasTexture(canvas);
   }
-  const shadow = new THREE.Mesh(new THREE.PlaneGeometry(width, depth), new THREE.MeshBasicMaterial({ map:contactMap, transparent:true, opacity:.62, depthWrite:false, toneMapped:false }));
-  shadow.rotation.x=-Math.PI/2; shadow.position.y=.045; shadow.renderOrder=1; root.add(shadow); return shadow;
+  const shadow = new THREE.Mesh(new THREE.PlaneGeometry(width, depth), new THREE.MeshBasicMaterial({ map:contactMap, transparent:true, opacity:.72, depthWrite:false, toneMapped:false }));
+  shadow.rotation.x=-Math.PI/2; shadow.position.y=.03; shadow.renderOrder=1; root.add(shadow); return shadow;
 }
 function glowMap(color) {
   if (glowMaps.has(color)) return glowMaps.get(color);
@@ -164,6 +164,8 @@ export function createVehicle(type = 0, paint = null) {
   }
   const tailBar = box(root, tailMaterial, [-2.19, 0.83, 0], [0.075, 0.19, width * 0.79]);
   root.userData.rearLights.push(tailBar);
+  const tailTrim = box(root, standard(0xc3c8c6, { metalness: 0.88, roughness: 0.2, emissive: 0x352021, emissiveIntensity: 0.32 }), [-2.235, 0.955, 0], [0.035, 0.035, width * 0.83]);
+  tailTrim.userData.lightTrim = true;
   const plate = new THREE.Mesh(new THREE.PlaneGeometry(.86,.27),plateMat); plate.rotation.y=-Math.PI/2;plate.position.set(-2.28,.55,0);root.add(plate);
   for(const side of [-1,1]) {
     const exhaust=new THREE.Mesh(new THREE.CylinderGeometry(.095,.12,.2,16),materials.chrome);exhaust.rotation.z=Math.PI/2;exhaust.position.set(-2.32,.43,side*.48);root.add(exhaust);
@@ -202,9 +204,9 @@ export function createVehicle(type = 0, paint = null) {
     liveryContext.fillStyle = '#eeeae0'; liveryContext.fillRect(0, 0, livery.width, livery.height);
     liveryContext.fillStyle = '#172431'; liveryContext.fillRect(0, 0, livery.width, 36); liveryContext.fillRect(0, 188, livery.width, 36);
     liveryContext.fillStyle = '#c7a65d'; liveryContext.fillRect(0, 36, livery.width, 8); liveryContext.fillRect(0, 180, livery.width, 8);
-    liveryContext.fillStyle = '#14212d'; liveryContext.font = '900 87px Arial, sans-serif'; liveryContext.textAlign = 'center'; liveryContext.textBaseline = 'middle';
-    liveryContext.fillText('POLICE', 384, 104);
-    liveryContext.font = '700 38px Arial, sans-serif'; liveryContext.fillText('SBPD  •  EMERGENCY 911', 384, 154);
+    liveryContext.fillStyle = '#14212d'; liveryContext.font = '900 98px Arial, sans-serif'; liveryContext.textAlign = 'center'; liveryContext.textBaseline = 'middle';
+    liveryContext.fillText('SBPD', 384, 101);
+    liveryContext.font = '700 34px Arial, sans-serif'; liveryContext.fillText('POLICE  •  EMERGENCY 911', 384, 163);
     const liveryMap = new THREE.CanvasTexture(livery); liveryMap.colorSpace = THREE.SRGBColorSpace;
     const liveryMaterial = new THREE.MeshBasicMaterial({ map: liveryMap, toneMapped: false, side: THREE.DoubleSide });
     for (const side of [-1, 1]) {

@@ -154,7 +154,7 @@ function addBoulevardBackdrop(game) {
     const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.06, 2.25, 6), balcony); pole.position.set(x, -3.9, z); avenue.add(pole);
   }
   for (const z of [-52, -122, -192, -262]) {
-    const beachPalm = createPalm(); beachPalm.position.set(21.5, -4.9, z); beachPalm.scale.setScalar(1.68); avenue.add(beachPalm);
+    const beachPalm = createPalm(); beachPalm.position.set(61, -4.9, z); beachPalm.scale.setScalar(0.8); avenue.add(beachPalm);
   }
   // The 65 mints of traffic read as small, bright moving cars on the distant lanes.
   const trafficPaint = [0xecebe2, 0xc76455, 0x4b8a9a, 0xe2b75b, 0x364b5f];
@@ -387,6 +387,20 @@ function addTitleCoast(game) {
     streak.rotation.y = index % 2 ? -0.16 : 0.16;
     coast.add(streak);
   }
+  const crispFoam = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.98, toneMapped: false });
+  for (const [z, span] of [[-36, 23], [-78, 30], [-128, 25], [-185, 31], [-224, 22]]) {
+    const shore = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(72, -11.2, z - span), new THREE.Vector3(75, -11.19, z - span * 0.58),
+      new THREE.Vector3(77, -11.18, z), new THREE.Vector3(75, -11.19, z + span * 0.58),
+      new THREE.Vector3(72, -11.2, z + span),
+    ]);
+    coast.add(new THREE.Mesh(new THREE.TubeGeometry(shore, 32, 0.16, 7, false), crispFoam));
+  }
+  // Small bright rings make the foam lap visibly around the pier supports.
+  for (const [x, z] of [[72, -99], [86, -99], [72, -89], [86, -89]]) {
+    const loop = new THREE.Mesh(new THREE.TorusGeometry(0.72, 0.12, 6, 24), crispFoam);
+    loop.rotation.x = Math.PI / 2; loop.position.set(x, -11.18, z); coast.add(loop);
+  }
   const wheel = game.city.ferrisWheel;
   game.scene.attach(wheel);
   coast.add(wheel);
@@ -603,7 +617,11 @@ function stageDrift(game) {
   game.sky.dome.material.uniforms.zenithColor.value.set('#2f8ed4');
   game.sky.dome.material.uniforms.middleColor.value.set('#85cef5');
   game.sky.dome.material.uniforms.horizonColor.value.set('#ffe6b8');
-  for(let i=0;i<5;i++)for(const sign of [-1,1]){const palm=createPalm();palm.position.copy(car.position).addScaledVector(forward,(i-2)*17).addScaledVector(side,sign*22);palm.scale.setScalar(.95);game.scene.add(palm);}
+  for(let i=0;i<5;i++)for(const sign of [-1,1]){const palm=createPalm();palm.position.copy(car.position).addScaledVector(forward,(i-2)*17).addScaledVector(side,sign<0?-22:46);palm.scale.setScalar(sign<0?.95:.62);game.scene.add(palm);}
+  // Three beachside palms frame the open right sky while staying beyond the curb.
+  for (const [distance, lateral, scale] of [[-11, 54, 0.78], [8, 54, 0.82], [26, 54, 0.76]]) {
+    const palm = createPalm(); palm.position.copy(car.position).addScaledVector(forward, distance).addScaledVector(side, lateral); palm.position.y = -1.1; palm.scale.setScalar(scale); game.scene.add(palm);
+  }
   pedestrians.list.forEach((person) => { person.visible = false; });
   pedestrians.list.slice(0, 20).forEach((person, index) => {
     const cluster = Math.floor(index / 3);
@@ -632,6 +650,17 @@ function stageDrift(game) {
   for (let i = 0; i < 26; i++) for (const wheelSide of [-1, 1]) {
     const t = i / 26; const mark = new THREE.Mesh(new THREE.PlaneGeometry(0.28, 0.85), new THREE.MeshBasicMaterial({ color: 0x080b0d, transparent: true, opacity: 0.72, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 }));
     mark.rotation.set(-Math.PI / 2, 0, -state.yaw); mark.position.copy(rear).addScaledVector(forward, -t * 0.95).addScaledVector(side, wheelSide * 0.72 + Math.sin(t * 8) * 0.26); mark.position.y = 0.06; game.scene.add(mark);
+  }
+  // Two continuous rubber ribbons sharpen the curved tire path behind the rear wheels.
+  for (const wheelSide of [-1, 1]) {
+    const points = [];
+    for (let index = 0; index <= 12; index++) {
+      const t = index / 12;
+      points.push(rear.clone().addScaledVector(forward, -0.45 - t * 1.9).addScaledVector(side, wheelSide * (0.76 + t * 0.2) + Math.sin(t * Math.PI) * 0.16).setY(0.035));
+    }
+    const curve = new THREE.CatmullRomCurve3(points);
+    const ribbon = new THREE.Mesh(new THREE.TubeGeometry(curve, 36, 0.07, 7, false), new THREE.MeshBasicMaterial({ color: 0x111314, transparent: true, opacity: 0.88, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -3 }));
+    game.scene.add(ribbon);
   }
   // Each burst originates at a rear contact patch and fans backward/outward in car space.
   // Real drift loads the outside rear tire much harder. Bias the spray toward
@@ -851,7 +880,7 @@ function stageCombat(game) {
   world.shotRadio = 'NIKO VALE • DRIVER — Mara, I have four ahead. I’m moving through the crossfire.';
   car.position.set(238, 0.12, 157); car.rotation.y = Math.PI * 0.78;
   if (drive.state.active) drive.enterExit();
-  player.position.set(237, 0, 159); player.rotation.y = -0.12; player.visible = true;
+  player.position.set(237, 0, 159); player.rotation.y = 0.59; player.visible = true;
   combat.wheel = true; combat.weapon = 4; combat.ammo = 24; combat.ammoByWeapon[3] = 24;
   combat.reserve[3] = 120;
   const healthBars = [];
@@ -869,7 +898,18 @@ function stageCombat(game) {
   game.healthBars = healthBars;
   for (const enemy of combat.enemies.slice(6)) enemy.visible = false;
   player.traverse((part) => { if (part.isMesh && part.material?.color && part.material.color.getHex() === 0x294c50) { part.material.color.setHex(0xc73340); part.material.emissive?.setHex(0x28090e); } });
+  if (player.userData.limbs?.length >= 2) { player.userData.limbs[0].rotation.z = 0.94; player.userData.limbs[1].rotation.z = -1.12; }
+  player.userData.weapon.scale.setScalar(1.28);
   const playerStripe = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.52, 0.44), new THREE.MeshBasicMaterial({ color: 0xf3ead5 })); playerStripe.position.set(0.05, 1.19, 0.225); player.add(playerStripe);
+  const downed = combat.enemies[6];
+  if (downed) {
+    downed.visible = true; downed.userData.alive = false; downed.userData.health = 0;
+    downed.position.set(251.5, 0.04, 151.2); downed.rotation.set(0, Math.PI + 0.35, 1.28); downed.scale.set(1.06, 1.06, 1.06);
+    const lootCanvas = document.createElement('canvas'); lootCanvas.width = 320; lootCanvas.height = 112;
+    const lootContext = lootCanvas.getContext('2d'); lootContext.font = '900 68px Chakra,Arial'; lootContext.textAlign = 'center'; lootContext.textBaseline = 'middle'; lootContext.fillStyle = '#baff9b'; lootContext.shadowColor = '#35ff77'; lootContext.shadowBlur = 24; lootContext.fillText('+$250', 160, 54);
+    const loot = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(lootCanvas), transparent: true, depthWrite: false, toneMapped: false }));
+    loot.position.set(253.7, 1.15, 151.7); loot.scale.set(3.1, 1.08, 1); game.scene.add(loot);
+  }
   const hitCanvas=document.createElement('canvas');hitCanvas.width=320;hitCanvas.height=100;const hitCtx=hitCanvas.getContext('2d');hitCtx.font='900 54px Chakra,Arial';hitCtx.textAlign='center';hitCtx.fillStyle='#ffe193';hitCtx.shadowColor='#ff9b32';hitCtx.shadowBlur=18;hitCtx.fillText('HEAD 85',160,64);
   const hitSprite=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(hitCanvas),transparent:true,depthWrite:false,toneMapped:false}));hitSprite.position.set(260.2,3.25,145);hitSprite.scale.set(3.3,1.05,1);game.scene.add(hitSprite);
   for (const [label, x, z, color] of [['42!', 264, 3.7, '#ff8b55'], ['38', 257.2, 4.05, '#ffe17b']]) {
@@ -886,14 +926,13 @@ function stageCombat(game) {
   game.missions.cash = 14800; game.missions.respect = 420; game.police.wanted = 3;
   game.police.heat = 58;
   // Muzzle starburst, barrel light and tracers cross the downtown avenue.
-  const muzzle = new THREE.Group(); player.userData.weapon.add(muzzle); muzzle.position.set(0.94, 0, 0);
+  const muzzle = new THREE.Group(); player.userData.weapon.add(muzzle); muzzle.position.set(1.2, 0, 0);
   for (let i = 0; i < 6; i++) { const ray = new THREE.Mesh(new THREE.ConeGeometry(i % 2 ? 0.07 : 0.11, i % 2 ? 0.34 : 0.22, 4), new THREE.MeshBasicMaterial({ color: i % 2 ? 0xffa42e : 0xfff4c3, blending: THREE.AdditiveBlending, depthWrite: false })); ray.rotation.z = -Math.PI / 2 + (i - 2.5) * 0.16; ray.position.x = 0.1; muzzle.add(ray); }
   const muzzleCore = new THREE.Mesh(new THREE.SphereGeometry(0.075, 10, 8), new THREE.MeshBasicMaterial({ color: 0xfff9e2, blending: THREE.AdditiveBlending, toneMapped: false })); muzzle.add(muzzleCore);
   const muzzleLight = new THREE.PointLight(0xffc45f, 11, 6); muzzle.add(muzzleLight);
   player.updateMatrixWorld(true);
-  const barrelTip = player.localToWorld(new THREE.Vector3(0.34 + 0.94, 1.04, 0.04));
-  const reticleRay = new THREE.Vector3(0.04, 0.1, 0.5).unproject(game.camera).sub(barrelTip).normalize();
-  addTracer(game.scene, barrelTip.toArray(), barrelTip.clone().addScaledVector(reticleRay, 28).toArray(), 0xffc66e, 0.025);
+  const barrelTip = player.localToWorld(new THREE.Vector3(0.34 + 1.2 * 1.28, 1.04, 0.04));
+  addTracer(game.scene, barrelTip.toArray(), [260, 2.25, 145], 0xffc66e, 0.055);
   const impact = new THREE.PointLight(0xff832d, 18, 9); impact.position.set(261, 2.6, 153); game.scene.add(impact);
   const impactSpark = new THREE.Mesh(new THREE.IcosahedronGeometry(0.5, 1), new THREE.MeshBasicMaterial({ color: 0xffb052, wireframe: true })); impactSpark.position.copy(impact.position); game.scene.add(impactSpark);
   // A layered fireball gives the blockade impact a readable focal point at screenshot scale.
